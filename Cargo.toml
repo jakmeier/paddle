@@ -1,0 +1,10 @@
+[package]
+name = "paddle"
+version = "0.1.0"
+authors = ["Jakob Meier <inbox@jakobmeier.ch>"]
+edition = "2018"
+license = "MIT/Apache-2.0"
+
+[dependencies]
+nuts = { path = "../nuts" }
+quicksilver = { git = "https://github.com/jakmeier/quicksilver", default-features = false, features = ["complex_shapes"], rev = "224d88a60b4000f209b12856885dafa18a88339a" }
