@@ -1,5 +1,5 @@
 use crate::frame::{frame_to_activity, Frame, FrameHandle};
-use nuts::{ActivityId, UncheckedActivityId};
+use nuts::{ActivityId, LifecycleStatus::Active, LifecycleStatus::Inactive, UncheckedActivityId};
 use quicksilver::prelude::Window;
 use std::collections::HashMap;
 use std::hash::Hash;
@@ -37,12 +37,14 @@ impl<V: Hash + Eq + Copy> ViewManager<V> {
         FRAME: Frame<State = S, Graphics = Window, Error = E> + nuts::Activity,
     {
         let activity_id: ActivityId<_> = frame_to_activity(frame).into();
+        let mut status = Inactive;
         for view in views {
             if view == &self.current_view {
-                nuts::set_active(activity_id, view == &self.current_view);
-            }
+                status = Active;
+            };
             self.link_activity_to_view(activity_id, *view);
         }
+        activity_id.set_status(status);
         FrameHandle::new(activity_id)
     }
     pub fn set_view(&mut self, view: V) {
@@ -59,12 +61,12 @@ impl<V: Hash + Eq + Copy> ViewManager<V> {
         // deactivate all in before that are not in after
         for b in before {
             if !after.iter().any(|a| a == b) {
-                nuts::set_active(*b, false);
+                b.set_status(Inactive);
             }
         }
         // activate all in after (activating when already active does nothing)
         for a in after {
-            nuts::set_active(*a, true);
+            a.set_status(Active);
         }
         self.current_view = view;
     }

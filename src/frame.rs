@@ -132,7 +132,7 @@ pub fn frame_to_activity<F>(frame: F) -> ActivityId<F>
 where
     F: Frame<Graphics = Window> + Activity,
 {
-    let activity = nuts::new_domained_activity(frame, Domain::Main, false);
+    let activity = nuts::new_domained_activity(frame, &Domain::Main);
 
     activity.subscribe_domained(|a, d, _msg: &UpdateWorld| {
         let global_state: &mut F::State = d.try_get_mut().expect("Global state missing");
@@ -180,14 +180,13 @@ where
     activity
 }
 
-impl<STATE, FRAME: Frame<State = STATE>> FrameHandle<FRAME> {
+impl<STATE: 'static, FRAME: Frame<State = STATE>> FrameHandle<FRAME> {
     // FIXME: Declaring Error and State (redundantly) on each event handler is annoying and can lead to complex error messages.
     pub fn listen<F, MSG>(&self, f: F)
     where
         F: Fn(&mut FRAME, &mut STATE, &MSG) -> Result<(), FRAME::Error> + Copy + 'static,
         MSG: 'static,
         FRAME: 'static,
-        STATE: 'static,
     {
         self.activity_id.subscribe_domained_masked(
             SubscriptionFilter::no_filter(),
