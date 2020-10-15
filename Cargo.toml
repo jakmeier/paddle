@@ -6,8 +6,8 @@ edition = "2018"
 license = "MIT/Apache-2.0"
 
 [dependencies]
-nuts = { path = "../nuts" }
+nuts = "0.1.1"
 quicksilver = { git = "https://github.com/jakmeier/quicksilver", default-features = false, features = ["complex_shapes"], rev = "224d88a60b4000f209b12856885dafa18a88339a" }
 stdweb = {version = "0.4.20", features = ["experimental_features_which_may_break_on_minor_version_bumps"] }
 panes = { git = "https://github.com/jakmeier/panes", rev = "39de99f30400ac5b961eaa14516154f50a992b62" }
-chrono = "0.4.15"
+chrono = "0.4.19"
