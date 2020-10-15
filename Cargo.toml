@@ -5,11 +5,15 @@ authors = ["Jakob Meier <inbox@jakobmeier.ch>"]
 edition = "2018"
 license = "MIT/Apache-2.0"
 
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+
 [dependencies]
 nuts = { git = "https://github.com/jakmeier/nuts", rev = "158e3fefa8139b2f1f33cb6c4a460c8ec1efa6c7" }
 # nuts = "0.1.1"
 stdweb = {version = "0.4.20", features = ["experimental_features_which_may_break_on_minor_version_bumps"] }
-panes = { git = "https://github.com/jakmeier/panes", rev = "39de99f30400ac5b961eaa14516154f50a992b62" }
+div = "0.2.0"
 chrono = "0.4.19"
 rand = "0.7"
 serde = {version = "1.0", features = ["derive"] }
@@ -22,11 +26,13 @@ js-sys = "0.3.45"
 version = "0.3"
 features = [
     "Blob",
+    "console",
     "Document",
     "Element",
     "FileReader",
     "Headers",
     "HtmlCanvasElement",
+    "HtmlElement",
     "HtmlImageElement",
     "Request",
     "RequestInit",
@@ -39,5 +45,4 @@ features = [
     "WebGlTexture",
     "WebGlUniformLocation",
     "Window",
-    "console",
 ]
