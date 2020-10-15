@@ -18,35 +18,9 @@ pub use text::*;
 pub use view_manager::*;
 
 // Code that currently belongs nowhere
-
-use stdweb::unstable::TryInto;
-use stdweb::js;
 pub fn utc_now() -> chrono::NaiveDateTime {
-    let millis: f64 = js!(
-        var date = new Date();
-        return date.getTime();
-    )
-    .try_into()
-    .expect("Reading time");
+    let millis: f64 = js_sys::Date::now();
     let seconds = (millis / 1000.0).trunc() as i64;
     let nanos = ((millis % 1000.0) * 1_000_000.0) as u32; 
     chrono::NaiveDateTime::from_timestamp(seconds, nanos)
 }
-
-
-// Code that might be useful later but otherwise can be deleted
-
-// /// Calls nuts::draw() in every animation frame as managed by the browser. (Using requestAnimationFrame)
-// pub fn auto_draw() {
-//     stdweb::web::window().request_animation_frame(|_| crate::draw());
-// }
-
-// /// Calls nuts::update() in intervals managed by the browser. (Using setInterval)
-// /// The defined interval will be the maximum number of calls but may be less if the computation takes too long
-// pub fn auto_update(delay_ms: u32) {
-//     let callback = crate::update;
-
-//     js!( @(no_return)
-//         setInterval( @{callback}, @{delay_ms});
-//     );
-// }

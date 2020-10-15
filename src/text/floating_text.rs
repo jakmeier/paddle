@@ -1,5 +1,5 @@
 use crate::{PaddleResult, TextNode, FitStrategy};
-use panes::PaneHandle;
+use div::PaneHandle;
 use quicksilver::{lifecycle::Window, geom::Rectangle};
 
 #[derive(Debug)]
@@ -28,7 +28,7 @@ impl FloatingText {
         let h = area.height() as u32;
 
         let html = &text;
-        let pane = panes::new_styled_pane(x, y, w, h, html, classes, styles)?;
+        let pane = div::new_styled_pane(x, y, w, h, html, classes, styles)?;
 
         let text_node = pane.parent_element()?.into();
         let node = TextNode::new(text_node, text);
@@ -43,7 +43,7 @@ impl FloatingText {
         };
         Ok(float)
     }
-    pub fn update_position(&mut self, area: &Rectangle) -> Result<(), panes::PanesError> {
+    pub fn update_position(&mut self, area: &Rectangle) -> Result<(), div::DivError> {
         let (x, y, w, h) = (
             area.x() as u32,
             area.y() as u32,
@@ -59,10 +59,10 @@ impl FloatingText {
     pub fn draw(&mut self) {
         self.node.draw();
     }
-    pub fn show(&self) -> Result<(), panes::PanesError> {
+    pub fn show(&self) -> Result<(), div::DivError> {
         self.pane.show()
     }
-    pub fn hide(&self) -> Result<(), panes::PanesError> {
+    pub fn hide(&self) -> Result<(), div::DivError> {
         self.pane.hide()
     }
     pub fn try_default() -> PaddleResult<Self> {

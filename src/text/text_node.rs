@@ -1,14 +1,14 @@
-use stdweb::web::{INode, Node};
+use web_sys::HtmlElement;
 
 #[derive(Debug)]
 pub struct TextNode {
-    dom_node: Node,
+    dom_node: HtmlElement,
     text: String,
     dirty: bool,
 }
 
 impl TextNode {
-    pub fn new(dom_node: Node, text: String) -> Self {
+    pub fn new(dom_node: HtmlElement, text: String) -> Self {
         TextNode {
             text,
             dom_node,
@@ -33,7 +33,7 @@ impl TextNode {
     }
     pub fn draw(&mut self) {
         if self.dirty {
-            self.dom_node.set_text_content(&self.text);
+            self.dom_node.set_text_content(Some(&self.text));
             self.dirty = false;
         }
     }
