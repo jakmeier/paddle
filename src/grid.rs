@@ -1,4 +1,4 @@
-use quicksilver::prelude::*;
+use crate::quicksilver_compat::*;
 
 pub struct Grid {
     pub base: Rectangle,

@@ -1,5 +1,6 @@
+use crate::quicksilver_compat::Rectangle;
+
 use super::FloatingText;
-use quicksilver::geom::Rectangle;
 
 /// Allocates FloatingText units
 pub struct TextPool {

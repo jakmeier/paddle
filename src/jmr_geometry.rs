@@ -1,7 +1,6 @@
-use crate::FitStrategy;
-use quicksilver::prelude::*;
 use crate::grid::Grid;
-
+use crate::quicksilver_compat::*;
+use crate::FitStrategy;
 /// Extension trait for Quicksilver Rectangle
 pub trait JmrRectangle
 where
@@ -78,7 +77,7 @@ impl JmrRectangle for Rectangle {
         }
         rect
     }
-    
+
     fn grid(&self, cols: usize, rows: usize) -> Grid {
         let dx = self.width() / cols as f32;
         let dy = self.height() / rows as f32;

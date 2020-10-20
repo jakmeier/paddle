@@ -1,6 +1,5 @@
-use crate::{PaddleResult, TextNode, FitStrategy};
+use crate::{canvas::Window, quicksilver_compat::Rectangle, FitStrategy, PaddleResult, TextNode};
 use panes::PaneHandle;
-use quicksilver::{lifecycle::Window, geom::Rectangle};
 
 #[derive(Debug)]
 pub struct FloatingText {

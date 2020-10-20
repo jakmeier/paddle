@@ -1,6 +1,9 @@
-use crate::frame::{frame_to_activity, Frame, FrameHandle};
+use crate::{
+    canvas::Window,
+    frame::{frame_to_activity, Frame, FrameHandle},
+    Domain,
+};
 use nuts::{ActivityId, LifecycleStatus::Active, LifecycleStatus::Inactive, UncheckedActivityId};
-use quicksilver::prelude::Window;
 use std::collections::HashMap;
 use std::hash::Hash;
 
@@ -8,6 +11,7 @@ use std::hash::Hash;
 pub struct ViewManager<V> {
     views_to_activities: HashMap<V, Vec<UncheckedActivityId>>,
     current_view: V,
+    domain: Domain,
 }
 
 impl<V: Hash + Eq + Copy> ViewManager<V> {
@@ -15,6 +19,7 @@ impl<V: Hash + Eq + Copy> ViewManager<V> {
         Self {
             views_to_activities: HashMap::new(),
             current_view: v,
+            domain: Domain::Frame,
         }
     }
 
@@ -36,7 +41,7 @@ impl<V: Hash + Eq + Copy> ViewManager<V> {
     where
         FRAME: Frame<State = S, Graphics = Window, Error = E> + nuts::Activity,
     {
-        let activity_id: ActivityId<_> = frame_to_activity(frame).into();
+        let activity_id: ActivityId<_> = frame_to_activity(frame, &self.domain).into();
         let mut status = Inactive;
         for view in views {
             if view == &self.current_view {

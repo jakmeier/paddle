@@ -1,6 +1,5 @@
+use crate::{canvas::Window, Event};
 use nuts::*;
-use quicksilver::lifecycle::Event;
-use quicksilver::prelude::Window;
 
 /// A frame takes up some area on the screen where it is drawn and reacts to UI events
 pub trait Frame {
@@ -57,7 +56,8 @@ impl<FRAME> FrameHandle<FRAME> {
 
 #[derive(Clone, Copy)]
 pub enum Domain {
-    Main, //  TODO: rename to Paddle
+    Frame,
+    Load,
 }
 domain_enum!(Domain);
 
@@ -128,11 +128,11 @@ pub fn share_foreground<MSG: 'static>(msg: MSG) {
     nuts::publish(ActiveEvent(msg));
 }
 
-pub fn frame_to_activity<F>(frame: F) -> ActivityId<F>
+pub fn frame_to_activity<F, D: DomainEnumeration>(frame: F, domain: &D) -> ActivityId<F>
 where
     F: Frame<Graphics = Window> + Activity,
 {
-    let activity = nuts::new_domained_activity(frame, &Domain::Main);
+    let activity = nuts::new_domained_activity(frame, domain);
 
     activity.subscribe_domained(|a, d, _msg: &UpdateWorld| {
         let global_state: &mut F::State = d.try_get_mut().expect("Global state missing");

@@ -1,7 +1,7 @@
-use crate::error::NutsCheck;
+use crate::quicksilver_compat::*;
+use crate::{canvas::Window, error::NutsCheck};
 use crate::{DrawWorld, FloatingText, JmrRectangle, PaddleResult};
 use chrono::*;
-use quicksilver::prelude::*;
 
 const ERROR_COLOR: Color = Color {
     r: 0.8,
