@@ -35,7 +35,7 @@ pub async fn load_blob(url: &str) -> PaddleResult<Blob> {
     let js_blob = JsFuture::from(promise)
         .await
         .map_err(JsError::from_js_value)?;
-    let rust_blob = Blob::new_with_blob_sequence(&js_blob).map_err(JsError::from_js_value)?;
+    let rust_blob = js_blob.dyn_into().map_err(JsError::from_js_value)?;
     Ok(rust_blob)
 }
 

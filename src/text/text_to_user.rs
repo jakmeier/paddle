@@ -1,5 +1,5 @@
-use crate::quicksilver_compat::*;
 use crate::{canvas::Window, error::NutsCheck};
+use crate::{quicksilver_compat::*, Domain};
 use crate::{DrawWorld, FloatingText, JmrRectangle, PaddleResult};
 use chrono::*;
 
@@ -23,12 +23,13 @@ pub struct TextBoard {
 impl TextBoard {
     pub fn init() {
         let tb = TextBoard::default();
-        let tb_id = nuts::new_activity(tb);
+        let tb_id = nuts::new_domained_activity(tb, &Domain::Frame);
         tb_id.subscribe_owned(|tb, msg: TextMessage| {
             tb.messages.push(msg);
         });
-        tb_id.subscribe_mut(|tb, msg: &mut DrawWorld| {
-            tb.render_text_messages(msg.window()).nuts_check();
+        tb_id.subscribe_domained_mut(|tb, domain, _msg: &mut DrawWorld| {
+            let window = domain.try_get_mut::<Window>().expect("Window missing");
+            tb.render_text_messages(window).nuts_check();
         });
     }
     pub fn display_error_message(msg: String) -> PaddleResult<()> {

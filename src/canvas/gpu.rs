@@ -5,7 +5,8 @@ use web_sys::{WebGlBuffer, WebGlProgram, WebGlRenderingContext, WebGlShader, Web
 const VERTEX_SIZE: usize = 9; // the number of floats in a vertex
 
 use crate::{
-    quicksilver_compat::{Color, GpuTriangle, Image, Vector, Vertex},
+    graphics::Image,
+    quicksilver_compat::{Color, GpuTriangle, Vector, Vertex},
     ErrorMessage, PaddleResult,
 };
 

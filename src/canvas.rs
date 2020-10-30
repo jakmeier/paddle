@@ -3,8 +3,8 @@ mod shader;
 
 use crate::{
     quicksilver_compat::{
-        geom::Scalar, Background, Color, Drawable, GpuTriangle, Image, Mesh, Rectangle, Transform,
-        Vector, Vertex, View,
+        geom::Scalar, Background, Color, Drawable, GpuTriangle, Mesh, Rectangle, Transform, Vector,
+        Vertex, View,
     },
     ErrorMessage, PaddleResult,
 };
@@ -82,14 +82,17 @@ impl Window {
         let canvas = document
             .get_element_by_id(id)
             .ok_or_else(|| ErrorMessage::technical(format!("No canvas with id {}", id)))?;
-        let canvas: HtmlCanvasElement = canvas
-            .dyn_into::<HtmlCanvasElement>()
-            .map_err(|_| ErrorMessage::technical("Not a canvas".to_owned()))?;
+        let canvas: HtmlCanvasElement = canvas.dyn_into::<HtmlCanvasElement>().map_err(|e| {
+            ErrorMessage::technical(format!(
+                "Not a canvas. Err: {}",
+                e.to_string().as_string().unwrap()
+            ))
+        })?;
         Self::new(canvas)
     }
 
-    pub async fn load_image(&self, url: &str) -> PaddleResult<Image> {
-        Ok(Image::load(&self.gl, url).await?)
+    pub fn clone_webgl(&self) -> WebGlRenderingContext {
+        self.gl.clone()
     }
 
     /// Get the screen offset
@@ -253,22 +256,22 @@ impl Window {
         Ok(())
     }
 
+    // pub fn clear(&mut self, color: Color) {
+    //     self.clear_letterbox_color(color, Color::BLACK)
+    // }
+
+    // /// Clear the screen to a given color, with a given letterbox color
+    // ///
+    // /// The blend mode is also automatically reset,
+    // /// and any un-flushed draw calls are dropped.
+    // pub fn clear_letterbox_color(&mut self, color: Color, letterbox: Color) {
+    //     self.mesh.clear();
+    //     // self.reset_blend_mode();
+    //     self.clear_color(color, letterbox)
+    // }
+
+    // fn clear_color(&mut self, color: Color, letterbox: Color) {
     pub fn clear(&mut self, color: Color) {
-        self.clear_letterbox_color(color, Color::BLACK)
-    }
-
-    /// Clear the screen to a given color, with a given letterbox color
-    ///
-    /// The blend mode is also automatically reset,
-    /// and any un-flushed draw calls are dropped.
-    pub fn clear_letterbox_color(&mut self, color: Color, letterbox: Color) {
-        self.mesh.clear();
-        // self.reset_blend_mode();
-        self.clear_color(color, letterbox)
-    }
-
-    fn clear_color(&mut self, color: Color, letterbox: Color) {
-        self.clear(letterbox);
         self.buffer
             .draw(
                 &self.gl,

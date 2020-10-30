@@ -30,6 +30,7 @@ impl<E: std::error::Error> From<E> for ErrorMessage {
 }
 
 use wasm_bindgen::JsValue;
+#[derive(Debug)]
 pub struct JsError(pub JsValue);
 
 impl JsError {

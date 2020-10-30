@@ -1,3 +1,8 @@
+use std::{
+    rc::Rc,
+    sync::{Mutex, MutexGuard},
+};
+
 use crate::{canvas::Window, Event};
 use nuts::*;
 
@@ -57,7 +62,7 @@ impl<FRAME> FrameHandle<FRAME> {
 #[derive(Clone, Copy)]
 pub enum Domain {
     Frame,
-    Load,
+    Network,
 }
 domain_enum!(Domain);
 
@@ -68,45 +73,26 @@ pub struct RightClick {
     pub pos: (i32, i32),
 }
 
-pub struct UpdateWorld {
-    window: *mut Window,
-}
-pub struct DrawWorld {
-    window: *mut Window,
-}
+pub struct UpdateWorld;
+pub struct DrawWorld;
 pub struct WorldEvent {
-    window: *mut Window,
     event: Event,
 }
 impl UpdateWorld {
-    pub fn new(window: &mut Window) -> Self {
-        Self {
-            window: window as *mut Window,
-        }
-    }
-    pub fn window(&mut self) -> &mut Window {
-        unsafe { self.window.as_mut().unwrap() }
+    pub fn new() -> Self {
+        Self {}
     }
 }
 impl DrawWorld {
-    pub fn new(window: &mut Window) -> Self {
-        Self {
-            window: window as *mut Window,
-        }
-    }
-    pub fn window(&mut self) -> &mut Window {
-        unsafe { self.window.as_mut().unwrap() }
+    pub fn new() -> Self {
+        Self
     }
 }
 impl WorldEvent {
-    pub fn new(window: &mut Window, event: &Event) -> Self {
+    pub fn new(event: &Event) -> Self {
         Self {
-            window: window as *mut Window,
             event: event.clone(),
         }
-    }
-    pub fn window(&mut self) -> &mut Window {
-        unsafe { self.window.as_mut().unwrap() }
     }
     pub fn event(&self) -> Event {
         self.event.clone()
@@ -141,10 +127,13 @@ where
         }
     });
 
-    activity.subscribe_domained_mut(|a: &mut F, d: &mut DomainState, msg: &mut DrawWorld| {
-        let global_state: &mut F::State = d.try_get_mut().expect("Global state missing");
-        let window = msg.window();
-        if let Err(e) = a.draw(global_state, window) {
+    activity.subscribe_domained_mut(|a: &mut F, d: &mut DomainState, _msg: &mut DrawWorld| {
+        let (global_state, window) = d
+            .try_get_2_mut::<F::State, Window>();
+        if let Err(e) = a.draw(
+            global_state.expect("Global state missing"),
+            window.expect("Window missing"),
+        ) {
             nuts::publish(e);
         }
     });

@@ -8,6 +8,7 @@ pub(crate) mod canvas;
 pub(crate) mod error;
 pub(crate) mod event;
 pub(crate) mod frame; // TODO: Probably rename (e.g. to activity)
+pub mod graphics;
 pub(crate) mod grid;
 pub(crate) mod jmr_geometry;
 pub(crate) mod load;

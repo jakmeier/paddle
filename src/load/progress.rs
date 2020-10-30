@@ -49,8 +49,8 @@ impl LoadScheduler {
         }
     }
     pub fn attach_to_domain(self) {
-        nuts::store_to_domain(&Domain::Load, Some(self));
-        let activity = nuts::new_domained_activity(LoadActivity, &Domain::Load);
+        nuts::store_to_domain(&Domain::Frame, Some(self));
+        let activity = nuts::new_domained_activity(LoadActivity, &Domain::Frame);
         let aid = activity.clone();
         activity.subscribe_domained_owned(move |_, domain, msg: FinishedLoading| {
             let maybe_lm: &mut Option<LoadScheduler> = domain.get_mut();

@@ -1,6 +1,7 @@
+use crate::graphics::Image;
 use crate::quicksilver_compat::{
     geom::{Circle, Line, Rectangle, Scalar, Shape, Transform, Triangle, Vector},
-    graphics::{Color, GpuTriangle, Image, Mesh},
+    graphics::{Color, GpuTriangle, Mesh},
 };
 use std::iter;
 
