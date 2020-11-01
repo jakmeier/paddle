@@ -123,8 +123,7 @@ where
     });
 
     activity.subscribe_domained_mut(|a: &mut F, d: &mut DomainState, _msg: &mut DrawWorld| {
-        let (global_state, window) = d
-            .try_get_2_mut::<F::State, Window>();
+        let (global_state, window) = d.try_get_2_mut::<F::State, Window>();
         if let Err(e) = a.draw(
             global_state.expect("Global state missing"),
             window.expect("Window missing"),
