@@ -3,7 +3,6 @@ use crate::quicksilver_compat::{
     geom::{Scalar, Vector},
     graphics::{Background, Color},
 };
-use std::cmp::Ordering;
 
 #[derive(Clone, Copy, Debug)]
 /// A vertex for drawing items to the GPU

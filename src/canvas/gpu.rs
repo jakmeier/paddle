@@ -1,4 +1,4 @@
-use js_sys::{Float32Array, Int32Array, Uint32Array};
+use js_sys::{Float32Array, Uint32Array};
 use web_sys::{WebGlBuffer, WebGlProgram, WebGlRenderingContext, WebGlShader, WebGlTexture};
 
 // TODO: Better was to deal with this?
@@ -87,12 +87,16 @@ impl WasmGpuBuffer {
 }
 
 pub(super) struct Gpu {
+    #[allow(dead_code)]
     vertex_buffer: WebGlBuffer,
+    #[allow(dead_code)]
     index_buffer: WebGlBuffer,
     vertex_buffer_size: usize,
     index_buffer_size: usize,
     program: WebGlProgram,
+    #[allow(dead_code)]
     fragment_shader: WebGlShader,
+    #[allow(dead_code)]
     vertex_shader: WebGlShader,
 }
 

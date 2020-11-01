@@ -17,17 +17,8 @@ use self::gpu::{Gpu, WasmGpuBuffer};
 pub struct Window {
     // resize: ResizeStrategy,
     screen_region: Rectangle,
-    // keyboard: Keyboard,
-    // mouse: Mouse,
     view: View,
-    // update_rate: f64,
-    // max_updates: u32,
-    // draw_rate: f64,
     mesh: Mesh,
-    frame_count: f64,
-    fps: f64,
-    last_framerate: f64,
-    running: bool,
     fullscreen: bool,
 
     canvas: HtmlCanvasElement,
@@ -59,10 +50,6 @@ impl Window {
             // max_updates: settings.max_updates,
             // draw_rate: settings.draw_rate,
             mesh: Mesh::new(),
-            frame_count: 0.0,
-            fps: 0.0,
-            last_framerate: 0.0,
-            running: true,
             fullscreen: false,
             canvas,
             gl,
@@ -91,6 +78,9 @@ impl Window {
         Self::new(canvas)
     }
 
+    pub fn html_element(&self) -> &HtmlCanvasElement {
+        &self.canvas
+    }
     pub fn clone_webgl(&self) -> WebGlRenderingContext {
         self.gl.clone()
     }
@@ -154,78 +144,10 @@ impl Window {
         &mut self.mesh
     }
 
-    // /// The ideal delay between two calls to update in milliseconds
-    // pub fn update_rate(&self) -> f64 {
-    //     self.update_rate
-    // }
-
-    // /// Set the desired time between two calls to update in milliseconds
-    // pub fn set_update_rate(&mut self, update_rate: f64) {
-    //     self.update_rate = update_rate;
-    // }
-
-    // /// The ideal delay between two calls to draw in milliseconds
-    // pub fn draw_rate(&self) -> f64 {
-    //     self.draw_rate
-    // }
-
-    // /// Set the desired time between two calls to draw in milliseconds
-    // pub fn set_draw_rate(&mut self, draw_rate: f64) {
-    //     self.draw_rate = draw_rate;
-    // }
-
-    pub(crate) fn log_framerate(&mut self, delay: f64) {
-        if delay > 0.0 {
-            let total = self.frame_count * self.fps;
-            self.frame_count += 1.0;
-            let framerate = 1000.0 / delay;
-            self.last_framerate = framerate;
-            self.fps = (total + framerate) / self.frame_count;
-        }
-    }
-
-    /// Get the delay between the last two draw frames
-    pub fn current_fps(&self) -> f64 {
-        self.last_framerate
-    }
-
-    /// Get the average framerate over the history of the app
-    pub fn average_fps(&self) -> f64 {
-        self.fps
-    }
-
-    // /// Get the maximum number of updates that are allowed to run in a frame
-    // ///
-    // /// 0 means no limitation
-    // pub fn max_updates(&self) -> u32 {
-    //     self.max_updates
-    // }
-
-    // /// Set the maximum number of updates that are allowed to run in a frame
-    // ///
-    // /// 0 means no limitation
-    // pub fn set_max_updates(&mut self, max_updates: u32) {
-    //     self.max_updates = max_updates;
-    // }
-
-    // /// Set the title of the window (or tab on mobile)
-    // pub fn set_title(&mut self, title: &str) {
-    //     self.backend().set_title(title);
-    // }
-
     /// Get if the application is currently fullscreen
     pub fn get_fullscreen(&self) -> bool {
         self.fullscreen
     }
-
-    // /// Set if the application is currently fullscreen
-    // pub fn set_fullscreen(&mut self, fullscreen: bool) {
-    //     self.fullscreen = fullscreen;
-    //     let size = self.backend().set_fullscreen(fullscreen);
-    //     if let Some(size) = size {
-    //         self.adjust_size(size);
-    //     }
-    // }
 
     /// Resize the window to the given size
     pub fn set_size(&mut self, size: impl Into<Vector>) {
@@ -288,6 +210,6 @@ impl Window {
                 ],
             )
             .expect("Failed to clear");
-        self.flush();
+        self.flush().expect("Failed to flush");
     }
 }

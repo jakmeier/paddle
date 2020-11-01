@@ -1,4 +1,4 @@
-use js_sys::{ArrayBuffer, Promise, Uint8Array};
+use js_sys::{Promise, Uint8Array};
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{Blob, FileReader, Request, RequestInit, RequestMode, Response};

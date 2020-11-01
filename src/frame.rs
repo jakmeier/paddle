@@ -1,8 +1,3 @@
-use std::{
-    rc::Rc,
-    sync::{Mutex, MutexGuard},
-};
-
 use crate::{canvas::Window, Event};
 use nuts::*;
 
