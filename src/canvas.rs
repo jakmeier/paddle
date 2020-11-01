@@ -105,14 +105,6 @@ impl Window {
         self.unproject().inverse()
     }
 
-    // ///Handle the available size for the window changing
-    // pub(crate) fn adjust_size(&mut self, available: Vector) {
-    //     self.screen_region = self.resize.resize(self.screen_region.size(), available);
-    //     unsafe {
-    //         self.backend().set_viewport(self.screen_region);
-    //     }
-    // }
-
     ///Get the view from the window
     pub fn view(&self) -> View {
         self.view
@@ -151,10 +143,9 @@ impl Window {
 
     /// Resize the window to the given size
     pub fn set_size(&mut self, size: impl Into<Vector>) {
-        todo!()
-        // let size = size.into();
-        // self.backend().resize(size);
-        // self.adjust_size(size);
+        let size = size.into();
+        self.canvas.set_width(size.x as u32);
+        self.canvas.set_height(size.y as u32);
     }
 
     /// Flush the current buffered draw calls
