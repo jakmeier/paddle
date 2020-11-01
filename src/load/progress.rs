@@ -19,6 +19,7 @@ use crate::{Domain, ErrorMessage, PaddleResult};
 ///
 /// **LoadingDone**: Published once when the last resource finished loading
 ///
+#[derive(Default)]
 pub struct LoadScheduler {
     total_items: usize,
     loaded: usize,
@@ -42,17 +43,12 @@ struct LoadActivity;
 
 impl LoadScheduler {
     pub fn new() -> Self {
-        LoadScheduler {
-            total_items: 0,
-            loaded: 0,
-            loadables: HashMap::new(),
-        }
+        Self::default()
     }
     pub fn attach_to_domain(self) {
         nuts::store_to_domain(&Domain::Frame, Some(self));
-        let activity = nuts::new_domained_activity(LoadActivity, &Domain::Frame);
-        let aid = activity.clone();
-        activity.subscribe_domained_owned(move |_, domain, msg: FinishedLoading| {
+        let aid = nuts::new_domained_activity(LoadActivity, &Domain::Frame);
+        aid.subscribe_domained_owned(move |_, domain, msg: FinishedLoading| {
             let maybe_lm: &mut Option<LoadScheduler> = domain.get_mut();
             let lm = maybe_lm
                 .as_mut()
@@ -62,6 +58,7 @@ impl LoadScheduler {
                 FinishedLoading::VecItem(data, index) => lm.add_vec_progress(data, index),
             }
             if lm.done() {
+                debug_println!("Loading done");
                 let data = lm.finish();
                 domain.store(data);
                 aid.set_status(LifecycleStatus::Inactive);
@@ -78,7 +75,7 @@ impl LoadScheduler {
         msg: &'static str,
     ) {
         let key = TypeId::of::<T>();
-        self.loadables.insert(key, Loadable::new(msg));
+        self.loadables.insert(key, Loadable::new::<T>(msg));
         self.total_items += 1;
 
         let outer_future = async {
@@ -100,7 +97,7 @@ impl LoadScheduler {
     ) {
         let n = future_vec.len();
         let key = TypeId::of::<T>();
-        self.loadables.insert(key, Loadable::new_vec(n, msg));
+        self.loadables.insert(key, Loadable::new_vec::<T>(n, msg));
         self.total_items += n;
 
         for (i, future) in future_vec.into_iter().enumerate() {
@@ -122,7 +119,7 @@ impl LoadScheduler {
     /// This is useful when some of data to load does not use a future.
     pub fn register_manually_reported<T: Any>(&mut self, msg: &'static str) {
         let key = TypeId::of::<T>();
-        self.loadables.insert(key, Loadable::new(msg));
+        self.loadables.insert(key, Loadable::new::<T>(msg));
         self.total_items += 1;
     }
 
@@ -168,7 +165,15 @@ impl LoadScheduler {
         if loadable.data[index].is_none() {
             loadable.data[index] = Some(loaded); // TODO: index checks
             self.loaded += 1;
+        } else if loadable.data.len() == 1 {
+            #[cfg(debug_assertions)]
+            panic!("Already loaded {}", loadable.name);
+            #[cfg(not(debug_assertions))]
+            panic!("Already loaded {:?}", key);
         } else {
+            #[cfg(debug_assertions)]
+            panic!("Already loaded Vec<{}> index [{}]", loadable.name, index);
+            #[cfg(not(debug_assertions))]
             panic!("Already loaded Vec<{:?}> index [{}]", key, index);
         }
     }
@@ -201,13 +206,15 @@ struct Loadable {
     capacity: usize,
     loaded: usize,
     data: Vec<Option<Box<dyn Any>>>,
+    #[cfg(debug_assertions)]
+    name: &'static str,
 }
 
 impl Loadable {
-    fn new(msg: &'static str) -> Self {
-        Loadable::new_vec(1, msg)
+    fn new<T: Any>(msg: &'static str) -> Self {
+        Loadable::new_vec::<T>(1, msg)
     }
-    fn new_vec(max: usize, msg: &'static str) -> Self {
+    fn new_vec<T: Any>(max: usize, msg: &'static str) -> Self {
         let mut data = Vec::<Option<Box<dyn Any>>>::with_capacity(max);
         for _ in 0..max {
             data.push(None);
@@ -217,6 +224,8 @@ impl Loadable {
             capacity: max,
             loaded: 0,
             data,
+            #[cfg(debug_assertions)]
+            name: std::any::type_name::<T>(),
         }
     }
 }
@@ -225,30 +234,34 @@ impl LoadedData {
     /// Take ownership of a loaded resource
     pub fn extract<T: Any>(&mut self) -> PaddleResult<Box<T>> {
         let key = TypeId::of::<T>();
-        let mut loadable = self.loadables.remove(&key).ok_or(ErrorMessage::technical(
-            "Tried to extract data type that has not been registered for loading".to_owned(),
-        ))?;
-        let resource = loadable
-            .data
-            .pop()
-            .flatten()
-            .ok_or(ErrorMessage::technical(
+        let mut loadable = self.loadables.remove(&key).ok_or_else(|| {
+            ErrorMessage::technical(
+                "Tried to extract data type that has not been registered for loading".to_owned(),
+            )
+        })?;
+        let resource = loadable.data.pop().flatten().ok_or_else(|| {
+            ErrorMessage::technical(
                 "Data not available. Either not loaded or already extracted.".to_owned(),
-            ))?;
+            )
+        })?;
         Ok(resource.downcast().unwrap())
     }
     /// Take ownership of a loaded resource vector
     pub fn extract_vec<T: Any>(&mut self) -> PaddleResult<Vec<T>> {
         let key = TypeId::of::<Vec<T>>();
-        let loadable = self.loadables.remove(&key).ok_or(ErrorMessage::technical(
-            "Tried to extract data type that has not been registered for loading".to_owned(),
-        ))?;
+        let loadable = self.loadables.remove(&key).ok_or_else(|| {
+            ErrorMessage::technical(
+                "Tried to extract data type that has not been registered for loading".to_owned(),
+            )
+        })?;
 
         let mut out = vec![];
         for resource in loadable.data {
-            let r = resource.ok_or(ErrorMessage::technical(
-                "Data not available. Either not loaded or already extracted.".to_owned(),
-            ))?;
+            let r = resource.ok_or_else(|| {
+                ErrorMessage::technical(
+                    "Data not available. Either not loaded or already extracted.".to_owned(),
+                )
+            })?;
             out.push(*r.downcast().unwrap());
         }
         Ok(out)

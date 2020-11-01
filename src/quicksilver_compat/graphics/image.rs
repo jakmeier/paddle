@@ -4,7 +4,7 @@ use crate::{
     graphics::Image,
     quicksilver_compat::geom::{Rectangle, Transform, Vector},
 };
-use std::{error::Error, fmt, io::Error as IOError, rc::Rc};
+use std::rc::Rc;
 
 ///Pixel formats for use with loading raw images
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
@@ -101,43 +101,6 @@ impl Image {
 
     pub(crate) fn texture(&self) -> &WebGlTexture {
         &self.source.tex
-    }
-}
-
-#[derive(Debug)]
-///An error generated while loading an image
-pub enum ImageError {
-    // /// There was an error decoding the bytes of the image
-    // DecodingError(image::ImageError),
-    ///There was some error reading the image file
-    IOError(IOError),
-}
-
-#[doc(hidden)]
-impl From<IOError> for ImageError {
-    fn from(err: IOError) -> ImageError {
-        ImageError::IOError(err)
-    }
-}
-
-impl fmt::Display for ImageError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.description())
-    }
-}
-
-impl Error for ImageError {
-    fn description(&self) -> &str {
-        match self {
-            // &ImageError::DecodingError(ref err) => err.description(),
-            &ImageError::IOError(ref err) => err.description(),
-        }
-    }
-    fn cause(&self) -> Option<&dyn Error> {
-        match self {
-            // &ImageError::DecodingError(ref err) => Some(err),
-            &ImageError::IOError(ref err) => Some(err),
-        }
     }
 }
 

@@ -1,7 +1,7 @@
 use js_sys::{Float32Array, Uint32Array};
 use web_sys::{WebGlBuffer, WebGlProgram, WebGlRenderingContext, WebGlShader, WebGlTexture};
 
-// TODO: Better was to deal with this?
+// TODO: Better way to deal with this?
 const VERTEX_SIZE: usize = 9; // the number of floats in a vertex
 
 use crate::{

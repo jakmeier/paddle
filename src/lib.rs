@@ -4,6 +4,9 @@
 
 pub use nuts;
 
+#[macro_use]
+pub(crate) mod debug;
+
 pub(crate) mod canvas;
 pub(crate) mod error;
 pub(crate) mod event;

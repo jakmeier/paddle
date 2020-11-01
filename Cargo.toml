@@ -11,9 +11,10 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 nuts = { path = "../nuts" }
+div = { path = "../div-rs" }
 # nuts = { git = "https://github.com/jakmeier/nuts", rev = "158e3fefa8139b2f1f33cb6c4a460c8ec1efa6c7" }
 # nuts = "0.1.1"
-div = "0.2.0"
+# div = "0.2.0"
 chrono = "0.4.19"
 rand = "0.7"
 serde = {version = "1.0", features = ["derive"] }
