@@ -30,6 +30,7 @@ pub fn link_program(
     context.attach_shader(&program, vert_shader);
     context.attach_shader(&program, frag_shader);
     context.link_program(&program);
+    context.use_program(Some(&program));
 
     if context
         .get_program_parameter(&program, WebGlRenderingContext::LINK_STATUS)

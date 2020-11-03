@@ -27,7 +27,7 @@ impl TextBoard {
         tb_id.subscribe_owned(|tb, msg: TextMessage| {
             tb.messages.push(msg);
         });
-        tb_id.subscribe_domained_mut(|tb, domain, _msg: &mut DrawWorld| {
+        tb_id.subscribe_domained(|tb, domain, _msg: &DrawWorld| {
             let window = domain.try_get_mut::<Window>().expect("Window missing");
             tb.render_text_messages(window).nuts_check();
         });
@@ -49,7 +49,7 @@ impl TextBoard {
         Ok(())
     }
     fn render_text_messages(&mut self, window: &mut Window) -> PaddleResult<()> {
-        let screen = window.project() * window.screen_size();
+        let screen = window.project() * window.browser_region().size();
         let w = 300.0;
         let h = screen.y;
         let x = (screen.x - w) / 2.0;

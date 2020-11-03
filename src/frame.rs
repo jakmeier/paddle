@@ -69,7 +69,9 @@ pub struct RightClick {
 }
 
 pub struct UpdateWorld;
-pub struct DrawWorld;
+pub struct DrawWorld {
+    pub time_ms: f64,
+}
 pub struct WorldEvent {
     event: Event,
 }
@@ -79,8 +81,8 @@ impl UpdateWorld {
     }
 }
 impl DrawWorld {
-    pub fn new() -> Self {
-        Self
+    pub fn new(t: f64) -> Self {
+        Self { time_ms: t }
     }
 }
 impl WorldEvent {
@@ -122,7 +124,7 @@ where
         }
     });
 
-    activity.subscribe_domained_mut(|a: &mut F, d: &mut DomainState, _msg: &mut DrawWorld| {
+    activity.subscribe_domained(|a: &mut F, d: &mut DomainState, _msg: &DrawWorld| {
         let (global_state, window) = d.try_get_2_mut::<F::State, Window>();
         if let Err(e) = a.draw(
             global_state.expect("Global state missing"),
