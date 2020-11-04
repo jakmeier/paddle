@@ -24,6 +24,7 @@ pub struct LoadScheduler {
     total_items: usize,
     loaded: usize,
     loadables: HashMap<TypeId, Loadable>,
+    load_activity: Option<nuts::ActivityId<LoadActivity>>,
 }
 
 #[derive(Default)]
@@ -34,6 +35,8 @@ pub struct LoadedData {
 pub struct LoadingProgress(f32, &'static str);
 #[derive(Copy, Clone)]
 pub struct LoadingDone;
+#[derive(Copy, Clone)]
+struct UpdatedProgress;
 
 enum FinishedLoading {
     Item(Box<dyn Any>),
@@ -41,31 +44,42 @@ enum FinishedLoading {
 }
 struct LoadActivity;
 
-impl LoadScheduler {
-    pub fn new() -> Self {
-        Self::default()
+impl LoadActivity {
+    fn update_progress(&mut self, domain: &mut nuts::DomainState, msg: FinishedLoading) {
+        let maybe_lm: &mut Option<LoadScheduler> = domain.get_mut();
+        let lm = maybe_lm
+            .as_mut()
+            .expect("FinishedLoading implies LoadScheduler is around");
+        match msg {
+            FinishedLoading::Item(data) => lm.add_progress_boxed(data),
+            FinishedLoading::VecItem(data, index) => lm.add_vec_progress(data, index),
+        }
     }
-    pub fn attach_to_domain(self) {
-        nuts::store_to_domain(&Domain::Frame, Some(self));
-        let aid = nuts::new_domained_activity(LoadActivity, &Domain::Frame);
-        aid.subscribe_domained_owned(move |_, domain, msg: FinishedLoading| {
-            let maybe_lm: &mut Option<LoadScheduler> = domain.get_mut();
-            let lm = maybe_lm
-                .as_mut()
-                .expect("FinishedLoading implies LoadScheduler is around");
-            match msg {
-                FinishedLoading::Item(data) => lm.add_progress_boxed(data),
-                FinishedLoading::VecItem(data, index) => lm.add_vec_progress(data, index),
-            }
+    pub fn finish_if_done(&mut self, domain: &mut nuts::DomainState, _msg: &UpdatedProgress) {
+        let maybe_lm: &mut Option<LoadScheduler> = domain.get_mut();
+        if let Some(lm) = maybe_lm {
             if lm.done() {
                 debug_println!("Loading done");
                 let data = lm.finish();
                 domain.store(data);
-                aid.set_status(LifecycleStatus::Inactive);
                 nuts::publish(LoadingDone);
             }
-        });
+        }
     }
+}
+
+impl LoadScheduler {
+    pub fn new() -> Self {
+        Self::default()
+    }
+    pub fn attach_to_domain(mut self) {
+        let aid = nuts::new_domained_activity(LoadActivity, &Domain::Frame);
+        self.load_activity = Some(aid);
+        nuts::store_to_domain(&Domain::Frame, Some(self));
+        aid.subscribe_domained_owned(LoadActivity::update_progress);
+        aid.subscribe_domained(LoadActivity::finish_if_done);
+    }
+
     /// Register a future to be loaded.
     ///
     /// The future will be spawned and automatically reporting to the load scheduler is set up for afterwards.
@@ -176,6 +190,7 @@ impl LoadScheduler {
             #[cfg(not(debug_assertions))]
             panic!("Already loaded Vec<{:?}> index [{}]", key, index);
         }
+        nuts::publish(UpdatedProgress);
     }
     /// Reports relative loading progress between 0.0 and 1.0
     pub fn progress(&self) -> f32 {
@@ -196,6 +211,10 @@ impl LoadScheduler {
     }
 
     pub fn finish(&mut self) -> LoadedData {
+        if let Some(aid) = self.load_activity {
+            aid.set_status(LifecycleStatus::Inactive);
+        }
+
         let loadables = std::mem::take(&mut self.loadables);
         LoadedData { loadables }
     }
