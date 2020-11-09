@@ -18,6 +18,7 @@ pub(crate) mod load;
 pub mod quicksilver_compat;
 pub(crate) mod text;
 pub(crate) mod view_manager;
+pub mod web_integration;
 
 pub use canvas::*;
 pub use error::*;
