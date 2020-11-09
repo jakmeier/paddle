@@ -254,24 +254,27 @@ impl LoadedData {
     pub fn extract<T: Any>(&mut self) -> PaddleResult<Box<T>> {
         let key = TypeId::of::<T>();
         let mut loadable = self.loadables.remove(&key).ok_or_else(|| {
-            ErrorMessage::technical(
-                "Tried to extract data type that has not been registered for loading".to_owned(),
-            )
+            ErrorMessage::technical(format!(
+                "Tried to extract data type that has not been registered for loading: {}",
+                std::any::type_name::<T>()
+            ))
         })?;
         let resource = loadable.data.pop().flatten().ok_or_else(|| {
-            ErrorMessage::technical(
-                "Data not available. Either not loaded or already extracted.".to_owned(),
-            )
+            ErrorMessage::technical(format!(
+                "Data not available. Either not loaded or already extracted: {}",
+                std::any::type_name::<T>()
+            ))
         })?;
         Ok(resource.downcast().unwrap())
     }
     /// Take ownership of a loaded resource vector
     pub fn extract_vec<T: Any>(&mut self) -> PaddleResult<Vec<T>> {
-        let key = TypeId::of::<Vec<T>>();
+        let key = TypeId::of::<T>();
         let loadable = self.loadables.remove(&key).ok_or_else(|| {
-            ErrorMessage::technical(
-                "Tried to extract data type that has not been registered for loading".to_owned(),
-            )
+            ErrorMessage::technical(format!(
+                "Tried to extract data type that has not been registered for loading: Vec<{}>",
+                std::any::type_name::<T>()
+            ))
         })?;
 
         let mut out = vec![];

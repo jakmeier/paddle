@@ -12,6 +12,15 @@ pub struct ErrorMessage {
 
 pub type PaddleResult<T> = Result<T, ErrorMessage>;
 
+struct ErrorForwardingActivity;
+pub fn enable_nuts_checks<F>(f: F)
+where
+    F: Fn(ErrorMessage) + 'static,
+{
+    let id = nuts::new_activity(ErrorForwardingActivity);
+    id.subscribe_owned(move |_, error| f(error));
+}
+
 impl ErrorMessage {
     pub fn technical(text: String) -> Self {
         Self {
