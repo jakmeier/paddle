@@ -1,4 +1,6 @@
-use crate::{canvas::Window, quicksilver_compat::Rectangle, FitStrategy, PaddleResult, TextNode};
+use crate::{
+    canvas::WebGLCanvas, quicksilver_compat::Rectangle, FitStrategy, PaddleResult, TextNode,
+};
 use div::PaneHandle;
 
 #[derive(Debug)]
@@ -69,7 +71,7 @@ impl FloatingText {
     }
     pub fn write(
         &mut self,
-        _window: &Window,
+        _window: &WebGLCanvas,
         max_area: &Rectangle,
         _z: i32,                 // TODO
         _fit_strat: FitStrategy, // TODO

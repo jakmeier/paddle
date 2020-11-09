@@ -102,14 +102,14 @@ pub(super) struct Gpu {
 
 impl Gpu {
     pub fn new(gl: &WebGlRenderingContext) -> PaddleResult<Self> {
-        let vertex_buffer = gl.create_buffer().ok_or(ErrorMessage::technical(
-            "failed to create buffer".to_owned(),
-        ))?;
+        let vertex_buffer = gl
+            .create_buffer()
+            .ok_or_else(|| ErrorMessage::technical("failed to create buffer".to_owned()))?;
         gl.bind_buffer(WebGlRenderingContext::ARRAY_BUFFER, Some(&vertex_buffer));
 
-        let index_buffer = gl.create_buffer().ok_or(ErrorMessage::technical(
-            "failed to create buffer".to_owned(),
-        ))?;
+        let index_buffer = gl
+            .create_buffer()
+            .ok_or_else(|| ErrorMessage::technical("failed to create buffer".to_owned()))?;
         gl.bind_buffer(
             WebGlRenderingContext::ELEMENT_ARRAY_BUFFER,
             Some(&index_buffer),

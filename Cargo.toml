@@ -28,6 +28,7 @@ version = "0.3"
 features = [
     "Blob",
     "console",
+    "DomRect",
     "Document",
     "Element",
     "FileReader",

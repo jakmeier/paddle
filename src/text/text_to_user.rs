@@ -1,4 +1,4 @@
-use crate::{canvas::Window, error::NutsCheck};
+use crate::{canvas::WebGLCanvas, error::NutsCheck};
 use crate::{quicksilver_compat::*, Domain};
 use crate::{DrawWorld, FloatingText, JmrRectangle, PaddleResult};
 use chrono::*;
@@ -28,7 +28,9 @@ impl TextBoard {
             tb.messages.push(msg);
         });
         tb_id.subscribe_domained(|tb, domain, _msg: &DrawWorld| {
-            let window = domain.try_get_mut::<Window>().expect("Window missing");
+            let window = domain
+                .try_get_mut::<WebGLCanvas>()
+                .expect("WebGLCanvas missing");
             tb.render_text_messages(window).nuts_check();
         });
     }
@@ -48,7 +50,7 @@ impl TextBoard {
         nuts::publish(TextMessage { float, show_until });
         Ok(())
     }
-    fn render_text_messages(&mut self, window: &mut Window) -> PaddleResult<()> {
+    fn render_text_messages(&mut self, window: &mut WebGLCanvas) -> PaddleResult<()> {
         let screen = window.project() * window.browser_region().size();
         let w = 300.0;
         let h = screen.y;

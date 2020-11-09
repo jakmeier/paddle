@@ -1,5 +1,5 @@
 use crate::{
-    canvas::Window,
+    canvas::WebGLCanvas,
     frame::{frame_to_activity, Frame, FrameHandle},
     Domain,
 };
@@ -39,7 +39,7 @@ impl<V: Hash + Eq + Copy> ViewManager<V> {
         _size: (i32, i32),
     ) -> FrameHandle<FRAME>
     where
-        FRAME: Frame<State = S, Graphics = Window, Error = E> + nuts::Activity,
+        FRAME: Frame<State = S, Graphics = WebGLCanvas, Error = E> + nuts::Activity,
     {
         let activity_id: ActivityId<_> = frame_to_activity(frame, &self.domain).into();
         let mut status = Inactive;

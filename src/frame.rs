@@ -1,4 +1,4 @@
-use crate::{canvas::Window, Event};
+use crate::{canvas::WebGLCanvas, Event};
 use nuts::*;
 
 /// A frame takes up some area on the screen where it is drawn and reacts to UI events
@@ -113,7 +113,7 @@ pub fn share_foreground<MSG: 'static>(msg: MSG) {
 
 pub fn frame_to_activity<F, D: DomainEnumeration>(frame: F, domain: &D) -> ActivityId<F>
 where
-    F: Frame<Graphics = Window> + Activity,
+    F: Frame<Graphics = WebGLCanvas> + Activity,
 {
     let activity = nuts::new_domained_activity(frame, domain);
 
@@ -125,10 +125,10 @@ where
     });
 
     activity.subscribe_domained(|a: &mut F, d: &mut DomainState, _msg: &DrawWorld| {
-        let (global_state, window) = d.try_get_2_mut::<F::State, Window>();
+        let (global_state, window) = d.try_get_2_mut::<F::State, WebGLCanvas>();
         if let Err(e) = a.draw(
             global_state.expect("Global state missing"),
-            window.expect("Window missing"),
+            window.expect("WebGLCanvas missing"),
         ) {
             nuts::publish(e);
         }

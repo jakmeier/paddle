@@ -13,8 +13,7 @@ use web_sys::{HtmlCanvasElement, WebGlRenderingContext};
 
 use self::gpu::{Gpu, WasmGpuBuffer};
 
-/// TODO: rename to canvas
-pub struct Window {
+pub struct WebGLCanvas {
     /// Position relative to browser page
     browser_region: Rectangle,
     /// Resolution used by WebGL
@@ -28,7 +27,7 @@ pub struct Window {
     buffer: WasmGpuBuffer,
     gpu: Gpu,
 }
-impl Window {
+impl WebGLCanvas {
     /// Create a new webgl area in the given canvas.
     ///
     /// The pixels argument define how many webgl pixels should be rendered and has nothing to do with browser pixels.
@@ -58,7 +57,7 @@ impl Window {
         let buffer = WasmGpuBuffer::new();
         let gpu = Gpu::new(&gl)?;
 
-        let window = Window {
+        let window = WebGLCanvas {
             browser_region,
             view,
             pixels,
