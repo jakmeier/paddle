@@ -3,8 +3,7 @@ mod shader;
 
 use crate::{
     quicksilver_compat::{
-        geom::Scalar, Background, Color, Drawable, GpuTriangle, Mesh, Rectangle, Transform, Vector,
-        Vertex, View,
+        geom::Scalar, Background, Color, Drawable, Mesh, Rectangle, Transform, Vector, View,
     },
     ErrorMessage, JsError, PaddleResult,
 };
@@ -33,6 +32,10 @@ impl WebGLCanvas {
     /// The pixels argument define how many webgl pixels should be rendered and has nothing to do with browser pixels.
     /// Use `set_size()` or `fit_to_screen()` to change the size of the screen area taken by this element.
     pub fn new(canvas: HtmlCanvasElement, pixels: impl Into<Vector>) -> PaddleResult<Self> {
+        let pixels = pixels.into();
+        canvas.set_width(pixels.x as u32);
+        canvas.set_height(pixels.y as u32);
+
         let gl = canvas
             .get_context("webgl")
             .map_err(|_| ErrorMessage::technical("Failed loading WebGL".to_owned()))?
@@ -40,6 +43,7 @@ impl WebGLCanvas {
             .dyn_into::<WebGlRenderingContext>()
             .map_err(|_| ErrorMessage::technical("Failed loading WebGL".to_owned()))?;
 
+        
         let web_window = web_sys::window().unwrap();
         let dom_rect = canvas.get_bounding_client_rect();
 
@@ -51,11 +55,10 @@ impl WebGLCanvas {
         let h = dom_rect.height() + page_y_offset;
 
         let browser_region = Rectangle::new((x as f32, y as f32), (w as f32, h as f32));
-        let pixels = pixels.into();
         let view = View::new(Rectangle::new_sized(pixels));
 
         let buffer = WasmGpuBuffer::new();
-        let gpu = Gpu::new(&gl)?;
+        let gpu = Gpu::new(&gl, pixels)?;
 
         let window = WebGLCanvas {
             browser_region,
@@ -152,8 +155,13 @@ impl WebGLCanvas {
     /// Resize the window to the given size
     pub fn set_size(&mut self, size: impl Into<Vector>) {
         self.browser_region.size = size.into();
-        self.canvas.set_width(self.browser_region.size.x as u32);
-        self.canvas.set_height(self.browser_region.size.y as u32);
+        self.canvas.set_attribute(
+            "style",
+            &format!(
+                "width: {}px; height: {}px",
+                self.browser_region.size.x, self.browser_region.size.y
+            ),
+        );
     }
 
     /// Flush the current buffered draw calls
@@ -163,10 +171,6 @@ impl WebGLCanvas {
     ///
     /// Note that calling this can be an expensive operation
     pub fn flush(&mut self) -> PaddleResult<()> {
-        // self.mesh.triangles.sort();
-        // for vertex in self.mesh.vertices.iter_mut() {
-        //     vertex.pos = self.view.opengl * vertex.pos;
-        // }
         self.buffer.draw(
             &self.gl,
             &mut self.gpu,
@@ -178,15 +182,13 @@ impl WebGLCanvas {
     }
 
     // 16:9 ratio
-    pub fn fit_to_screen(&mut self) -> PaddleResult<()> {
+    pub fn fit_to_screen(&mut self, margin: f64) -> PaddleResult<()> {
         let web_window = web_sys::window().unwrap();
         let page_x_offset = web_window.page_x_offset().map_err(JsError::from_js_value)?;
         let page_y_offset = web_window.page_y_offset().map_err(JsError::from_js_value)?;
         let dom_rect = self.canvas.get_bounding_client_rect();
         let x = dom_rect.x() + page_x_offset;
         let y = dom_rect.y() + page_y_offset;
-
-        let margin = x;
 
         let w = web_window
             .inner_width()
@@ -206,27 +208,6 @@ impl WebGLCanvas {
     }
 
     pub fn clear(&mut self, color: Color) {
-        self.gl.clear_color(0.0, 0.0, 0.0, 1.0);
-        self.gl.clear(
-            WebGlRenderingContext::COLOR_BUFFER_BIT | WebGlRenderingContext::DEPTH_BUFFER_BIT,
-        );
-        self.buffer
-            .draw(
-                &self.gl,
-                &mut self.gpu,
-                &[
-                    Vertex::new((-1, -1), None, Background::Col(color)),
-                    Vertex::new((1, -1), None, Background::Col(color)),
-                    Vertex::new((1, 1), None, Background::Col(color)),
-                    Vertex::new((-1, 1), None, Background::Col(color)),
-                ],
-                &[
-                    GpuTriangle::new(0, [0, 1, 2], 0.0, Background::Col(color)),
-                    GpuTriangle::new(0, [2, 3, 0], 0.0, Background::Col(color)),
-                ],
-            )
-            .expect("Failed to clear");
-        self.flush().expect("Failed to flush");
         self.gl.clear_color(color.r, color.g, color.b, color.a);
         self.gl.clear(
             WebGlRenderingContext::COLOR_BUFFER_BIT | WebGlRenderingContext::DEPTH_BUFFER_BIT,
@@ -239,5 +220,11 @@ fn scale_16_to_9(w: f64, h: f64) -> (f64, f64) {
         (h * 16.0 / 9.0, h)
     } else {
         (w, w * 9.0 / 16.0)
+    }
+}
+
+impl Drop for WebGLCanvas {
+    fn drop(&mut self) {
+        self.gpu.custom_drop(&self.gl);
     }
 }

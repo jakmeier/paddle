@@ -1,4 +1,5 @@
-use js_sys::{Float32Array, Uint32Array};
+use js_sys::Float32Array;
+use js_sys::Uint16Array;
 use web_sys::{WebGlBuffer, WebGlProgram, WebGlRenderingContext, WebGlShader, WebGlTexture};
 
 // TODO: Better way to deal with this?
@@ -18,7 +19,7 @@ use crate::{
 /// is contained within the draw method, which incidentally clears this buffer.
 pub(crate) struct WasmGpuBuffer {
     vertices: Vec<f32>,
-    triangle_indices: Vec<u32>,
+    triangle_indices: Vec<u16>,
 }
 
 impl WasmGpuBuffer {
@@ -68,40 +69,39 @@ impl WasmGpuBuffer {
                 if should_flush {
                     gpu.draw_single_texture(
                         gl,
-                        current_texture.unwrap().texture(),
+                        current_texture.map(|img| img.texture()),
                         &self.triangle_indices,
                     );
                     self.triangle_indices.clear();
                 }
                 current_texture = Some(img);
             }
-            self.triangle_indices.extend(triangle.indices.iter());
+            self.triangle_indices
+                .extend(triangle.indices.iter().map(|n| *n as u16));
         }
         // Flush any remaining triangles
-        if let Some(texture) = current_texture {
-            gpu.draw_single_texture(gl, texture.texture(), &self.triangle_indices);
-        }
+        gpu.draw_single_texture(
+            gl,
+            current_texture.map(|img| img.texture()),
+            &self.triangle_indices,
+        );
         self.triangle_indices.clear();
         Ok(())
     }
 }
 
 pub(super) struct Gpu {
-    #[allow(dead_code)]
     vertex_buffer: WebGlBuffer,
-    #[allow(dead_code)]
     index_buffer: WebGlBuffer,
     vertex_buffer_size: usize,
     index_buffer_size: usize,
     program: WebGlProgram,
-    #[allow(dead_code)]
     fragment_shader: WebGlShader,
-    #[allow(dead_code)]
     vertex_shader: WebGlShader,
 }
 
 impl Gpu {
-    pub fn new(gl: &WebGlRenderingContext) -> PaddleResult<Self> {
+    pub fn new(gl: &WebGlRenderingContext, coordinate_system: Vector) -> PaddleResult<Self> {
         let vertex_buffer = gl
             .create_buffer()
             .ok_or_else(|| ErrorMessage::technical("failed to create buffer".to_owned()))?;
@@ -118,6 +118,13 @@ impl Gpu {
         let vertex_shader = super::shader::new_vertex_shader(&gl)?;
         let fragment_shader = super::shader::new_fragment_shader(&gl)?;
         let program = super::shader::link_program(&gl, &vertex_shader, &fragment_shader)?;
+
+        let unform_loc = gl.get_uniform_location(&program, "Outer_resolution");
+        gl.uniform2f(
+            unform_loc.as_ref(),
+            coordinate_system.x,
+            coordinate_system.y,
+        );
 
         Ok(Self {
             vertex_buffer,
@@ -183,6 +190,7 @@ impl Gpu {
                 stride_distance,
                 8 * std::mem::size_of::<f32>() as i32,
             );
+            // gl.get_uniform_location(&self.program, "tex");
         }
 
         // Upload all of the vertex data
@@ -200,10 +208,10 @@ impl Gpu {
     fn draw_single_texture(
         &mut self,
         gl: &WebGlRenderingContext,
-        texture: &WebGlTexture,
-        indices: &[u32],
+        texture: Option<&WebGlTexture>,
+        indices: &[u16],
     ) {
-        if indices.len() == 0 {
+        if indices.is_empty() {
             return;
         }
 
@@ -219,7 +227,7 @@ impl Gpu {
         }
 
         unsafe {
-            let array = Uint32Array::view(&indices);
+            let array = Uint16Array::view(&indices);
 
             gl.buffer_data_with_array_buffer_view(
                 WebGlRenderingContext::ELEMENT_ARRAY_BUFFER,
@@ -227,29 +235,30 @@ impl Gpu {
                 WebGlRenderingContext::STREAM_DRAW,
             );
         }
-        // let array: TypedArray<u32> = indices.as_slice().into();
-        // gl.buffer_sub_data(WebGlRenderingContext::ELEMENT_ARRAY_BUFFER, 0, &array.buffer());
         // Upload the texture to the GPU
         gl.active_texture(WebGlRenderingContext::TEXTURE0);
-        gl.bind_texture(WebGlRenderingContext::TEXTURE_2D, Some(texture));
-        let texture_mode = WebGlRenderingContext::NEAREST;
-        gl.tex_parameteri(
-            WebGlRenderingContext::TEXTURE_2D,
-            WebGlRenderingContext::TEXTURE_MIN_FILTER,
-            texture_mode as i32,
-        );
-        gl.tex_parameteri(
-            WebGlRenderingContext::TEXTURE_2D,
-            WebGlRenderingContext::TEXTURE_MAG_FILTER,
-            texture_mode as i32,
-        );
+        gl.bind_texture(WebGlRenderingContext::TEXTURE_2D, texture);
+        if texture.is_some() {
+            let texture_mode = WebGlRenderingContext::NEAREST;
+            gl.tex_parameteri(
+                WebGlRenderingContext::TEXTURE_2D,
+                WebGlRenderingContext::TEXTURE_MIN_FILTER,
+                texture_mode as i32,
+            );
+            gl.tex_parameteri(
+                WebGlRenderingContext::TEXTURE_2D,
+                WebGlRenderingContext::TEXTURE_MAG_FILTER,
+                texture_mode as i32,
+            );
+        }
+        // TODO: texture location
         gl.uniform1i(None, 0);
 
         // Draw the triangles
         gl.draw_elements_with_i32(
             WebGlRenderingContext::TRIANGLES,
             indices.len() as i32,
-            WebGlRenderingContext::UNSIGNED_INT,
+            WebGlRenderingContext::UNSIGNED_SHORT,
             0,
         );
     }
@@ -266,6 +275,16 @@ fn ceil_pow2(x: usize) -> usize {
 
 const fn num_bits<T>() -> usize {
     std::mem::size_of::<T>() * 8
+}
+
+impl Gpu {
+    pub(super) fn custom_drop(&mut self, gl: &WebGlRenderingContext) {
+        gl.delete_program(Some(&self.program));
+        gl.delete_shader(Some(&self.fragment_shader));
+        gl.delete_shader(Some(&self.vertex_shader));
+        gl.delete_buffer(Some(&self.vertex_buffer));
+        gl.delete_buffer(Some(&self.index_buffer));
+    }
 }
 
 #[test]

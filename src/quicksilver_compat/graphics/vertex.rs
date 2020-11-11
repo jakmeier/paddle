@@ -22,7 +22,7 @@ impl Vertex {
     pub fn new(pos: impl Into<Vector>, tex_pos: Option<Vector>, bkg: Background) -> Vertex {
         Vertex {
             pos: pos.into(),
-            tex_pos: tex_pos.map(|pos| pos.into()),
+            tex_pos,
             col: bkg.color(),
         }
     }

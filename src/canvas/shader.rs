@@ -79,8 +79,11 @@ attribute lowp float uses_texture;
 varying vec2 Tex_coord;
 varying vec4 Color;
 varying lowp float Uses_texture;
+uniform vec2 Outer_resolution;
 void main() {
-    gl_Position = vec4(position, 0, 1);
+    vec2 t = Outer_resolution / 2.0;
+    vec2 final_position = (position - t) / t;
+    gl_Position = vec4(final_position, 0.0, 1.0);
     Tex_coord = tex_coord;
     Color = color;
     Uses_texture = uses_texture;
