@@ -8,6 +8,7 @@ pub use nuts;
 pub(crate) mod debug;
 
 pub(crate) mod canvas;
+pub(crate) mod context;
 pub(crate) mod error;
 pub(crate) mod event;
 pub(crate) mod frame; // TODO: Probably rename (e.g. to activity)
@@ -21,6 +22,7 @@ pub(crate) mod view_manager;
 pub mod web_integration;
 
 pub use canvas::*;
+pub use context::*;
 pub use error::*;
 pub use event::*;
 pub use frame::*;
@@ -35,4 +37,8 @@ pub fn utc_now() -> chrono::NaiveDateTime {
     let seconds = (millis / 1000.0).trunc() as i64;
     let nanos = ((millis % 1000.0) * 1_000_000.0) as u32;
     chrono::NaiveDateTime::from_timestamp(seconds, nanos)
+}
+
+pub fn init(config: BrowserConfig) -> PaddleResult<()> {
+    Context::init(config)
 }

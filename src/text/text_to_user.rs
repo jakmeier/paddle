@@ -28,9 +28,7 @@ impl TextBoard {
             tb.messages.push(msg);
         });
         tb_id.subscribe_domained(|tb, domain, _msg: &DrawWorld| {
-            let window = domain
-                .try_get_mut::<WebGLCanvas>()
-                .expect("WebGLCanvas missing");
+            let window = WebGLCanvas::from_domain(domain);
             tb.render_text_messages(window).nuts_check();
         });
     }

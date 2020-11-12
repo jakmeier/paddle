@@ -1,5 +1,9 @@
+use crate::Context;
 use crate::{canvas::WebGLCanvas, Event};
 use nuts::*;
+
+mod scheduling;
+pub use scheduling::*;
 
 /// A frame takes up some area on the screen where it is drawn and reacts to UI events
 pub trait Frame {
@@ -61,41 +65,6 @@ pub enum Domain {
 }
 domain_enum!(Domain);
 
-pub struct LeftClick {
-    pub pos: (i32, i32),
-}
-pub struct RightClick {
-    pub pos: (i32, i32),
-}
-
-pub struct UpdateWorld;
-pub struct DrawWorld {
-    pub time_ms: f64,
-}
-pub struct WorldEvent {
-    event: Event,
-}
-impl UpdateWorld {
-    pub fn new() -> Self {
-        Self {}
-    }
-}
-impl DrawWorld {
-    pub fn new(t: f64) -> Self {
-        Self { time_ms: t }
-    }
-}
-impl WorldEvent {
-    pub fn new(event: &Event) -> Self {
-        Self {
-            event: event.clone(),
-        }
-    }
-    pub fn event(&self) -> Event {
-        self.event.clone()
-    }
-}
-
 /// Goes to active and inactive frames
 struct GlobalEvent<Ev>(pub(crate) Ev);
 /// Goes to active frames only
@@ -125,11 +94,9 @@ where
     });
 
     activity.subscribe_domained(|a: &mut F, d: &mut DomainState, _msg: &DrawWorld| {
-        let (global_state, window) = d.try_get_2_mut::<F::State, WebGLCanvas>();
-        if let Err(e) = a.draw(
-            global_state.expect("Global state missing"),
-            window.expect("WebGLCanvas missing"),
-        ) {
+        let (global_state, ctx) = d.try_get_2_mut::<F::State, Context>();
+        let canvas = ctx.expect("Context missing").canvas_mut();
+        if let Err(e) = a.draw(global_state.expect("Global state missing"), canvas) {
             nuts::publish(e);
         }
     });

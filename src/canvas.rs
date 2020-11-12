@@ -43,7 +43,6 @@ impl WebGLCanvas {
             .dyn_into::<WebGlRenderingContext>()
             .map_err(|_| ErrorMessage::technical("Failed loading WebGL".to_owned()))?;
 
-        
         let web_window = web_sys::window().unwrap();
         let dom_rect = canvas.get_bounding_client_rect();
 
@@ -72,12 +71,6 @@ impl WebGLCanvas {
             gpu,
         };
         Ok(window)
-
-        // mouse: Mouse {
-        //     pos: Vector::ZERO,
-        //     buttons: [ButtonState::NotPressed; 3],
-        //     wheel: Vector::ZERO,
-        // },
     }
 
     pub fn from_canvas_id(id: &str, w: i32, h: i32) -> PaddleResult<Self> {

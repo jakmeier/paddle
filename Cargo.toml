@@ -10,7 +10,7 @@ crate-type = ["cdylib", "rlib"]
 
 
 [dependencies]
-nuts = { path = "../nuts" }
+nuts = { path = "../nuts", features = ["web-debug"] }
 div = { path = "../div-rs" }
 # nuts = { git = "https://github.com/jakmeier/nuts", rev = "158e3fefa8139b2f1f33cb6c4a460c8ec1efa6c7" }
 # nuts = "0.1.1"
