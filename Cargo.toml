@@ -22,6 +22,8 @@ lyon = { version = "0.13", features = ["extra"] }
 wasm-bindgen = "0.2.68"
 wasm-bindgen-futures = "0.4.18"
 js-sys = "0.3.45"
+console_error_panic_hook = { version = "0.1.6", optional = true }
+
 
 [dependencies.web-sys]
 version = "0.3"
@@ -48,3 +50,6 @@ features = [
     "WebGlUniformLocation",
     "Window",
 ]
+
+[features]
+default = ["console_error_panic_hook"]

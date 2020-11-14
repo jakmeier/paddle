@@ -73,20 +73,6 @@ impl WebGLCanvas {
         Ok(window)
     }
 
-    pub fn from_canvas_id(id: &str, w: i32, h: i32) -> PaddleResult<Self> {
-        let document = web_sys::window().unwrap().document().unwrap();
-        let canvas = document
-            .get_element_by_id(id)
-            .ok_or_else(|| ErrorMessage::technical(format!("No canvas with id {}", id)))?;
-        let canvas: HtmlCanvasElement = canvas.dyn_into::<HtmlCanvasElement>().map_err(|e| {
-            ErrorMessage::technical(format!(
-                "Not a canvas. Err: {}",
-                e.to_string().as_string().unwrap()
-            ))
-        })?;
-        Self::new(canvas, (w, h))
-    }
-
     pub fn html_element(&self) -> &HtmlCanvasElement {
         &self.canvas
     }

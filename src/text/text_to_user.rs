@@ -21,7 +21,7 @@ pub struct TextBoard {
 }
 
 impl TextBoard {
-    pub fn init() {
+    pub(crate) fn init() {
         let tb = TextBoard::default();
         let tb_id = nuts::new_domained_activity(tb, &Domain::Frame);
         tb_id.subscribe_owned(|tb, msg: TextMessage| {

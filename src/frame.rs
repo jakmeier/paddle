@@ -9,11 +9,11 @@ pub use scheduling::*;
 pub trait Frame {
     type Error;
     type State;
-    type Graphics;
     fn draw(
         &mut self,
         _state: &mut Self::State,
-        _graphics: &mut Self::Graphics,
+        _canvas: &mut WebGLCanvas, // TODO: This should be some "DrawArea" or whatever, some handle to just the area the frame uses
+        _timestamp: f64,
     ) -> Result<(), Self::Error> {
         Ok(())
     }
@@ -80,9 +80,14 @@ pub fn share_foreground<MSG: 'static>(msg: MSG) {
     nuts::publish(ActiveEvent(msg));
 }
 
+pub fn register_frame<F: Frame + Activity>(frame: F, state: F::State) -> ActivityId<F> {
+    nuts::store_to_domain(&Domain::Frame, state);
+    frame_to_activity(frame, &Domain::Frame)
+}
+
 pub fn frame_to_activity<F, D: DomainEnumeration>(frame: F, domain: &D) -> ActivityId<F>
 where
-    F: Frame<Graphics = WebGLCanvas> + Activity,
+    F: Frame + Activity,
 {
     let activity = nuts::new_domained_activity(frame, domain);
 
@@ -93,10 +98,14 @@ where
         }
     });
 
-    activity.subscribe_domained(|a: &mut F, d: &mut DomainState, _msg: &DrawWorld| {
+    activity.subscribe_domained(|a: &mut F, d: &mut DomainState, msg: &DrawWorld| {
         let (global_state, ctx) = d.try_get_2_mut::<F::State, Context>();
         let canvas = ctx.expect("Context missing").canvas_mut();
-        if let Err(e) = a.draw(global_state.expect("Global state missing"), canvas) {
+        if let Err(e) = a.draw(
+            global_state.expect("Global state missing"),
+            canvas,
+            msg.time_ms,
+        ) {
             nuts::publish(e);
         }
     });
