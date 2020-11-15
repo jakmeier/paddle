@@ -7,7 +7,7 @@ const VERTEX_SIZE: usize = 9; // the number of floats in a vertex
 
 use crate::{
     graphics::Image,
-    quicksilver_compat::{Color, GpuTriangle, Vector, Vertex},
+    quicksilver_compat::{GpuTriangle, Vector, Vertex},
     ErrorMessage, PaddleResult,
 };
 
@@ -33,17 +33,22 @@ impl WasmGpuBuffer {
     fn naive_prepare_vertices(&mut self, vertices: &[Vertex]) {
         // Turn the provided vertex data into stored vertex data
         vertices.iter().for_each(|vertex| {
+            // attribute vec2 position;
             self.vertices.push(vertex.pos.x);
             self.vertices.push(vertex.pos.y);
+            // attribute vec2 tex_coord;
             let tex_pos = vertex.tex_pos.unwrap_or(Vector::ZERO);
+            debug_println!("tex pos = {:?}", tex_pos);
             self.vertices.push(tex_pos.x);
             self.vertices.push(tex_pos.y);
+            // attribute vec4 color;
             self.vertices.push(vertex.col.r);
             self.vertices.push(vertex.col.g);
             self.vertices.push(vertex.col.b);
             self.vertices.push(vertex.col.a);
+            // attribute lowp float uses_texture;
             self.vertices
-                .push(if vertex.tex_pos.is_some() { 1f32 } else { 0f32 });
+                .push(if vertex.tex_pos.is_some() { 1.0 } else { 0.0 });
         });
     }
     pub(super) fn draw(
@@ -80,12 +85,14 @@ impl WasmGpuBuffer {
                 .extend(triangle.indices.iter().map(|n| *n as u16));
         }
         // Flush any remaining triangles
-        gpu.draw_single_texture(
-            gl,
-            current_texture.map(|img| img.texture()),
-            &self.triangle_indices,
-        );
-        self.triangle_indices.clear();
+        if !self.triangle_indices.is_empty() {
+            gpu.draw_single_texture(
+                gl,
+                current_texture.map(|img| img.texture()),
+                &self.triangle_indices,
+            );
+            self.triangle_indices.clear();
+        }
         Ok(())
     }
 }
@@ -98,6 +105,7 @@ pub(super) struct Gpu {
     program: WebGlProgram,
     fragment_shader: WebGlShader,
     vertex_shader: WebGlShader,
+    // texture_location: Option<WebGlUniformLocation>,
 }
 
 impl Gpu {
@@ -114,6 +122,14 @@ impl Gpu {
             WebGlRenderingContext::ELEMENT_ARRAY_BUFFER,
             Some(&index_buffer),
         );
+
+        gl.blend_func_separate(
+            WebGlRenderingContext::SRC_ALPHA,
+            WebGlRenderingContext::ONE_MINUS_SRC_ALPHA,
+            WebGlRenderingContext::ONE,
+            WebGlRenderingContext::ONE_MINUS_SRC_ALPHA,
+        );
+        gl.enable(WebGlRenderingContext::BLEND);
 
         let vertex_shader = super::shader::new_vertex_shader(&gl)?;
         let fragment_shader = super::shader::new_fragment_shader(&gl)?;
@@ -142,55 +158,7 @@ impl Gpu {
         // If the GPU can't store all of our data, re-create the GPU buffers so they can
         if vertex_length > self.vertex_buffer_size {
             self.vertex_buffer_size = ceil_pow2(vertex_length);
-            // Create the vertex array
-            gl.buffer_data_with_i32(
-                WebGlRenderingContext::ARRAY_BUFFER,
-                self.vertex_buffer_size as i32,
-                WebGlRenderingContext::STREAM_DRAW,
-            );
-            let stride_distance = (VERTEX_SIZE * std::mem::size_of::<f32>()) as i32;
-            // Set up the vertex attributes
-            let pos_attrib = gl.get_attrib_location(&self.program, "position") as u32;
-            gl.enable_vertex_attrib_array(pos_attrib);
-            gl.vertex_attrib_pointer_with_i32(
-                pos_attrib,
-                2,
-                WebGlRenderingContext::FLOAT,
-                false,
-                stride_distance,
-                0,
-            );
-            let tex_attrib = gl.get_attrib_location(&self.program, "tex_coord") as u32;
-            gl.enable_vertex_attrib_array(tex_attrib);
-            gl.vertex_attrib_pointer_with_i32(
-                tex_attrib,
-                2,
-                WebGlRenderingContext::FLOAT,
-                false,
-                stride_distance,
-                2 * std::mem::size_of::<f32>() as i32,
-            );
-            let col_attrib = gl.get_attrib_location(&self.program, "color") as u32;
-            gl.enable_vertex_attrib_array(col_attrib);
-            gl.vertex_attrib_pointer_with_i32(
-                col_attrib,
-                4,
-                WebGlRenderingContext::FLOAT,
-                false,
-                stride_distance,
-                4 * std::mem::size_of::<f32>() as i32,
-            );
-            let use_texture_attrib = gl.get_attrib_location(&self.program, "uses_texture") as u32;
-            gl.enable_vertex_attrib_array(use_texture_attrib);
-            gl.vertex_attrib_pointer_with_i32(
-                use_texture_attrib,
-                1,
-                WebGlRenderingContext::FLOAT,
-                false,
-                stride_distance,
-                8 * std::mem::size_of::<f32>() as i32,
-            );
-            // gl.get_uniform_location(&self.program, "tex");
+            self.recreate_vertex_buffer(gl);
         }
 
         // Upload all of the vertex data
@@ -202,6 +170,56 @@ impl Gpu {
                 &array,
             );
         }
+    }
+
+    fn recreate_vertex_buffer(&mut self, gl: &WebGlRenderingContext) {
+        gl.buffer_data_with_i32(
+            WebGlRenderingContext::ARRAY_BUFFER,
+            self.vertex_buffer_size as i32,
+            WebGlRenderingContext::STREAM_DRAW,
+        );
+        let stride_distance = (VERTEX_SIZE * std::mem::size_of::<f32>()) as i32;
+        // Set up the vertex attributes
+        let pos_attrib = gl.get_attrib_location(&self.program, "position") as u32;
+        gl.enable_vertex_attrib_array(pos_attrib);
+        gl.vertex_attrib_pointer_with_i32(
+            pos_attrib,
+            2,
+            WebGlRenderingContext::FLOAT,
+            false,
+            stride_distance,
+            0,
+        );
+        let tex_attrib = gl.get_attrib_location(&self.program, "tex_coord") as u32;
+        gl.enable_vertex_attrib_array(tex_attrib);
+        gl.vertex_attrib_pointer_with_i32(
+            tex_attrib,
+            2,
+            WebGlRenderingContext::FLOAT,
+            false,
+            stride_distance,
+            2 * std::mem::size_of::<f32>() as i32,
+        );
+        let col_attrib = gl.get_attrib_location(&self.program, "color") as u32;
+        gl.enable_vertex_attrib_array(col_attrib);
+        gl.vertex_attrib_pointer_with_i32(
+            col_attrib,
+            4,
+            WebGlRenderingContext::FLOAT,
+            false,
+            stride_distance,
+            4 * std::mem::size_of::<f32>() as i32,
+        );
+        let use_texture_attrib = gl.get_attrib_location(&self.program, "uses_texture") as u32;
+        gl.enable_vertex_attrib_array(use_texture_attrib);
+        gl.vertex_attrib_pointer_with_i32(
+            use_texture_attrib,
+            1,
+            WebGlRenderingContext::FLOAT,
+            false,
+            stride_distance,
+            8 * std::mem::size_of::<f32>() as i32,
+        );
     }
 
     // Assumes that vertices area already uploaded, hence only the indices are needed as parameter
@@ -235,24 +253,8 @@ impl Gpu {
                 WebGlRenderingContext::STREAM_DRAW,
             );
         }
-        // Upload the texture to the GPU
         gl.active_texture(WebGlRenderingContext::TEXTURE0);
         gl.bind_texture(WebGlRenderingContext::TEXTURE_2D, texture);
-        if texture.is_some() {
-            let texture_mode = WebGlRenderingContext::NEAREST;
-            gl.tex_parameteri(
-                WebGlRenderingContext::TEXTURE_2D,
-                WebGlRenderingContext::TEXTURE_MIN_FILTER,
-                texture_mode as i32,
-            );
-            gl.tex_parameteri(
-                WebGlRenderingContext::TEXTURE_2D,
-                WebGlRenderingContext::TEXTURE_MAG_FILTER,
-                texture_mode as i32,
-            );
-        }
-        // TODO: texture location
-        gl.uniform1i(None, 0);
 
         // Draw the triangles
         gl.draw_elements_with_i32(
@@ -261,10 +263,7 @@ impl Gpu {
             WebGlRenderingContext::UNSIGNED_SHORT,
             0,
         );
-    }
-    pub(crate) fn clear(&mut self, gl: &WebGlRenderingContext, col: Color) {
-        gl.clear_color(col.r, col.g, col.b, col.a);
-        gl.clear(WebGlRenderingContext::COLOR_BUFFER_BIT | WebGlRenderingContext::DEPTH_BUFFER_BIT);
+        gl.bind_texture(WebGlRenderingContext::TEXTURE_2D, None);
     }
 }
 

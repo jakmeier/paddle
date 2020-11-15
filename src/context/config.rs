@@ -1,3 +1,4 @@
+use crate::graphics::TextureConfig;
 use crate::quicksilver_compat::Vector;
 use crate::BrowserConfig;
 use crate::CanvasConfig;
@@ -23,6 +24,10 @@ impl PaddleConfig {
     }
     pub fn with_resolution(mut self, pixels: impl Into<Vector>) -> Self {
         self.browser.pixels = pixels.into();
+        self
+    }
+    pub fn with_texture_config(mut self, texture_config: TextureConfig) -> Self {
+        self.browser.texture_config = texture_config;
         self
     }
 }

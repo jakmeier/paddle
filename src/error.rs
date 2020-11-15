@@ -13,12 +13,23 @@ pub struct ErrorMessage {
 pub type PaddleResult<T> = Result<T, ErrorMessage>;
 
 struct ErrorForwardingActivity;
-pub fn enable_nuts_checks<F>(f: F)
+pub fn enable_custom_nuts_checks<F>(f: F)
 where
     F: Fn(ErrorMessage) + 'static,
 {
     let id = nuts::new_activity(ErrorForwardingActivity);
     id.subscribe_owned(move |_, error| f(error));
+}
+pub fn enable_nuts_checks() {
+    enable_custom_nuts_checks(|error| match error.channel {
+        MessageChannel::Technical => {
+            web_sys::console::error_1(&error.text.into());
+        }
+        MessageChannel::UserFacing => {
+            crate::TextBoard::display_error_message(error.text)
+                .expect("Failed to display error message.");
+        }
+    });
 }
 
 impl ErrorMessage {

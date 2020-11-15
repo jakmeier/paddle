@@ -5,7 +5,7 @@ use crate::{
     quicksilver_compat::{
         geom::Scalar, Background, Color, Drawable, Mesh, Rectangle, Transform, Vector, View,
     },
-    ErrorMessage, JsError, PaddleResult,
+    ErrorMessage, JsError, NutsCheck, PaddleResult,
 };
 use wasm_bindgen::JsCast;
 use web_sys::{HtmlCanvasElement, WebGlRenderingContext};
@@ -134,13 +134,17 @@ impl WebGLCanvas {
     /// Resize the window to the given size
     pub fn set_size(&mut self, size: impl Into<Vector>) {
         self.browser_region.size = size.into();
-        self.canvas.set_attribute(
-            "style",
-            &format!(
-                "width: {}px; height: {}px",
-                self.browser_region.size.x, self.browser_region.size.y
-            ),
-        );
+        self.canvas
+            .set_attribute(
+                "style",
+                &format!(
+                    "width: {}px; height: {}px",
+                    self.browser_region.size.x, self.browser_region.size.y
+                ),
+            )
+            .map_err(JsError::from_js_value)
+            .map_err(ErrorMessage::from)
+            .nuts_check();
     }
 
     /// Flush the current buffered draw calls

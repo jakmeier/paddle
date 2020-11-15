@@ -1,4 +1,5 @@
 use crate::graphics::ImageLoader;
+use crate::graphics::TextureConfig;
 use crate::quicksilver_compat::Vector;
 use crate::web_integration::ThreadHandler;
 use crate::*;
@@ -16,6 +17,7 @@ pub(crate) struct BrowserContext {
 pub struct BrowserConfig {
     pub canvas: CanvasConfig,
     pub pixels: Vector,
+    pub texture_config: TextureConfig,
     pub update_delay_ms: i32,
 }
 impl Default for BrowserConfig {
@@ -24,6 +26,7 @@ impl Default for BrowserConfig {
             canvas: CanvasConfig::HtmlId("paddle-canvas"),
             pixels: Vector::new(1280, 720),
             update_delay_ms: 8,
+            texture_config: Default::default(),
         }
     }
 }
@@ -53,7 +56,7 @@ impl BrowserContext {
         let canvas = WebGLCanvas::new(canvas, config.pixels)?;
 
         // For binding textures as they arrive
-        ImageLoader::register(canvas.clone_webgl());
+        ImageLoader::register(canvas.clone_webgl(), config.texture_config);
 
         Ok(Self {
             canvas,

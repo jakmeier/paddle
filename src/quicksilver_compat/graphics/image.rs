@@ -60,11 +60,11 @@ impl Image {
     //     self.source.id
     // }
 
-    pub(crate) fn source_width(&self) -> u32 {
+    pub(crate) fn source_width(&self) -> i32 {
         self.source.width
     }
 
-    pub(crate) fn source_height(&self) -> u32 {
+    pub(crate) fn source_height(&self) -> i32 {
         self.source.height
     }
 
@@ -92,7 +92,7 @@ impl Image {
         let source_size: Vector = (self.source_width(), self.source_height()).into();
         let recip_size = source_size.recip();
         let normalized_pos = self.region.top_left().times(recip_size);
-        let normalized_size = self.region.size().times(recip_size);
+        let normalized_size = (1.0, -1.0); // self.region.size().times(recip_size);
         Transform::translate(normalized_pos)
             * Transform::scale(normalized_size)
             * Transform::scale(region.size().recip())
@@ -100,7 +100,7 @@ impl Image {
     }
 
     pub(crate) fn texture(&self) -> &WebGlTexture {
-        &self.source.tex
+        &self.source.tex.webgl_texture()
     }
 }
 

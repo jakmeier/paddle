@@ -6,13 +6,12 @@ use nuts::LifecycleStatus;
 use crate::{Domain, ErrorMessage, PaddleResult};
 
 /// Helper object to manage resource loading.
-/// Uses with the nuts domain *Load*
 ///
 /// ## Usage
 ///     1. Register a set of futures that will load the resources
 ///     2. Call `attach_to_domain`, which will consume the `LoadScheduler`
 ///     3. (optional)  Subscribe to `LoadingProgress` event
-///     4. Subscribe to `LoadingDone` event and extract resources from the `LoadedData` object in the `Load` domain
+///     4. Subscribe to `LoadingDone` event and extract resources from the `LoadedData` object in the domain
 ///
 /// ## Nuts Events published
 /// **LoadingProgress**: Published on every resource that has been loaded, including the relative progress and the message of a currently loaded resource

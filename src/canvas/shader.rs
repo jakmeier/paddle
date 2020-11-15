@@ -92,8 +92,8 @@ void main() {
 const DEFAULT_FRAGMENT_SHADER: &str = r#"varying highp vec4 Color;
 varying highp vec2 Tex_coord;
 varying lowp float Uses_texture;
-uniform sampler2D tex;
+uniform sampler2D sampler;
 void main() {
-    highp vec4 tex_color = (int(Uses_texture) != 0) ? texture2D(tex, Tex_coord) : vec4(1, 1, 1, 1);
+    highp vec4 tex_color = (int(Uses_texture) != 0) ? texture2D(sampler, Tex_coord) : vec4(1, 1, 1, 1);
     gl_FragColor = Color * tex_color;
 }"#;

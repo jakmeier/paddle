@@ -43,6 +43,7 @@ pub fn init(config: PaddleConfig) -> PaddleResult<()> {
     web_integration::register_debug_hook();
     if config.enable_text_board {
         crate::TextBoard::init();
+        enable_nuts_checks();
     }
     Context::init(config)
 }

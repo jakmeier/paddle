@@ -1,6 +1,8 @@
+use crate::graphics::Texture;
+use crate::graphics::TextureConfig;
 use std::{cell::Cell, rc::Rc};
 
-use web_sys::{HtmlImageElement, WebGlRenderingContext, WebGlTexture};
+use web_sys::{HtmlImageElement, WebGlRenderingContext};
 
 use crate::{
     quicksilver_compat::Rectangle, Domain, ErrorMessage, JsError, NutsCheck, PaddleResult,
@@ -14,11 +16,11 @@ pub struct Image {
 }
 
 #[derive(Debug)]
-pub struct ImageData {
-    pub tex: WebGlTexture,
+pub(crate) struct ImageData {
+    pub tex: Texture,
     pub el: HtmlImageElement,
-    pub width: u32,
-    pub height: u32,
+    pub width: i32,
+    pub height: i32,
 }
 
 // Message sent after HTML image element finished loading and it is ready to be bound to WebGL context.
@@ -34,26 +36,18 @@ enum BindTexturePayload {
 /// Register this for it to handle BindTextureMessage.
 pub struct ImageLoader {
     gl: WebGlRenderingContext,
+    texture_config: TextureConfig,
 }
 
 impl ImageData {
-    fn new(gl: &WebGlRenderingContext, el: HtmlImageElement) -> PaddleResult<Self> {
-        let width = el.width();
-        let height = el.height();
-        let tex = gl.create_texture().ok_or(ErrorMessage::technical(
-            "Failed to create texture".to_owned(),
-        ))?;
-        gl.bind_texture(WebGlRenderingContext::TEXTURE_2D, Some(&tex));
-        // JS equivalent: texImage2D()
-        gl.tex_image_2d_with_u32_and_u32_and_image(
-            WebGlRenderingContext::TEXTURE_2D,
-            0,
-            WebGlRenderingContext::RGBA as i32,
-            WebGlRenderingContext::RGBA,
-            WebGlRenderingContext::UNSIGNED_BYTE,
-            &el,
-        )
-        .map_err(JsError::from_js_value)?;
+    fn new(
+        gl: &WebGlRenderingContext,
+        texture_config: &TextureConfig,
+        el: HtmlImageElement,
+    ) -> PaddleResult<Self> {
+        let width = el.width() as i32;
+        let height = el.height() as i32;
+        let tex = Texture::new(gl, &el, texture_config)?;
         Ok(Self {
             tex,
             el,
@@ -96,11 +90,11 @@ impl Image {
 }
 
 impl ImageLoader {
-    pub fn register(gl: WebGlRenderingContext) {
-        let activity = nuts::new_domained_activity(Self { gl }, &Domain::Frame);
+    pub fn register(gl: WebGlRenderingContext, texture_config: TextureConfig) {
+        let activity = nuts::new_domained_activity(Self { gl, texture_config }, &Domain::Frame);
         activity.subscribe(move |a, msg: &BindTextureMessage| {
             if let BindTexturePayload::Request(el) = msg.payload.take() {
-                if let Some(data) = ImageData::new(&a.gl, el).nuts_check() {
+                if let Some(data) = ImageData::new(&a.gl, &a.texture_config, el).nuts_check() {
                     msg.payload.replace(BindTexturePayload::Response(data));
                 }
             }
