@@ -92,11 +92,13 @@ impl Image {
         let source_size: Vector = (self.source_width(), self.source_height()).into();
         let recip_size = source_size.recip();
         let normalized_pos = self.region.top_left().times(recip_size);
+        // TODO: This "works" but seems wrong, needs investigation
         let normalized_size = (1.0, -1.0); // self.region.size().times(recip_size);
         Transform::translate(normalized_pos)
             * Transform::scale(normalized_size)
             * Transform::scale(region.size().recip())
             * Transform::translate(-region.top_left())
+            * Transform::translate((0.0,-1.0))
     }
 
     pub(crate) fn texture(&self) -> &WebGlTexture {

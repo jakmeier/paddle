@@ -23,16 +23,16 @@ impl Texture {
         gl.bind_texture(WebGlRenderingContext::TEXTURE_2D, Some(&webgl_texture));
 
         // Clamp to edge allows using non-power-of-two sized texture sources. Always use that to keep it simple. (for now)
-        // gl.tex_parameteri(
-        //     WebGlRenderingContext::TEXTURE_2D,
-        //     WebGlRenderingContext::TEXTURE_WRAP_S,
-        //     WebGlRenderingContext::CLAMP_TO_EDGE as i32,
-        // );
-        // gl.tex_parameteri(
-        //     WebGlRenderingContext::TEXTURE_2D,
-        //     WebGlRenderingContext::TEXTURE_WRAP_T,
-        //     WebGlRenderingContext::CLAMP_TO_EDGE as i32,
-        // );
+        gl.tex_parameteri(
+            WebGlRenderingContext::TEXTURE_2D,
+            WebGlRenderingContext::TEXTURE_WRAP_S,
+            WebGlRenderingContext::CLAMP_TO_EDGE as i32,
+        );
+        gl.tex_parameteri(
+            WebGlRenderingContext::TEXTURE_2D,
+            WebGlRenderingContext::TEXTURE_WRAP_T,
+            WebGlRenderingContext::CLAMP_TO_EDGE as i32,
+        );
 
         gl.tex_parameteri(
             WebGlRenderingContext::TEXTURE_2D,
