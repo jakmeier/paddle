@@ -5,9 +5,11 @@ use crate::{ErrorMessage, JsError, PaddleResult};
 use web_sys::{HtmlImageElement, WebGlRenderingContext, WebGlTexture};
 
 /// 2D texture
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub(crate) struct Texture {
     webgl_texture: WebGlTexture,
+    pub(crate) texel_width: f32,
+    pub(crate) texel_height: f32,
 }
 
 impl Texture {
@@ -62,9 +64,44 @@ impl Texture {
         }
 
         gl.bind_texture(WebGlRenderingContext::TEXTURE_2D, None);
-        Ok(Self { webgl_texture })
+
+        let texel_width = img.width() as f32;
+        let texel_height = img.height() as f32;
+        Ok(Self {
+            webgl_texture,
+            texel_width,
+            texel_height,
+        })
     }
     pub fn webgl_texture(&self) -> &WebGlTexture {
         &self.webgl_texture
     }
 }
+
+impl PartialEq for Texture {
+    fn eq(&self, other: &Self) -> bool {
+        self.webgl_texture == other.webgl_texture
+    }
+}
+impl Eq for Texture {}
+
+// This could be done if a single reference to the Texture was kept. Currently this is clones all over the place...
+// use wasm_bindgen::JsCast;
+// impl Drop for Texture {
+//     fn drop(&mut self) {
+//         if let Some(document) = web_sys::window().and_then(|w| w.document()) {
+//             if let Some(canvas) = document.get_elements_by_tag_name("canvas").item(0) {
+//                 let canvas: web_sys::HtmlCanvasElement =
+//                     canvas.dyn_into::<web_sys::HtmlCanvasElement>().unwrap();
+//                 if let Some(gl) = canvas
+//                     .get_context("webgl")
+//                     .ok()
+//                     .flatten()
+//                     .and_then(|ctx| ctx.dyn_into::<WebGlRenderingContext>().ok())
+//                 {
+//                     gl.delete_texture(Some(&self.webgl_texture));
+//                 }
+//             }
+//         }
+//     }
+// }

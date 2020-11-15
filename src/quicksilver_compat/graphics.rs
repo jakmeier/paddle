@@ -1,6 +1,5 @@
 pub mod color;
 pub mod drawable;
-pub mod image;
 pub mod lyon;
 pub mod mesh;
 pub mod vertex;

@@ -57,7 +57,13 @@ impl WebGLCanvas {
         let view = View::new(Rectangle::new_sized(pixels));
 
         let buffer = WasmGpuBuffer::new();
-        let gpu = Gpu::new(&gl, pixels)?;
+
+        // project screen space coordinates with origin at top left and y pointing down,
+        // to WebGL's [-1,-1] to [1,1] space with y pointing up
+        let projection = Transform::scale((1.0, -1.0))
+            * Transform::translate((-1.0, -1.0))
+            * Transform::scale(pixels.recip() * 2.0);
+        let gpu = Gpu::new(&gl, projection)?;
 
         let window = WebGLCanvas {
             browser_region,

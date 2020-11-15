@@ -33,16 +33,26 @@ use std::{
 /// # ;
 /// ```
 #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
-pub struct Transform([[f32; 3]; 3]);
+pub struct Transform([f32; 9]);
 
 impl Transform {
     ///The identity transformation
     pub const IDENTITY: Transform =
-        Transform([[1f32, 0f32, 0f32], [0f32, 1f32, 0f32], [0f32, 0f32, 1f32]]);
+        Transform::from_array([[1f32, 0f32, 0f32], [0f32, 1f32, 0f32], [0f32, 0f32, 1f32]]);
 
     ///Create a Transform from an arbitrary matrix in a column-major matrix
-    pub fn from_array(array: [[f32; 3]; 3]) -> Transform {
-        Transform(array)
+    pub const fn from_array(array: [[f32; 3]; 3]) -> Transform {
+        Transform([
+            array[0][0],
+            array[0][1],
+            array[0][2],
+            array[1][0],
+            array[1][1],
+            array[1][2],
+            array[2][0],
+            array[2][1],
+            array[2][2],
+        ])
     }
 
     ///Create a rotation transformation
@@ -50,34 +60,51 @@ impl Transform {
         let angle = angle.float();
         let c = (angle * PI / 180f32).cos();
         let s = (angle * PI / 180f32).sin();
-        Transform([[c, -s, 0f32], [s, c, 0f32], [0f32, 0f32, 1f32]])
+        Transform::from_array([[c, -s, 0f32], [s, c, 0f32], [0f32, 0f32, 1f32]])
     }
 
     ///Create a translation transformation
     pub fn translate(vec: impl Into<Vector>) -> Transform {
         let vec = vec.into();
-        Transform([[1f32, 0f32, vec.x], [0f32, 1f32, vec.y], [0f32, 0f32, 1f32]])
+        Transform::from_array([[1f32, 0f32, vec.x], [0f32, 1f32, vec.y], [0f32, 0f32, 1f32]])
     }
 
     ///Create a scale transformation
     pub fn scale(vec: impl Into<Vector>) -> Transform {
         let vec = vec.into();
-        Transform([[vec.x, 0f32, 0f32], [0f32, vec.y, 0f32], [0f32, 0f32, 1f32]])
+        Transform::from_array([[vec.x, 0f32, 0f32], [0f32, vec.y, 0f32], [0f32, 0f32, 1f32]])
+    }
+
+    pub fn as_slice(&self) -> &[f32] {
+        &self.0
+    }
+    pub fn row_major(&self) -> Vec<f32> {
+        vec![
+            self.0[0],
+            self.0[3],
+            self.0[6],
+            self.0[1],
+            self.0[4],
+            self.0[7],
+            self.0[2],
+            self.0[5],
+            self.0[8],
+        ]
     }
 
     #[cfg(feature = "nalgebra")]
     ///Convert the Transform into an nalgebra Matrix3
     pub fn into_matrix(self) -> Matrix3<f32> {
         Matrix3::new(
-            self.0[0][0],
-            self.0[0][1],
-            self.0[0][2],
-            self.0[1][0],
-            self.0[1][1],
-            self.0[1][2],
-            self.0[2][0],
-            self.0[2][1],
-            self.0[2][2],
+            self.0[0],
+            self.0[1],
+            self.0[2],
+            self.0[3],
+            self.0[4],
+            self.0[5],
+            self.0[6],
+            self.0[7],
+            self.0[8],
         )
     }
 
@@ -94,22 +121,22 @@ impl Transform {
     /// ```
     #[must_use]
     pub fn inverse(&self) -> Transform {
-        let det = self.0[0][0] * (self.0[1][1] * self.0[2][2] - self.0[2][1] * self.0[1][2])
-            - self.0[0][1] * (self.0[1][0] * self.0[2][2] - self.0[1][2] * self.0[2][0])
-            + self.0[0][2] * (self.0[1][0] * self.0[2][1] - self.0[1][1] * self.0[2][0]);
+        let det = self.0[0] * (self.0[4] * self.0[8] - self.0[7] * self.0[5])
+            - self.0[1] * (self.0[3] * self.0[8] - self.0[5] * self.0[6])
+            + self.0[2] * (self.0[3] * self.0[7] - self.0[4] * self.0[6]);
 
         let inv_det = det.recip();
 
         let mut inverse = Transform::IDENTITY;
-        inverse.0[0][0] = self.0[1][1] * self.0[2][2] - self.0[2][1] * self.0[1][2];
-        inverse.0[0][1] = self.0[0][2] * self.0[2][1] - self.0[0][1] * self.0[2][2];
-        inverse.0[0][2] = self.0[0][1] * self.0[1][2] - self.0[0][2] * self.0[1][1];
-        inverse.0[1][0] = self.0[1][2] * self.0[2][0] - self.0[1][0] * self.0[2][2];
-        inverse.0[1][1] = self.0[0][0] * self.0[2][2] - self.0[0][2] * self.0[2][0];
-        inverse.0[1][2] = self.0[1][0] * self.0[0][2] - self.0[0][0] * self.0[1][2];
-        inverse.0[2][0] = self.0[1][0] * self.0[2][1] - self.0[2][0] * self.0[1][1];
-        inverse.0[2][1] = self.0[2][0] * self.0[0][1] - self.0[0][0] * self.0[2][1];
-        inverse.0[2][2] = self.0[0][0] * self.0[1][1] - self.0[1][0] * self.0[0][1];
+        inverse.0[0] = self.0[4] * self.0[8] - self.0[7] * self.0[5];
+        inverse.0[1] = self.0[2] * self.0[7] - self.0[1] * self.0[8];
+        inverse.0[2] = self.0[1] * self.0[5] - self.0[2] * self.0[4];
+        inverse.0[3] = self.0[5] * self.0[6] - self.0[3] * self.0[8];
+        inverse.0[4] = self.0[0] * self.0[8] - self.0[2] * self.0[6];
+        inverse.0[5] = self.0[3] * self.0[2] - self.0[0] * self.0[5];
+        inverse.0[6] = self.0[3] * self.0[7] - self.0[6] * self.0[4];
+        inverse.0[7] = self.0[6] * self.0[1] - self.0[0] * self.0[7];
+        inverse.0[8] = self.0[0] * self.0[4] - self.0[3] * self.0[1];
         inverse * inv_det
     }
 }
@@ -122,9 +149,9 @@ impl Mul<Transform> for Transform {
         let mut returnval = Transform::IDENTITY;
         for i in 0..3 {
             for j in 0..3 {
-                returnval.0[i][j] = 0f32;
+                returnval.0[i*3+j] = 0f32;
                 for k in 0..3 {
-                    returnval.0[i][j] += other.0[k][j] * self.0[i][k];
+                    returnval.0[i*3+j] += other.0[k*3+j] * self.0[i*3+k];
                 }
             }
         }
@@ -138,8 +165,8 @@ impl Mul<Vector> for Transform {
 
     fn mul(self, other: Vector) -> Vector {
         Vector::new(
-            other.x * self.0[0][0] + other.y * self.0[0][1] + self.0[0][2],
-            other.x * self.0[1][0] + other.y * self.0[1][1] + self.0[1][2],
+            other.x * self.0[0] + other.y * self.0[1] + self.0[2],
+            other.x * self.0[3] + other.y * self.0[4] + self.0[5],
         )
     }
 }
@@ -156,7 +183,7 @@ impl<T: Scalar> Mul<T> for Transform {
         let mut ret = Transform::IDENTITY;
         for i in 0..3 {
             for j in 0..3 {
-                ret.0[i][j] = self.0[i][j] * other;
+                ret.0[i*3+j] = self.0[i*3+j] * other;
             }
         }
         ret
@@ -168,7 +195,7 @@ impl fmt::Display for Transform {
         write!(f, "[")?;
         for i in 0..3 {
             for j in 0..3 {
-                write!(f, "{},", self.0[i][j])?;
+                write!(f, "{},", self.0[i*3+j])?;
             }
             write!(f, "\n")?;
         }
@@ -186,7 +213,7 @@ impl PartialEq for Transform {
     fn eq(&self, other: &Transform) -> bool {
         for i in 0..3 {
             for j in 0..3 {
-                if !about_equal(self.0[i][j], other.0[i][j]) {
+                if !about_equal(self.0[i*3+j], other.0[i*3+j]) {
                     return false;
                 }
             }

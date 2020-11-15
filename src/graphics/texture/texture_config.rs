@@ -22,6 +22,11 @@ impl TextureConfig {
         self.minification_filter = MinificationFilter::Nearest;
         self
     }
+    pub fn with_bilinear_filtering_no_mipmaps(mut self) -> Self {
+        self.mipmap_level = MipmapLevel::Off;
+        self.minification_filter = MinificationFilter::Linear;
+        self
+    }
     pub fn with_unfiltered_mipmap(mut self) -> Self {
         self.mipmap_level = MipmapLevel::Single;
         self.minification_filter = MinificationFilter::Nearest;

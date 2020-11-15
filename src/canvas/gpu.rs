@@ -1,3 +1,4 @@
+use crate::quicksilver_compat::Transform;
 use js_sys::Float32Array;
 use js_sys::Uint16Array;
 use web_sys::{WebGlBuffer, WebGlProgram, WebGlRenderingContext, WebGlShader, WebGlTexture};
@@ -38,7 +39,6 @@ impl WasmGpuBuffer {
             self.vertices.push(vertex.pos.y);
             // attribute vec2 tex_coord;
             let tex_pos = vertex.tex_pos.unwrap_or(Vector::ZERO);
-            debug_println!("tex pos = {:?}", tex_pos);
             self.vertices.push(tex_pos.x);
             self.vertices.push(tex_pos.y);
             // attribute vec4 color;
@@ -64,33 +64,25 @@ impl WasmGpuBuffer {
 
         // Scan through the triangles, adding the indices to the index buffer (every time the
         // texture switches, flush and switch the bound texture)
-        let mut current_texture: Option<&Image> = None;
+        let mut current_texture: Option<&WebGlTexture> = None;
         for triangle in triangles.iter() {
             if let Some(ref img) = triangle.image {
                 let should_flush = match current_texture {
-                    Some(val) => img != val,
+                    Some(val) => img.texture() != val,
                     None => true,
                 };
                 if should_flush {
-                    gpu.draw_single_texture(
-                        gl,
-                        current_texture.map(|img| img.texture()),
-                        &self.triangle_indices,
-                    );
+                    gpu.draw_single_texture(gl, current_texture, &self.triangle_indices);
                     self.triangle_indices.clear();
                 }
-                current_texture = Some(img);
+                current_texture = Some(img.texture());
             }
             self.triangle_indices
                 .extend(triangle.indices.iter().map(|n| *n as u16));
         }
         // Flush any remaining triangles
         if !self.triangle_indices.is_empty() {
-            gpu.draw_single_texture(
-                gl,
-                current_texture.map(|img| img.texture()),
-                &self.triangle_indices,
-            );
+            gpu.draw_single_texture(gl, current_texture, &self.triangle_indices);
             self.triangle_indices.clear();
         }
         Ok(())
@@ -109,7 +101,7 @@ pub(super) struct Gpu {
 }
 
 impl Gpu {
-    pub fn new(gl: &WebGlRenderingContext, coordinate_system: Vector) -> PaddleResult<Self> {
+    pub fn new(gl: &WebGlRenderingContext, projection: Transform) -> PaddleResult<Self> {
         let vertex_buffer = gl
             .create_buffer()
             .ok_or_else(|| ErrorMessage::technical("failed to create buffer".to_owned()))?;
@@ -135,12 +127,8 @@ impl Gpu {
         let fragment_shader = super::shader::new_fragment_shader(&gl)?;
         let program = super::shader::link_program(&gl, &vertex_shader, &fragment_shader)?;
 
-        let unform_loc = gl.get_uniform_location(&program, "Outer_resolution");
-        gl.uniform2f(
-            unform_loc.as_ref(),
-            coordinate_system.x,
-            coordinate_system.y,
-        );
+        let projection_uloc = gl.get_uniform_location(&program, "Projection");
+        gl.uniform_matrix3fv_with_f32_array(projection_uloc.as_ref(), false, projection.as_slice());
 
         Ok(Self {
             vertex_buffer,

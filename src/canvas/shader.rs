@@ -79,11 +79,10 @@ attribute lowp float uses_texture;
 varying vec2 Tex_coord;
 varying vec4 Color;
 varying lowp float Uses_texture;
-uniform vec2 Outer_resolution;
+uniform mat3 Projection;
 void main() {
-    vec2 t = Outer_resolution / 2.0;
-    vec2 final_position = (position - t) / t;
-    gl_Position = vec4(final_position, 0.0, 1.0);
+    vec3 projected = vec3(position, 1.0) * Projection;
+    gl_Position = vec4(projected.x / projected.z, projected.y / projected.z, 0.0, 1.0);
     Tex_coord = tex_coord;
     Color = color;
     Uses_texture = uses_texture;

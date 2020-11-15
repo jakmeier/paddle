@@ -81,9 +81,7 @@ impl Drawable for Rectangle {
             * trans
             * Transform::translate(-self.size() / 2)
             * Transform::scale(self.size());
-        let tex_trans = bkg
-            .image()
-            .map(|img| img.projection(Rectangle::new_sized((1, 1))));
+        let tex_trans = bkg.image().map(Image::texture_transform);
         let offset = mesh.add_positioned_vertices(
             [Vector::ZERO, Vector::X, Vector::ONE, Vector::Y]
                 .iter()
@@ -104,9 +102,7 @@ impl Drawable for Circle {
         let trans = Transform::translate(self.center())
             * trans
             * Transform::scale(Vector::ONE * self.radius);
-        let tex_trans = bkg
-            .image()
-            .map(|img| img.projection(Rectangle::new((-1, -1), (2, 2))));
+        let tex_trans = bkg.image().map(Image::texture_transform);
         let offset =
             mesh.add_positioned_vertices(CIRCLE_POINTS.iter().cloned(), trans, tex_trans, bkg);
         mesh.triangles.extend(
@@ -124,13 +120,11 @@ impl Drawable for Triangle {
     fn draw<'a>(&self, mesh: &mut Mesh, bkg: Background<'a>, trans: Transform, z: impl Scalar) {
         let trans =
             Transform::translate(self.center()) * trans * Transform::translate(-self.center());
-        let tex_transform = bkg
-            .image()
-            .map(|image| image.projection(self.bounding_box()));
+        let tex_trans = bkg.image().map(Image::texture_transform);
         let offset = mesh.add_positioned_vertices(
             [self.a, self.b, self.c].iter().cloned(),
             trans,
-            tex_transform,
+            tex_trans,
             bkg,
         );
         mesh.triangles
