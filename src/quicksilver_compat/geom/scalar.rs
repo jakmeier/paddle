@@ -42,3 +42,8 @@ impl Scalar for f32 {
         self
     }
 }
+impl Scalar for f64 {
+    fn float(self) -> f32 {
+        self as f32
+    }
+}
