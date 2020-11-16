@@ -3,6 +3,7 @@ use crate::quicksilver_compat::{
     geom::{Scalar, Vector},
     graphics::{Background, Color},
 };
+use std::cmp::Ordering;
 
 #[derive(Clone, Copy, Debug)]
 /// A vertex for drawing items to the GPU
@@ -15,15 +16,17 @@ pub struct Vertex {
     pub tex_pos: Option<Vector>,
     /// The color to blend this vertex with
     pub col: Color,
+    pub z: f32,
 }
 
 impl Vertex {
     /// Create a new GPU vertex
-    pub fn new(pos: impl Into<Vector>, tex_pos: Option<Vector>, bkg: Background) -> Vertex {
+    pub fn new(pos: impl Into<Vector>, z: f32,  tex_pos: Option<Vector>, bkg: Background) -> Vertex {
         Vertex {
             pos: pos.into(),
             tex_pos,
             col: bkg.color(),
+            z,
         }
     }
 }
@@ -57,39 +60,34 @@ impl GpuTriangle {
     }
 }
 
-// #[doc(hidden)]
-// impl PartialEq for GpuTriangle {
-//     fn eq(&self, other: &GpuTriangle) -> bool {
-//         match (&self.image, &other.image) {
-//             (&Some(ref a), &Some(ref b)) => a.get_id() == b.get_id(),
-//             (&None, &None) => true,
-//             _ => false
-//         }
-//     }
-// }
+impl PartialEq for GpuTriangle {
+    fn eq(&self, other: &GpuTriangle) -> bool {
+        match (&self.image, &other.image) {
+            (&Some(ref a), &Some(ref b)) => a == b,
+            (&None, &None) => true,
+            _ => false,
+        }
+    }
+}
 
-// #[doc(hidden)]
-// impl Eq for GpuTriangle {}
+impl Eq for GpuTriangle {}
 
-// #[doc(hidden)]
-// impl PartialOrd for GpuTriangle {
-//     fn partial_cmp(&self, other: &GpuTriangle) -> Option<Ordering> {
-//         Some(self.cmp(other))
-//     }
-// }
+impl PartialOrd for GpuTriangle {
+    fn partial_cmp(&self, other: &GpuTriangle) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
 
-// #[doc(hidden)]
-// impl Ord for GpuTriangle {
-//     fn cmp(&self, other: &GpuTriangle) -> Ordering {
-//         match self.z.partial_cmp(&other.z) {
-//             None | Some(Ordering::Equal) =>
-//                 match (&self.image, &other.image) {
-//                     (&Some(ref a), &Some(ref b)) => a.get_id().cmp(&b.get_id()),
-//                     (&Some(_), &None) => Ordering::Greater,
-//                     (&None, &Some(_)) => Ordering::Less,
-//                     (&None, &None) => Ordering::Equal,
-//                 },
-//             Some(result) => result
-//         }
-//     }
-// }
+impl Ord for GpuTriangle {
+    fn cmp(&self, other: &GpuTriangle) -> Ordering {
+        match self.z.partial_cmp(&other.z) {
+            None | Some(Ordering::Equal) => match (&self.image, &other.image) {
+                (&Some(_), &Some(_)) => Ordering::Equal,
+                (&Some(_), &None) => Ordering::Greater,
+                (&None, &Some(_)) => Ordering::Less,
+                (&None, &None) => Ordering::Equal,
+            },
+            Some(result) => result,
+        }
+    }
+}

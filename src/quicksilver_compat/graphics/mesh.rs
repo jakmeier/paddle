@@ -33,13 +33,14 @@ impl Mesh {
     pub fn add_positioned_vertices(
         &mut self,
         vertices: impl Iterator<Item = Vector>,
+        z: f32,
         trans: Transform,
         tex_trans: Option<Transform>,
         bkg: Background,
     ) -> u32 {
         let offset = self.vertices.len();
         self.vertices.extend(
-            vertices.map(|v| Vertex::new(trans * v, tex_trans.map(|trans| trans * v), bkg)),
+            vertices.map(|v| Vertex::new(trans * v, z, tex_trans.map(|trans| trans * v), bkg)),
         );
         offset as u32
     }

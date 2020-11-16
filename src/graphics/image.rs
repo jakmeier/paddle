@@ -11,7 +11,7 @@ use crate::{
     quicksilver_compat::Rectangle, Domain, ErrorMessage, JsError, NutsCheck, PaddleResult,
 };
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 ///An image that can be drawn to the screen
 pub struct Image {
     pub(crate) texture: Texture,
@@ -64,11 +64,11 @@ impl Image {
     }
 
     pub fn natural_width(&self) -> f32 {
-        self.texture.texel_width * self.region.x()
+        self.texture.texel_width * self.region.width()
     }
 
     pub fn natural_height(&self) -> f32 {
-        self.texture.texel_height * self.region.y()
+        self.texture.texel_height * self.region.height()
     }
 
     pub fn natural_size(&self) -> Vector {

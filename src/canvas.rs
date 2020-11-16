@@ -1,6 +1,9 @@
 mod gpu;
 mod shader;
 
+pub const Z_MIN: i32 = 0;
+pub const Z_MAX: i32 = 1000;
+
 use crate::{
     quicksilver_compat::{
         geom::Scalar, Background, Color, Drawable, Mesh, Rectangle, Transform, Vector, View,
@@ -113,7 +116,7 @@ impl WebGLCanvas {
 
     /// Draw a Drawable to the window, which will be finalized on the next flush
     pub fn draw<'a>(&'a mut self, draw: &impl Drawable, bkg: impl Into<Background<'a>>) {
-        self.draw_ex(draw, bkg.into(), Transform::IDENTITY, 0);
+        self.draw_ex(draw, bkg.into(), Transform::IDENTITY, 0.0);
     }
 
     /// Draw a Drawable to the window with more options provided (draw exhaustive)
@@ -124,7 +127,9 @@ impl WebGLCanvas {
         trans: Transform,
         z: impl Scalar,
     ) {
-        draw.draw(&mut self.mesh, bkg.into(), trans, z);
+        debug_assert!(z.float() >= Z_MIN as f32);
+        debug_assert!(z.float() <= Z_MAX as f32);
+        draw.draw(&mut self.mesh, bkg.into(), trans, z.float() / Z_MAX as f32);
     }
 
     /// The mesh the window uses to draw
@@ -160,6 +165,14 @@ impl WebGLCanvas {
     ///
     /// Note that calling this can be an expensive operation
     pub fn flush(&mut self) -> PaddleResult<()> {
+        if self.gpu.depth_tests_enabled {
+            // If depth tests are enabled, overdrawing can be avoided (for performance) by drawing closer sprites first
+            self.mesh.triangles.sort_by(|a, b| b.cmp(a));
+            self.gl.clear(WebGlRenderingContext::DEPTH_BUFFER_BIT);
+        } else {
+            // If depth tests are disabled, overdrawing has to be forced for correctness
+            self.mesh.triangles.sort();
+        }
         self.buffer.draw(
             &self.gl,
             &mut self.gpu,

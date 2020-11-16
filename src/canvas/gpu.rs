@@ -4,10 +4,9 @@ use js_sys::Uint16Array;
 use web_sys::{WebGlBuffer, WebGlProgram, WebGlRenderingContext, WebGlShader, WebGlTexture};
 
 // TODO: Better way to deal with this?
-const VERTEX_SIZE: usize = 9; // the number of floats in a vertex
+const VERTEX_SIZE: usize = 10; // the number of floats in a vertex
 
 use crate::{
-    graphics::Image,
     quicksilver_compat::{GpuTriangle, Vector, Vertex},
     ErrorMessage, PaddleResult,
 };
@@ -34,9 +33,12 @@ impl WasmGpuBuffer {
     fn naive_prepare_vertices(&mut self, vertices: &[Vertex]) {
         // Turn the provided vertex data into stored vertex data
         vertices.iter().for_each(|vertex| {
-            // attribute vec2 position;
+            // attribute vec3 position;
             self.vertices.push(vertex.pos.x);
             self.vertices.push(vertex.pos.y);
+            debug_assert!(vertex.z <= 1.0);
+            debug_assert!(vertex.z >= -1.0);
+            self.vertices.push(vertex.z);
             // attribute vec2 tex_coord;
             let tex_pos = vertex.tex_pos.unwrap_or(Vector::ZERO);
             self.vertices.push(tex_pos.x);
@@ -98,6 +100,7 @@ pub(super) struct Gpu {
     fragment_shader: WebGlShader,
     vertex_shader: WebGlShader,
     // texture_location: Option<WebGlUniformLocation>,
+    pub(crate) depth_tests_enabled: bool,
 }
 
 impl Gpu {
@@ -123,6 +126,14 @@ impl Gpu {
         );
         gl.enable(WebGlRenderingContext::BLEND);
 
+        // If we can, we want to use the depth buffer for z ordering
+        gl.enable(WebGlRenderingContext::DEPTH_TEST);
+        let depth_tests_enabled = gl.is_enabled(WebGlRenderingContext::DEPTH_TEST);
+        if depth_tests_enabled {
+            gl.clear_depth(0.0);
+            gl.depth_func(WebGlRenderingContext::GEQUAL); 
+        }
+
         let vertex_shader = super::shader::new_vertex_shader(&gl)?;
         let fragment_shader = super::shader::new_fragment_shader(&gl)?;
         let program = super::shader::link_program(&gl, &vertex_shader, &fragment_shader)?;
@@ -138,6 +149,7 @@ impl Gpu {
             vertex_shader,
             fragment_shader,
             program,
+            depth_tests_enabled,
         })
     }
 
@@ -170,44 +182,58 @@ impl Gpu {
         // Set up the vertex attributes
         let pos_attrib = gl.get_attrib_location(&self.program, "position") as u32;
         gl.enable_vertex_attrib_array(pos_attrib);
+
+        let mut offset = 0;
+        let size = 3;
         gl.vertex_attrib_pointer_with_i32(
             pos_attrib,
-            2,
+            size,
             WebGlRenderingContext::FLOAT,
             false,
             stride_distance,
-            0,
+            offset * std::mem::size_of::<f32>() as i32,
         );
+        offset += size;
+
         let tex_attrib = gl.get_attrib_location(&self.program, "tex_coord") as u32;
+        let size = 2;
         gl.enable_vertex_attrib_array(tex_attrib);
         gl.vertex_attrib_pointer_with_i32(
             tex_attrib,
-            2,
+            size,
             WebGlRenderingContext::FLOAT,
             false,
             stride_distance,
-            2 * std::mem::size_of::<f32>() as i32,
+            offset * std::mem::size_of::<f32>() as i32,
         );
+        offset += size;
+
         let col_attrib = gl.get_attrib_location(&self.program, "color") as u32;
+        let size = 4;
         gl.enable_vertex_attrib_array(col_attrib);
         gl.vertex_attrib_pointer_with_i32(
             col_attrib,
-            4,
+            size,
             WebGlRenderingContext::FLOAT,
             false,
             stride_distance,
-            4 * std::mem::size_of::<f32>() as i32,
+            offset * std::mem::size_of::<f32>() as i32,
         );
+        offset += size;
+
         let use_texture_attrib = gl.get_attrib_location(&self.program, "uses_texture") as u32;
+        let size = 1;
         gl.enable_vertex_attrib_array(use_texture_attrib);
         gl.vertex_attrib_pointer_with_i32(
             use_texture_attrib,
-            1,
+            size,
             WebGlRenderingContext::FLOAT,
             false,
             stride_distance,
-            8 * std::mem::size_of::<f32>() as i32,
+            offset * std::mem::size_of::<f32>() as i32,
         );
+        offset += size;
+        debug_assert!(offset as usize == VERTEX_SIZE);
     }
 
     // Assumes that vertices area already uploaded, hence only the indices are needed as parameter

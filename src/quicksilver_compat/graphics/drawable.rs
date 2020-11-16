@@ -86,6 +86,7 @@ impl Drawable for Rectangle {
             [Vector::ZERO, Vector::X, Vector::ONE, Vector::Y]
                 .iter()
                 .cloned(),
+            z.float(),
             trans,
             tex_trans,
             bkg,
@@ -103,8 +104,13 @@ impl Drawable for Circle {
             * trans
             * Transform::scale(Vector::ONE * self.radius);
         let tex_trans = bkg.image().map(Image::texture_transform);
-        let offset =
-            mesh.add_positioned_vertices(CIRCLE_POINTS.iter().cloned(), trans, tex_trans, bkg);
+        let offset = mesh.add_positioned_vertices(
+            CIRCLE_POINTS.iter().cloned(),
+            z.float(),
+            trans,
+            tex_trans,
+            bkg,
+        );
         mesh.triangles.extend(
             iter::repeat(z)
                 .take(CIRCLE_POINTS.len() - 1)
@@ -123,6 +129,7 @@ impl Drawable for Triangle {
         let tex_trans = bkg.image().map(Image::texture_transform);
         let offset = mesh.add_positioned_vertices(
             [self.a, self.b, self.c].iter().cloned(),
+            z.float(),
             trans,
             tex_trans,
             bkg,

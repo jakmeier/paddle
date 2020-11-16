@@ -26,7 +26,7 @@ impl<'a> ShapeRenderer<'a> {
         ShapeRenderer {
             mesh,
             color,
-            z: 0.0,
+            z: 1.0,
             trans: Transform::IDENTITY,
             dirty: None,
         }
@@ -108,13 +108,13 @@ where
 impl VertexConstructor<FillVertex, Vertex> for Color {
     fn new_vertex(&mut self, vertex: FillVertex) -> Vertex {
         let position = Vector::new(vertex.position.x, vertex.position.y);
-        Vertex::new(position, None, Col(*self))
+        Vertex::new(position, 1.0, None, Col(*self))
     }
 }
 
 impl VertexConstructor<StrokeVertex, Vertex> for Color {
     fn new_vertex(&mut self, vertex: StrokeVertex) -> Vertex {
         let position = Vector::new(vertex.position.x, vertex.position.y);
-        Vertex::new(position, None, Col(*self))
+        Vertex::new(position, 1.0, None, Col(*self))
     }
 }
