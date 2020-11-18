@@ -13,9 +13,6 @@ pub struct DrawWorld {
     pub time_ms: f64,
 }
 pub struct EndOfFrame;
-pub struct WorldEvent {
-    event: Event,
-}
 impl UpdateWorld {
     pub fn new() -> Self {
         Self {}
@@ -24,16 +21,6 @@ impl UpdateWorld {
 impl DrawWorld {
     pub fn new(t: f64) -> Self {
         Self { time_ms: t }
-    }
-}
-impl WorldEvent {
-    pub fn new(event: &Event) -> Self {
-        Self {
-            event: event.clone(),
-        }
-    }
-    pub fn event(&self) -> Event {
-        self.event.clone()
     }
 }
 

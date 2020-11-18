@@ -131,7 +131,7 @@ impl Gpu {
         let depth_tests_enabled = gl.is_enabled(WebGlRenderingContext::DEPTH_TEST);
         if depth_tests_enabled {
             gl.clear_depth(0.0);
-            gl.depth_func(WebGlRenderingContext::GEQUAL); 
+            gl.depth_func(WebGlRenderingContext::GEQUAL);
         }
 
         let vertex_shader = super::shader::new_vertex_shader(&gl)?;

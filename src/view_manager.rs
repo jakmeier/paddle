@@ -38,7 +38,7 @@ impl<V: Hash + Eq + Copy> ViewManager<V> {
         _size: (i32, i32),
     ) -> FrameHandle<FRAME>
     where
-        FRAME: Frame<State = S, Error = E> + nuts::Activity,
+        FRAME: Frame<State = S> + nuts::Activity,
     {
         let activity_id: ActivityId<_> = frame_to_activity(frame, &self.domain);
         let mut status = Inactive;

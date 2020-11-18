@@ -10,10 +10,10 @@ pub(crate) mod debug;
 pub(crate) mod canvas;
 pub(crate) mod context;
 pub(crate) mod error;
-pub(crate) mod event;
 pub(crate) mod frame; // TODO: Probably rename (e.g. to activity)
 pub mod graphics;
 pub(crate) mod grid;
+pub(crate) mod input;
 pub(crate) mod jmr_geometry;
 pub(crate) mod load;
 pub mod quicksilver_compat;
@@ -24,8 +24,8 @@ pub mod web_integration;
 pub use canvas::*;
 pub use context::*;
 pub use error::*;
-pub use event::*;
 pub use frame::*;
+pub use input::*;
 pub use jmr_geometry::*;
 pub use load::*;
 pub use text::*;
@@ -45,5 +45,7 @@ pub fn init(config: PaddleConfig) -> PaddleResult<()> {
         crate::TextBoard::init();
         enable_nuts_checks();
     }
-    Context::init(config)
+    Context::init(config)?;
+    EventGate::init();
+    Ok(())
 }

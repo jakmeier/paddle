@@ -5,7 +5,7 @@
 pub mod geom;
 pub mod graphics;
 
-pub use super::event::*;
+pub use super::input::*;
 pub use geom::{about_equal, Circle, Rectangle, Shape, Transform, Vector};
 pub use graphics::Background::Img;
 pub use graphics::*;

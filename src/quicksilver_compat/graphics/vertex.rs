@@ -21,7 +21,7 @@ pub struct Vertex {
 
 impl Vertex {
     /// Create a new GPU vertex
-    pub fn new(pos: impl Into<Vector>, z: f32,  tex_pos: Option<Vector>, bkg: Background) -> Vertex {
+    pub fn new(pos: impl Into<Vector>, z: f32, tex_pos: Option<Vector>, bkg: Background) -> Vertex {
         Vertex {
             pos: pos.into(),
             tex_pos,

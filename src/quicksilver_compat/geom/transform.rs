@@ -80,14 +80,7 @@ impl Transform {
     }
     pub fn row_major(&self) -> Vec<f32> {
         vec![
-            self.0[0],
-            self.0[3],
-            self.0[6],
-            self.0[1],
-            self.0[4],
-            self.0[7],
-            self.0[2],
-            self.0[5],
+            self.0[0], self.0[3], self.0[6], self.0[1], self.0[4], self.0[7], self.0[2], self.0[5],
             self.0[8],
         ]
     }
@@ -96,14 +89,7 @@ impl Transform {
     ///Convert the Transform into an nalgebra Matrix3
     pub fn into_matrix(self) -> Matrix3<f32> {
         Matrix3::new(
-            self.0[0],
-            self.0[1],
-            self.0[2],
-            self.0[3],
-            self.0[4],
-            self.0[5],
-            self.0[6],
-            self.0[7],
+            self.0[0], self.0[1], self.0[2], self.0[3], self.0[4], self.0[5], self.0[6], self.0[7],
             self.0[8],
         )
     }
@@ -149,9 +135,9 @@ impl Mul<Transform> for Transform {
         let mut returnval = Transform::IDENTITY;
         for i in 0..3 {
             for j in 0..3 {
-                returnval.0[i*3+j] = 0f32;
+                returnval.0[i * 3 + j] = 0f32;
                 for k in 0..3 {
-                    returnval.0[i*3+j] += other.0[k*3+j] * self.0[i*3+k];
+                    returnval.0[i * 3 + j] += other.0[k * 3 + j] * self.0[i * 3 + k];
                 }
             }
         }
@@ -183,7 +169,7 @@ impl<T: Scalar> Mul<T> for Transform {
         let mut ret = Transform::IDENTITY;
         for i in 0..3 {
             for j in 0..3 {
-                ret.0[i*3+j] = self.0[i*3+j] * other;
+                ret.0[i * 3 + j] = self.0[i * 3 + j] * other;
             }
         }
         ret
@@ -195,7 +181,7 @@ impl fmt::Display for Transform {
         write!(f, "[")?;
         for i in 0..3 {
             for j in 0..3 {
-                write!(f, "{},", self.0[i*3+j])?;
+                write!(f, "{},", self.0[i * 3 + j])?;
             }
             write!(f, "\n")?;
         }
@@ -213,7 +199,7 @@ impl PartialEq for Transform {
     fn eq(&self, other: &Transform) -> bool {
         for i in 0..3 {
             for j in 0..3 {
-                if !about_equal(self.0[i*3+j], other.0[i*3+j]) {
+                if !about_equal(self.0[i * 3 + j], other.0[i * 3 + j]) {
                     return false;
                 }
             }
