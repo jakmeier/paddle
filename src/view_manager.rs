@@ -1,8 +1,8 @@
 use crate::{
-    frame::{frame_to_activity, Frame, FrameHandle},
-    Domain,
+    frame::{Frame, FrameHandle},
+    register_frame_no_state, Domain,
 };
-use nuts::{ActivityId, LifecycleStatus::Active, LifecycleStatus::Inactive, UncheckedActivityId};
+use nuts::{LifecycleStatus::Active, LifecycleStatus::Inactive, UncheckedActivityId};
 use std::collections::HashMap;
 use std::hash::Hash;
 
@@ -10,7 +10,6 @@ use std::hash::Hash;
 pub struct ViewManager<V> {
     views_to_activities: HashMap<V, Vec<UncheckedActivityId>>,
     current_view: V,
-    domain: Domain,
 }
 
 impl<V: Hash + Eq + Copy> ViewManager<V> {
@@ -18,7 +17,6 @@ impl<V: Hash + Eq + Copy> ViewManager<V> {
         Self {
             views_to_activities: HashMap::new(),
             current_view: v,
-            domain: Domain::Frame,
         }
     }
 
@@ -34,13 +32,22 @@ impl<V: Hash + Eq + Copy> ViewManager<V> {
         &mut self,
         frame: FRAME,
         views: &[V],
-        _pos: (i32, i32),
-        _size: (i32, i32),
+        pos: (u32, u32),
+        size: (u32, u32),
     ) -> FrameHandle<FRAME>
     where
         FRAME: Frame<State = S> + nuts::Activity,
     {
-        let activity_id: ActivityId<_> = frame_to_activity(frame, &self.domain);
+        let handle = register_frame_no_state(frame, pos, size);
+        let activity_id = handle.activity();
+
+        if let Some(div) = handle.div() {
+            let div_copy = div.clone();
+            activity_id.on_enter(move |_| div_copy.show().expect("Div failure"));
+            let div_copy = div.clone();
+            activity_id.on_leave(move |_| div_copy.hide().expect("Div failure"));
+        }
+
         let mut status = Inactive;
         for view in views {
             if view == &self.current_view {
@@ -49,7 +56,7 @@ impl<V: Hash + Eq + Copy> ViewManager<V> {
             self.link_activity_to_view(activity_id, *view);
         }
         activity_id.set_status(status);
-        FrameHandle::new(activity_id)
+        handle
     }
     pub fn set_view(&mut self, view: V) {
         if self.current_view == view {

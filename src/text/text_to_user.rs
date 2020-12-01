@@ -49,14 +49,15 @@ impl TextBoard {
         Ok(())
     }
     fn render_text_messages(&mut self, window: &mut WebGLCanvas) -> PaddleResult<()> {
-        let screen = window.project() * window.browser_region().size();
-        let w = 300.0;
-        let h = screen.y;
-        let x = (screen.x - w) / 2.0;
-        let y = 0.0;
-        let area = Rectangle::new((x, y), (w, h));
-        self.draw(&area)?;
-        Ok(())
+        todo!()
+        // let screen = window.project() * window.browser_region().size();
+        // let w = 300.0;
+        // let h = screen.y;
+        // let x = (screen.x - w) / 2.0;
+        // let y = 0.0;
+        // let area = Rectangle::new((x, y), (w, h));
+        // self.draw(&area)?;
+        // Ok(())
     }
     fn draw(&mut self, max_area: &Rectangle) -> PaddleResult<()> {
         self.remove_old_messages();

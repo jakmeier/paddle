@@ -21,6 +21,9 @@ pub(crate) mod text;
 pub(crate) mod view_manager;
 pub mod web_integration;
 
+mod display;
+pub use display::*;
+
 pub use canvas::*;
 pub use context::*;
 pub use error::*;
@@ -47,5 +50,6 @@ pub fn init(config: PaddleConfig) -> PaddleResult<()> {
     }
     Context::init(config)?;
     EventGate::init();
+    FrameManipulator::init();
     Ok(())
 }

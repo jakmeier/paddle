@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use super::{about_equal, Scalar, Vector};
+use super::{about_equal, Rectangle, Scalar, Vector};
 use std::{
     cmp::{Eq, PartialEq},
     default::Default,
@@ -154,6 +154,38 @@ impl Mul<Vector> for Transform {
             other.x * self.0[0] + other.y * self.0[1] + self.0[2],
             other.x * self.0[3] + other.y * self.0[4] + self.0[5],
         )
+    }
+}
+impl Mul<Transform> for Vector {
+    type Output = Vector;
+
+    fn mul(self, t: Transform) -> Vector {
+        Vector::new(
+            self.x * t.0[0] + self.y * t.0[3] + t.0[6],
+            self.x * t.0[1] + self.y * t.0[4] + t.0[7],
+        )
+    }
+}
+
+/// Apply Transform to all points of a Rectangle
+impl Mul<Transform> for Rectangle {
+    type Output = Rectangle;
+
+    fn mul(mut self, t: Transform) -> Rectangle {
+        let bottom_right = (self.pos + self.size) * t;
+        self.pos = self.pos * t;
+        self.size = bottom_right - self.pos;
+        self
+    }
+}
+impl Mul<Rectangle> for Transform {
+    type Output = Rectangle;
+
+    fn mul(self, mut r: Rectangle) -> Rectangle {
+        let bottom_right = self * (r.pos + r.size);
+        r.pos = self * r.pos;
+        r.size = bottom_right - r.pos;
+        r
     }
 }
 

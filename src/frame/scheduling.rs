@@ -1,6 +1,24 @@
 use crate::web_integration::*;
 use crate::*;
 
+pub(crate) struct SchedulingContext {
+    #[allow(dead_code)]
+    draw_handle: ThreadHandler,
+    #[allow(dead_code)]
+    update_handle: ThreadHandler,
+}
+
+impl SchedulingContext {
+    pub fn new(update_delay_ms: i32) -> PaddleResult<Self> {
+        let draw_handle = start_drawing()?;
+        let update_handle = start_updating(update_delay_ms)?;
+        Ok(Self {
+            draw_handle,
+            update_handle,
+        })
+    }
+}
+
 pub struct LeftClick {
     pub pos: (i32, i32),
 }
@@ -12,6 +30,7 @@ pub struct UpdateWorld;
 pub struct DrawWorld {
     pub time_ms: f64,
 }
+/// End of frame as in frames-per-second. Published when drawing has finished.
 pub struct EndOfFrame;
 impl UpdateWorld {
     pub fn new() -> Self {
