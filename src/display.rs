@@ -1,4 +1,10 @@
-// TODO: Restructure file hierarchy around display/canvas/graphics/frame
+pub(crate) mod canvas;
+pub(crate) mod text;
+pub use canvas::*;
+pub use text::*;
+
+mod gpu;
+
 use crate::graphics::ImageLoader;
 use crate::graphics::TextureConfig;
 use crate::quicksilver_compat::Vector;
@@ -44,9 +50,6 @@ use crate::{NutsCheck, PaddleResult};
 
 impl Display {
     pub(super) fn new(config: DisplayConfig) -> PaddleResult<Self> {
-        let draw_handle = start_drawing()?;
-        let update_handle = start_updating(config.update_delay_ms)?;
-
         let canvas = match config.canvas {
             CanvasConfig::HtmlElement(el) => el,
             CanvasConfig::HtmlId(id) => canvas_by_id(id)?,

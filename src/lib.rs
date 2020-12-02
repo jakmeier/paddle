@@ -7,7 +7,6 @@ pub use nuts;
 #[macro_use]
 pub(crate) mod debug;
 
-pub(crate) mod canvas;
 pub(crate) mod context;
 pub(crate) mod error;
 pub(crate) mod frame; // TODO: Probably rename (e.g. to activity)
@@ -17,21 +16,18 @@ pub(crate) mod input;
 pub(crate) mod jmr_geometry;
 pub(crate) mod load;
 pub mod quicksilver_compat;
-pub(crate) mod text;
 pub(crate) mod view_manager;
 pub mod web_integration;
 
 mod display;
 pub use display::*;
 
-pub use canvas::*;
 pub use context::*;
 pub use error::*;
 pub use frame::*;
 pub use input::*;
 pub use jmr_geometry::*;
 pub use load::*;
-pub use text::*;
 pub use view_manager::*;
 
 // Code that currently belongs nowhere

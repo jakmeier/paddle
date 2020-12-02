@@ -1,9 +1,7 @@
-mod gpu;
-mod shader;
-
 pub const Z_MIN: i32 = 0;
 pub const Z_MAX: i32 = 1000;
 
+use super::gpu::{Gpu, WasmGpuBuffer};
 use crate::{
     quicksilver_compat::{
         geom::Scalar, Background, Color, Drawable, Mesh, Rectangle, Transform, Vector, View,
@@ -12,8 +10,6 @@ use crate::{
 };
 use wasm_bindgen::JsCast;
 use web_sys::{HtmlCanvasElement, WebGlRenderingContext};
-
-use self::gpu::{Gpu, WasmGpuBuffer};
 
 // TODO: Make this crate visible. Users should only interact with Display.
 // pub(crate) struct WebGLCanvas {

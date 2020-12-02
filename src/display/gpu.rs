@@ -1,3 +1,5 @@
+mod shader;
+
 use crate::quicksilver_compat::Transform;
 use js_sys::Float32Array;
 use js_sys::Uint16Array;
@@ -134,9 +136,9 @@ impl Gpu {
             gl.depth_func(WebGlRenderingContext::GEQUAL);
         }
 
-        let vertex_shader = super::shader::new_vertex_shader(&gl)?;
-        let fragment_shader = super::shader::new_fragment_shader(&gl)?;
-        let program = super::shader::link_program(&gl, &vertex_shader, &fragment_shader)?;
+        let vertex_shader = shader::new_vertex_shader(&gl)?;
+        let fragment_shader = shader::new_fragment_shader(&gl)?;
+        let program = shader::link_program(&gl, &vertex_shader, &fragment_shader)?;
 
         let projection_uloc = gl.get_uniform_location(&program, "Projection");
         gl.uniform_matrix3fv_with_f32_array(projection_uloc.as_ref(), false, projection.as_slice());
