@@ -20,8 +20,9 @@ pub fn register_frame_no_state<F: Frame + Activity>(
 ) -> FrameHandle<F> {
     let div = div::new_pane(pos.0, pos.1, size.0, size.1, "").expect("Div failure");
     let activity = nuts::new_domained_activity(frame, &Domain::Frame);
-    init_frame_activity(activity, &div);
-    let handle =     FrameHandle::new(activity, Some(div), Rectangle::new(pos, size));
+    let area = Rectangle::new(pos, size);
+    init_frame_activity(activity, &div, area);
+    let handle = FrameHandle::new(activity, Some(div), area);
     FrameManipulator::init_frame(&handle);
     handle
 }
@@ -34,7 +35,7 @@ impl<STATE> Frame for Nop<STATE> {
     type State = STATE;
 }
 
-fn init_frame_activity<F>(activity: ActivityId<F>, div: &PaneHandle)
+fn init_frame_activity<F>(activity: ActivityId<F>, div: &PaneHandle, area: Rectangle)
 where
     F: Frame + Activity,
 {
@@ -45,9 +46,9 @@ where
         });
     }
     if (F::draw as usize) != (Nop::<F::State>::draw as usize) {
-        activity.subscribe_domained(|a: &mut F, d: &mut DomainState, msg: &DrawWorld| {
+        activity.subscribe_domained(move |a: &mut F, d: &mut DomainState, msg: &DrawWorld| {
             let (global_state, ctx) = d.try_get_2_mut::<F::State, Context>();
-            let canvas = ctx.expect("Context missing").canvas_mut();
+            let canvas = ctx.expect("Context missing").display_region(area);
             a.draw(
                 global_state.expect("Activity State missing"),
                 canvas,

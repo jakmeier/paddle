@@ -1,4 +1,19 @@
-use crate::{Key, quicksilver_compat::Rectangle, canvas::WebGLCanvas};
+//! Frames are active areas, like light-weight windows.
+//!
+//! Frames are the number one interface of the paddle game engine to developers using it.
+//! Games built with Paddlers should be structured around them.
+//!
+//! Game updates are scheduled through frames.
+//! Draw calls are typically done inside frames.
+//! User input is received through frames.
+//!
+//! Each frame has a dynamic position on the display.
+//! Drawing and user input is restricted to that area.
+//!
+//! Frames can also be put in the background, in which state reduced events are handled and nothing is drawn.
+
+use crate::DisplayArea;
+use crate::{quicksilver_compat::Rectangle, Key};
 use nuts::*;
 
 mod frame_manipulation;
@@ -11,13 +26,7 @@ pub use scheduling::*;
 /// A frame takes up some area on the screen where it is drawn and reacts to UI events
 pub trait Frame {
     type State;
-    fn draw(
-        &mut self,
-        _state: &mut Self::State,
-        _canvas: &mut WebGLCanvas, // TODO: This should be some "DrawArea" or whatever, some handle to just the area the frame uses
-        _timestamp: f64,
-    ) {
-    }
+    fn draw(&mut self, _state: &mut Self::State, _canvas: &mut DisplayArea, _timestamp: f64) {}
     fn update(&mut self, _state: &mut Self::State) {}
     fn leave(&mut self, _state: &mut Self::State) {}
     fn enter(&mut self, _state: &mut Self::State) {}
@@ -38,8 +47,16 @@ pub struct FrameHandle<FRAME> {
 }
 
 impl<FRAME> FrameHandle<FRAME> {
-    pub fn new(activity_id: ActivityId<FRAME>, div: Option<div::PaneHandle>, region: Rectangle) -> Self {
-        Self { activity_id, div, region}
+    pub fn new(
+        activity_id: ActivityId<FRAME>,
+        div: Option<div::PaneHandle>,
+        region: Rectangle,
+    ) -> Self {
+        Self {
+            activity_id,
+            div,
+            region,
+        }
     }
     pub fn activity(&self) -> ActivityId<FRAME> {
         self.activity_id

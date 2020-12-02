@@ -1,25 +1,34 @@
-pub(crate) mod canvas;
-pub(crate) mod text;
+//! Parent module around code that puts stuff on the screen.
+//!
+//! This covers basics things like working with an HTML canvas and some WebGL interfacing.
+//! Displaying text is currently also under this parent module.
+
+mod canvas;
+mod display_area;
+mod gpu;
+mod text;
+
 pub use canvas::*;
+pub use display_area::*;
 pub use text::*;
 
-mod gpu;
-
-use crate::graphics::ImageLoader;
 use crate::graphics::TextureConfig;
 use crate::quicksilver_compat::Vector;
 use crate::*;
+use crate::{graphics::ImageLoader, quicksilver_compat::Color};
 use wasm_bindgen::JsCast;
 use web_sys::HtmlCanvasElement;
 
-/// An object to manage the *display area* for your game inside the browser.
+/// An object to manage the *full* display area for your game inside the browser.
 pub struct Display {
     /// Position relative to browser page (in browser coordinates)
     browser_region: Rectangle,
-    /// A canvas covering the full display area with WebGL capabilities
-    canvas: WebGLCanvas,
     /// Game / World coordinates. Used to refer to game objects and UI elements independently of resolution or size in the browser.
     game_coordinates: Vector,
+    /// A canvas with WebGL capabilities (covering the full display area)
+    canvas: WebGLCanvas,
+    /// Screen background color. A clear to this color is invoked every frame.
+    background_color: Option<Color>,
 }
 
 pub struct DisplayConfig {
@@ -27,6 +36,7 @@ pub struct DisplayConfig {
     pub pixels: Vector,
     pub texture_config: TextureConfig,
     pub update_delay_ms: i32,
+    pub background: Option<Color>,
 }
 impl Default for DisplayConfig {
     fn default() -> Self {
@@ -35,6 +45,7 @@ impl Default for DisplayConfig {
             pixels: Vector::new(1280, 720),
             update_delay_ms: 8,
             texture_config: Default::default(),
+            background: None,
         }
     }
 }
@@ -70,10 +81,13 @@ impl Display {
         // For now the only option is game_coordinates = pixels
         let game_coordinates = config.pixels;
 
+        let background_color = config.background;
+
         Ok(Self {
             canvas,
             browser_region,
             game_coordinates,
+            background_color,
         })
     }
     pub(crate) fn canvas_mut(&mut self) -> &mut WebGLCanvas {
@@ -83,6 +97,12 @@ impl Display {
     /// Position relative to browser page and size in browser pixels
     pub fn browser_region(&self) -> Rectangle {
         self.browser_region
+    }
+
+    pub fn clear(&mut self) {
+        if let Some(col) = self.background_color {
+            self.canvas.clear(col);
+        }
     }
 
     /// Transforms from coordinates used inside the game (aka world coordinates) to browser coordinates (as used by e.g. CSS pixels)

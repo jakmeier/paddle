@@ -32,6 +32,8 @@ pub struct DrawWorld {
 }
 /// End of frame as in frames-per-second. Published when drawing has finished.
 pub struct EndOfFrame;
+pub struct StartOfFrame;
+
 impl UpdateWorld {
     pub fn new() -> Self {
         Self {}
@@ -52,16 +54,22 @@ pub fn start_updating(delay_ms: i32) -> PaddleResult<ThreadHandler> {
 
 pub fn start_drawing() -> PaddleResult<ThreadHandler> {
     let handle = start_drawing_thread(|t| {
+        nuts::publish(StartOfFrame);
         nuts::publish(DrawWorld::new(t));
         nuts::publish(EndOfFrame);
     })?;
-    let id = nuts::new_domained_activity(AfterDraw, &Domain::Frame);
-    id.subscribe_domained(AfterDraw::flush);
+    let id = nuts::new_domained_activity(FrameHelper, &Domain::Frame);
+    id.subscribe_domained(FrameHelper::clear);
+    id.subscribe_domained(FrameHelper::flush);
     Ok(handle)
 }
 
-struct AfterDraw;
-impl AfterDraw {
+struct FrameHelper;
+impl FrameHelper {
+    fn clear(&mut self, domain: &mut nuts::DomainState, _: &StartOfFrame) {
+        let ctx = domain.get_mut::<Context>();
+        ctx.display.full_mut().clear();
+    }
     fn flush(&mut self, domain: &mut nuts::DomainState, _: &EndOfFrame) {
         let ctx = domain.get_mut::<Context>();
         let canvas = ctx.canvas_mut();

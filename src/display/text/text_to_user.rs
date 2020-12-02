@@ -1,4 +1,4 @@
-use crate::{canvas::WebGLCanvas, error::NutsCheck};
+use crate::{error::NutsCheck, WebGLCanvas};
 use crate::{quicksilver_compat::*, Domain};
 use crate::{DrawWorld, FloatingText, JmrRectangle, PaddleResult};
 use chrono::*;

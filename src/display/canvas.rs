@@ -4,16 +4,14 @@ pub const Z_MAX: i32 = 1000;
 use super::gpu::{Gpu, WasmGpuBuffer};
 use crate::{
     quicksilver_compat::{
-        geom::Scalar, Background, Color, Drawable, Mesh, Rectangle, Transform, Vector, View,
+        geom::Scalar, Background, Color, Drawable, Mesh, Rectangle, Transform, Vector,
     },
     ErrorMessage, JsError, NutsCheck, PaddleResult,
 };
 use wasm_bindgen::JsCast;
 use web_sys::{HtmlCanvasElement, WebGlRenderingContext};
 
-// TODO: Make this crate visible. Users should only interact with Display.
-// pub(crate) struct WebGLCanvas {
-pub struct WebGLCanvas {
+pub(crate) struct WebGLCanvas {
     /// Resolution used by WebGL
     pixels: Vector,
     mesh: Mesh,
@@ -39,8 +37,6 @@ impl WebGLCanvas {
             .unwrap()
             .dyn_into::<WebGlRenderingContext>()
             .map_err(|_| ErrorMessage::technical("Failed loading WebGL".to_owned()))?;
-
-        let view = View::new(Rectangle::new_sized(pixels));
 
         let buffer = WasmGpuBuffer::new();
 

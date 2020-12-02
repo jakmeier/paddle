@@ -1,18 +1,10 @@
 use paddle::graphics::{Image, TextureConfig};
 use paddle::quicksilver_compat::*;
-use paddle::{LoadScheduler, PaddleConfig, WebGLCanvas};
+use paddle::{DisplayArea, LoadScheduler, PaddleConfig};
 use wasm_bindgen::prelude::wasm_bindgen;
 
 const SCREEN_W: f32 = 1920.0;
 const SCREEN_H: f32 = 1080.0;
-
-// #e57c40ff
-const PADDLE_ORANGE: Color = Color {
-    r: 0xe5 as f32 / 255.0,
-    g: 0x7c as f32 / 255.0,
-    b: 0x40 as f32 / 255.0,
-    a: 1.0,
-};
 
 #[wasm_bindgen]
 pub fn start() {
@@ -46,7 +38,7 @@ pub fn start() {
             paddlers_icon: paddlers_icon.await.expect("loading background failed"),
         };
         // Create our game state and register it
-        paddle::register_frame(Game {}, state);
+        paddle::register_frame(Game {}, state, (0, 0), (SCREEN_W as u32, SCREEN_H as u32));
     };
 
     wasm_bindgen_futures::spawn_local(future);
@@ -60,18 +52,11 @@ struct GlobalState {
 }
 
 impl paddle::Frame for Game {
-    type Error = paddle::ErrorMessage;
     type State = GlobalState;
 
     // Will get called ~60 times per second, or might be adapted to the screen refresh rate. (Browser will decide)
-    fn draw(
-        &mut self,
-        global: &mut Self::State,
-        canvas: &mut WebGLCanvas,
-        timestamp: f64,
-    ) -> Result<(), Self::Error> {
-        canvas.fit_to_screen(10.0)?;
-        canvas.clear(PADDLE_ORANGE);
+    fn draw(&mut self, global: &mut Self::State, canvas: &mut DisplayArea, timestamp: f64) {
+        canvas.fit_display(10.0);
 
         // Background image filling the screen
         canvas.draw(
@@ -97,13 +82,11 @@ impl paddle::Frame for Game {
         let direction = Vector::new(period.cos(), period.sin());
         let pos = center + direction * r;
         draw_at_center(canvas, &global.paddlers_icon, pos, small_icon_s);
-
-        Ok(())
     }
 }
 
 // Draw a square image with a defined center and size
-fn draw_at_center(canvas: &mut WebGLCanvas, image: &Image, center: Vector, size: f32) {
+fn draw_at_center(canvas: &mut DisplayArea, image: &Image, center: Vector, size: f32) {
     let rect = Rectangle::new(center - Vector::new(size, size) / 2.0, (size, size));
     canvas.draw(&rect, image);
 }
