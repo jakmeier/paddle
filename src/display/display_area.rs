@@ -23,10 +23,10 @@ impl DisplayArea {
     /// Converts from coordinates used inside the frame (where 0,0 is at the top left corner of the frame area)
     /// to a coordinate system covering the full display
     pub fn frame_to_display_coordinates(&self) -> Transform {
-        Transform::translate(-self.region.pos)
+        Transform::translate(self.region.pos)
     }
     pub fn display_to_frame_coordinates(&self) -> Transform {
-        Transform::translate(self.region.pos)
+        Transform::translate(-self.region.pos)
     }
     pub fn is_inside(&self, display_coordinates: impl Into<Vector>) -> bool {
         self.region.contains(display_coordinates)
@@ -45,7 +45,9 @@ impl DisplayArea {
         trans: Transform,
         z: impl Scalar,
     ) {
-        self.display.canvas.draw_ex(draw, bkg, trans, z)
+        self.display
+            .canvas
+            .draw_ex(draw, bkg, self.frame_to_display_coordinates() * trans, z)
     }
     /// Fit (the entire display) to be fully visible
     pub fn fit_display(&mut self, margin: f64) {
