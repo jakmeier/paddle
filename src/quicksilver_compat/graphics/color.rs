@@ -13,6 +13,9 @@ pub struct Color {
 }
 
 impl Color {
+    pub const fn new(r: f32, g: f32, b: f32) -> Self {
+        Self { r, g, b, a: 1.0 }
+    }
     ///Create an identical color with a different red component
     pub fn with_red(self, r: f32) -> Color {
         Color { r, ..self }

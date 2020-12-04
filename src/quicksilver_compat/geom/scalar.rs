@@ -22,6 +22,16 @@ impl Scalar for u32 {
         self as f32
     }
 }
+impl Scalar for u64 {
+    fn float(self) -> f32 {
+        self as f32
+    }
+}
+impl Scalar for usize {
+    fn float(self) -> f32 {
+        self as f32
+    }
+}
 impl Scalar for i8 {
     fn float(self) -> f32 {
         self as f32
@@ -33,6 +43,16 @@ impl Scalar for i16 {
     }
 }
 impl Scalar for i32 {
+    fn float(self) -> f32 {
+        self as f32
+    }
+}
+impl Scalar for i64 {
+    fn float(self) -> f32 {
+        self as f32
+    }
+}
+impl Scalar for isize {
     fn float(self) -> f32 {
         self as f32
     }
