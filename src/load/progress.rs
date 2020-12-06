@@ -75,7 +75,7 @@ impl LoadScheduler {
         let aid = nuts::new_domained_activity(LoadActivity, &Domain::Frame);
         self.load_activity = Some(aid);
         nuts::store_to_domain(&Domain::Frame, Some(self));
-        aid.subscribe_domained_owned(LoadActivity::update_progress);
+        aid.private_domained_channel(LoadActivity::update_progress);
         aid.subscribe_domained(LoadActivity::finish_if_done);
     }
 
@@ -95,7 +95,7 @@ impl LoadScheduler {
             let resource = future.await;
             let data = Box::new(resource);
             let msg = FinishedLoading::Item(data);
-            nuts::publish(msg);
+            nuts::send_to::<LoadActivity, _>(msg);
         };
         wasm_bindgen_futures::spawn_local(outer_future);
     }

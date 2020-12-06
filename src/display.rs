@@ -114,6 +114,11 @@ impl Display {
         ) * Transform::translate(self.browser_region.pos)
     }
 
+    /// Gives result for x axis (assuming y is the same)
+    pub fn browser_to_game_pixel_ratio(&self) -> f32 {
+        self.browser_region.width() / self.game_coordinates.x
+    }
+
     ///Get the unprojection matrix according to the View
     pub fn unproject(&self) -> Transform {
         todo!()

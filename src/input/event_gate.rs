@@ -1,51 +1,74 @@
-use crate::EventType;
-use nuts::{Activity, ActivityId, Capsule, DomainState, UncheckedActivityId};
+use crate::quicksilver_compat::Vector;
+use crate::{js::PaddleJsContext, FrameHandle, LeftClick};
+use crate::{EventType, Key};
+use div::PaneHandle;
+use nuts::{Activity, ActivityId, DomainState, UncheckedActivityId};
+use wasm_bindgen::closure::Closure;
+use wasm_bindgen::prelude::wasm_bindgen;
 
 pub(crate) struct RegisterEventListener {
-    capsule: Capsule,
     event_type: EventType,
-    aid: UncheckedActivityId,
+    div: PaneHandle,
+    activity: UncheckedActivityId,
 }
 
 /// Connection to events the browser forwards.
 /// A single JS EventListener sits on the JS side of things and will call event_from_js(ID) with event IDs.
 pub(crate) struct EventGate {
-    listeners: Vec<Capsule>,
+    js: PaddleJsContext,
 }
 
 // TODO
-// need something in the JS world, maybe with the help of div.
-// 1) Each frame needs an HtmlElement
-// 2) An event listener singleton has to be placed that can be used for registering new event listeners.
-//  !!! How can this work without creating a new closure? The idea is to send a different Listener index for each new registration. I guess the singleton has to also take over the registration process.
+// #[wasm_bindgen]
+// pub fn key_event(capsule_index: usize, event_type: Key) {
+// let aid = UncheckedActivityId::forge_from_usize(activity_id);
+// aid.private_message(KeyPressedd {
+//     pos: Vector::new(x, y),
+// });
+// }
+
+#[wasm_bindgen(module = "/src/js/paddle.js")]
+pub fn mouse_event_gate(activity_id: usize, x: f32, y: f32) {
+    let aid = UncheckedActivityId::forge_from_usize(activity_id);
+    aid.private_message(LeftClick {
+        pos: Vector::new(x, y),
+    });
+}
 
 impl EventGate {
     pub(crate) fn init() {
-        let gate = EventGate { listeners: vec![] };
+        // let mouse_listener
+        let gate = EventGate {
+            js: PaddleJsContext::new(),
+        };
         let aid = nuts::new_activity(gate);
-        aid.subscribe_owned(Self::register_event_listener);
+        aid.private_channel(Self::register_event_listener);
     }
-    pub fn listen<A: Activity, F>(id: ActivityId<A>, event_type: EventType, callback: F)
-    where
-        F: Fn(&mut A, &mut DomainState) + 'static,
-    {
-        nuts::publish(RegisterEventListener::new(id, event_type, callback));
+    pub fn listen<A: Activity>(frame: &FrameHandle<A>, event_type: EventType) {
+        nuts::send_to::<Self, _>(RegisterEventListener::new(frame, event_type));
     }
     fn register_event_listener(&mut self, msg: RegisterEventListener) {
-        self.listeners.push(msg.capsule);
-        // TODO: handle incoming registration request
+        match msg.event_type {
+            EventType::Mouse(event) => {
+                self.js.register_mouse_event_listener(
+                    event as u32,
+                    msg.div.parent_element().unwrap(),
+                    msg.activity.as_usize(),
+                );
+            }
+            _ => {
+                // todo!()
+            }
+        }
     }
 }
 
 impl RegisterEventListener {
-    fn new<A: Activity, F>(id: ActivityId<A>, event_type: EventType, callback: F) -> Self
-    where
-        F: Fn(&mut A, &mut DomainState) + 'static,
-    {
+    fn new<A: Activity>(frame: &FrameHandle<A>, event_type: EventType) -> Self {
         Self {
-            capsule: id.encapsulate_domained(callback),
+            activity: frame.activity().into(),
             event_type,
-            aid: id.into(),
+            div: frame.div().unwrap().clone(),
         }
     }
 }

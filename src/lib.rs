@@ -14,6 +14,7 @@ pub mod graphics;
 pub(crate) mod grid;
 pub(crate) mod input;
 pub(crate) mod jmr_geometry;
+pub(crate) mod js;
 pub(crate) mod load;
 pub mod quicksilver_compat;
 pub(crate) mod view_manager;

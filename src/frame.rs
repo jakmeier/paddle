@@ -23,7 +23,8 @@ pub use frame_registration::*;
 mod scheduling;
 pub use scheduling::*;
 
-/// A frame takes up some area on the screen where it is drawn and reacts to UI events
+/// A frame takes up some area on the screen where it is drawn and reacts to UI events.
+/// The position and size of a frame is static for now. (Static in game coordinates, it will adapt properly to screen resizing etc.)
 pub trait Frame {
     type State;
     fn draw(&mut self, _state: &mut Self::State, _canvas: &mut DisplayArea, _timestamp: f64) {}
@@ -63,6 +64,9 @@ impl<FRAME> FrameHandle<FRAME> {
     }
     pub fn div(&self) -> Option<&div::PaneHandle> {
         self.div.as_ref()
+    }
+    pub fn region(&self) -> Rectangle {
+        self.region
     }
 }
 

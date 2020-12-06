@@ -1,7 +1,7 @@
 pub enum EventType {
     Key(KeyEventType),
-    // TODO
-    // Mouse(MouseEventType),
+    Mouse(MouseEventType),
+    // Possible extension:
     // BrowserEvent
 }
 pub enum KeyEventType {
@@ -9,18 +9,20 @@ pub enum KeyEventType {
     // KeyPress,
     KeyUp,
 }
-// pub enum MouseEventType {
-//     LeftClick,
-//     RightClick,
-//     DoubleClick,
-//     Down,
-//     // Enter,
-//     // Leave,
-//     Move,
-//     // Over,
-//     // Out,
-//     Up,
-// }
+#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
+#[repr(u32)]
+pub enum MouseEventType {
+    LeftClick = 1,
+    RightClick = 2,
+    DoubleClick = 3,
+    Down = 4,
+    // Enter = 5,
+    // Leave = 6,
+    Move = 7,
+    // Over = 8,
+    // Out = 9,
+    Up = 10,
+}
 
 // TODO: These need to be created in JS from a string value
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]

@@ -57,6 +57,10 @@ impl paddle::Frame for Paper {
         for (rect, col) in &state.drawn_objects {
             canvas.draw(rect, *col);
         }
+
+        if let Some(_pos) = self.first_click {
+            // TODO: track mouse movement and show rectangle to be drawn
+        }
     }
     fn left_click(&mut self, state: &mut Self::State, pos: (i32, i32)) {
         if let Some(first_click) = self.first_click {
@@ -65,6 +69,7 @@ impl paddle::Frame for Paper {
             let x = first_click.x.min(pos.0 as f32);
             let y = first_click.y.min(pos.1 as f32);
             state.add_rectangle((x, y), (w, h), state.selected_color);
+            self.first_click = None;
         } else {
             self.first_click = Some(pos.into());
         }

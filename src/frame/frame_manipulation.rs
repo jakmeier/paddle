@@ -17,12 +17,12 @@ impl FrameManipulator {
         let fm = FrameManipulator { _private: () };
         let domain = Domain::Frame;
         let aid = nuts::new_domained_activity(fm, &domain);
-        aid.subscribe_domained_owned(Self::priv_init_frame);
+        aid.private_domained_channel(Self::priv_init_frame);
     }
     pub(crate) fn init_frame<F: Frame>(f: &FrameHandle<F>) {
         if let Some(div) = f.div.clone() {
             let region = f.region;
-            nuts::publish(FrameInitialization { div, region });
+            nuts::send_to::<FrameManipulator, _>(FrameInitialization { div, region });
         }
     }
     fn priv_init_frame(&mut self, domain: &mut DomainState, init: FrameInitialization) {

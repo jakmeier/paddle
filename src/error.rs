@@ -18,7 +18,7 @@ where
     F: Fn(ErrorMessage) + 'static,
 {
     let id = nuts::new_activity(ErrorForwardingActivity);
-    id.subscribe_owned(move |_, error| f(error));
+    id.private_channel(move |_, error| f(error));
 }
 pub fn enable_nuts_checks() {
     enable_custom_nuts_checks(|error| match error.channel {
@@ -87,7 +87,7 @@ impl<T> NutsCheck<T> for Result<T, ErrorMessage> {
         match self {
             Ok(t) => Some(t),
             Err(msg) => {
-                nuts::publish(msg);
+                nuts::send_to::<ErrorForwardingActivity,_>(msg);
                 None
             }
         }

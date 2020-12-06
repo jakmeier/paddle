@@ -24,7 +24,7 @@ impl TextBoard {
     pub(crate) fn init() {
         let tb = TextBoard::default();
         let tb_id = nuts::new_domained_activity(tb, &Domain::Frame);
-        tb_id.subscribe_owned(|tb, msg: TextMessage| {
+        tb_id.private_channel(|tb, msg: TextMessage| {
             tb.messages.push(msg);
         });
         tb_id.subscribe_domained(|tb, domain, _msg: &DrawWorld| {
@@ -45,7 +45,7 @@ impl TextBoard {
     fn display_message(msg: String, col: Color, time_us: i64) -> PaddleResult<()> {
         let show_until = crate::utc_now() + Duration::microseconds(time_us);
         let float = Self::new_float(msg, col)?;
-        nuts::publish(TextMessage { float, show_until });
+        nuts::send_to::<TextBoard, _>(TextMessage { float, show_until });
         Ok(())
     }
     fn render_text_messages(&mut self, window: &mut WebGLCanvas) -> PaddleResult<()> {
