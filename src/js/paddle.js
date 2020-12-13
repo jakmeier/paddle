@@ -1,8 +1,4 @@
-// XXX
-import { mouse_event_gate } from "../../../../example_bg.wasm";
-// XXX
-
-
+import { mouse_event_gate } from "#RUST#";
 import { mouseEventString } from "./enums";
 
 export class PaddleJsContext {

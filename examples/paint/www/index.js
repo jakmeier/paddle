@@ -1,4 +1,4 @@
 import "./styles.css";
-import * as example from "../pkg/example_bg.wasm";
+import * as example from "../pkg/example";
 
 example.start();

@@ -1,4 +1,5 @@
 const CopyWebpackPlugin = require("copy-webpack-plugin");
+const PaddleWebpackPlugin = require("../../../paddle-webpack-plugin");
 const path = require('path');
 
 module.exports = {
@@ -10,7 +11,6 @@ module.exports = {
     resolve: {
         extensions: ['.mjs', '.js', '.svelte'],
         mainFields: ['svelte', 'browser', 'module', 'main'],
-        modules: [path.resolve(__dirname, 'node_modules'), 'node_modules']
     },
     module: {
         rules: [{
@@ -26,6 +26,7 @@ module.exports = {
         }]
     },
     plugins: [
-        new CopyWebpackPlugin(['index.html'])
+        new CopyWebpackPlugin(['index.html']),
+        new PaddleWebpackPlugin()
     ],
 };
