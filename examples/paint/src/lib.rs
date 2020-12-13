@@ -27,7 +27,7 @@ pub fn start() {
 
     // Create our game state and register it
     let mut state = SharedState::new(OXFORD_BLUE);
-    state.add_rectangle((20, 20), (50, 50), RED_CRAYOLA);
+    state.add_rectangle(Rectangle::new((20, 20), (50, 50)), RED_CRAYOLA);
     // Toolbar on the left
     paddle::register_frame(Toolbar::new(), state, (0, 0));
     // Area to draw on, with a shifted root position. (270|10)
@@ -38,6 +38,7 @@ pub fn start() {
 #[derive(Default)]
 struct Paper {
     first_click: Option<Vector>,
+    mouse_pos: Option<Vector>,
 }
 
 struct SharedState {
@@ -60,17 +61,15 @@ impl Frame for Paper {
             canvas.draw(rect, *col);
         }
 
-        if let Some(_pos) = self.first_click {
-            // TODO: track mouse movement and show rectangle to be drawn
+        if let (Some(pos1), Some(pos2)) = (self.first_click, self.mouse_pos) {
+            let rect = rectangle_from_two_points(pos1, pos2);
+            canvas.draw(&rect, state.selected_color);
         }
     }
     fn left_click(&mut self, state: &mut Self::State, pos: (i32, i32)) {
         if let Some(first_click) = self.first_click {
-            let w = (first_click.x - pos.0 as f32).abs();
-            let h = (first_click.y - pos.1 as f32).abs();
-            let x = first_click.x.min(pos.0 as f32);
-            let y = first_click.y.min(pos.1 as f32);
-            state.add_rectangle((x, y), (w, h), state.selected_color);
+            let rect = rectangle_from_two_points(first_click, pos.into());
+            state.add_rectangle(rect, state.selected_color);
             self.first_click = None;
         } else {
             self.first_click = Some(pos.into());
@@ -78,6 +77,9 @@ impl Frame for Paper {
     }
     fn right_click(&mut self, _state: &mut Self::State, _pos: (i32, i32)) {
         self.first_click = None;
+    }
+    fn mouse_move(&mut self, _state: &mut Self::State, pos: (i32, i32)) {
+        self.mouse_pos = Some(pos.into());
     }
 }
 impl SharedState {
@@ -88,8 +90,8 @@ impl SharedState {
         }
     }
 
-    fn add_rectangle(&mut self, pos: impl Into<Vector>, size: impl Into<Vector>, col: Color) {
-        self.drawn_objects.push((Rectangle::new(pos, size), col));
+    fn add_rectangle(&mut self, rect: Rectangle, col: Color) {
+        self.drawn_objects.push((rect, col));
     }
 }
 
@@ -157,4 +159,12 @@ impl Frame for Toolbar {
             _ => {}
         }
     }
+}
+
+fn rectangle_from_two_points(pos1: Vector, pos2: Vector) -> Rectangle {
+    let w = (pos1.x - pos2.x as f32).abs();
+    let h = (pos1.y - pos2.y as f32).abs();
+    let x = pos1.x.min(pos2.x as f32);
+    let y = pos1.y.min(pos2.y as f32);
+    Rectangle::new((x, y), (w, h))
 }

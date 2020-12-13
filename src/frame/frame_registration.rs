@@ -1,6 +1,7 @@
 use super::*;
 use crate::{
-    Context, EventGate, EventListenerType, KeyEventType, LeftClick, MouseEventType, RightClick,
+    Context, EventGate, EventListenerType, KeyEventType, LeftClick, MouseEventType, MouseMovement,
+    RightClick,
 };
 
 pub fn register_frame<F: Frame + Activity>(
@@ -79,6 +80,16 @@ impl<STATE: 'static, F: Frame<State = STATE> + Activity> FrameHandle<F> {
                 self,
                 EventListenerType::Mouse(vec![MouseEventType::RightClick]),
             )
+        }
+        if (F::mouse_move as usize) != (Nop::<F::State>::mouse_move as usize) {
+            activity.private_domained_channel(|a, d, msg: MouseMovement| {
+                let (global_state, ctx) = d.try_get_2_mut::<F::State, Context>();
+                let global_state: &mut F::State = global_state.expect("Activity State missing");
+                let display = ctx.expect("Context missing").display.full();
+                let pos = msg.pos / display.browser_to_game_pixel_ratio();
+                a.mouse_move(global_state, (pos.x as i32, pos.y as i32))
+            });
+            EventGate::listen(self, EventListenerType::Mouse(vec![MouseEventType::Move]))
         }
         if (F::enter as usize) != (Nop::<F::State>::enter as usize) {
             activity.on_enter_domained(|a, d| {

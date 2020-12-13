@@ -10,6 +10,11 @@ pub struct RightClick {
     pub pos: Vector,
 }
 
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub struct MouseMovement {
+    pub pos: Vector,
+}
+
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
 pub struct KeyEvent(pub KeyEventType, pub Key);
 

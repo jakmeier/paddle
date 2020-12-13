@@ -1,4 +1,6 @@
-use crate::{js::PaddleJsContext, FrameHandle, LeftClick};
+use crate::{
+    js::PaddleJsContext, FrameHandle, LeftClick, MouseEventType, MouseMovement, RightClick,
+};
 use crate::{quicksilver_compat::Vector, KeyEvent, KeyEventType};
 use crate::{EventListenerType, Key};
 use div::PaneHandle;
@@ -18,11 +20,29 @@ pub(crate) struct EventGate {
 }
 
 #[wasm_bindgen(module = "/src/js/paddle.js")]
-pub fn mouse_event_gate(activity_id: usize, x: f32, y: f32) {
+pub fn mouse_event_gate(activity_id: usize, event: MouseEventType, x: f32, y: f32) {
     let aid = UncheckedActivityId::forge_from_usize(activity_id);
-    aid.private_message(LeftClick {
-        pos: Vector::new(x, y),
-    });
+    // TODO: Reconsider interface. Should a frame really have different listeners for left/right/move etc? Or one consolidated mouse event?
+    match event {
+        MouseEventType::LeftClick => {
+            aid.private_message(LeftClick {
+                pos: Vector::new(x, y),
+            });
+        }
+        MouseEventType::RightClick => {
+            aid.private_message(RightClick {
+                pos: Vector::new(x, y),
+            });
+        }
+        MouseEventType::Move => {
+            aid.private_message(MouseMovement {
+                pos: Vector::new(x, y),
+            });
+        }
+        MouseEventType::DoubleClick => { /* TODO */ }
+        MouseEventType::Down => { /* TODO */ }
+        MouseEventType::Up => { /* TODO */ }
+    }
 }
 #[wasm_bindgen(module = "/src/js/paddle.js")]
 pub fn keyboard_event_gate(activity_id: usize, event: KeyEventType, key: Key) {

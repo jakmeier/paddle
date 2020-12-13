@@ -12,20 +12,22 @@ export class PaddleJsContext {
     //  This value is provided again on each forwarded event
     registerMouseEventListener(eventType, listener, callbackId) {
         const event = mouseEventString(eventType);
-        listener.addEventListener(event, (ev) => this.forwardMouseEvent(ev, callbackId));
+        listener.addEventListener(event, (ev) => this.forwardMouseEvent(ev, eventType, callbackId));
     }
     registerKeyboardEventListener(eventType, callbackId) {
         const event = keyboardEventString(eventType);
         document.addEventListener(event, (ev) => this.forwardKeyboardEvent(ev, eventType, callbackId));
     }
-    forwardMouseEvent(event, callbackId) {
+    forwardMouseEvent(event, eventType, callbackId) {
         const rect = event.target.getBoundingClientRect();
         const x = event.clientX - rect.left;
         const y = event.clientY - rect.top;
-        mouse_event_gate(callbackId, x, y);
+        mouse_event_gate(callbackId, eventType, x, y);
     }
     forwardKeyboardEvent(event, eventType, callbackId) {
         let key = keyEventEnum(event);
-        keyboard_event_gate(callbackId, eventType, key);
+        if (key) {
+            keyboard_event_gate(callbackId, eventType, key);
+        }
     }
 }

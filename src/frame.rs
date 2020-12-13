@@ -35,11 +35,16 @@ pub trait Frame {
     fn enter(&mut self, _state: &mut Self::State) {}
     fn left_click(&mut self, _state: &mut Self::State, _pos: (i32, i32)) {}
     fn right_click(&mut self, _state: &mut Self::State, _pos: (i32, i32)) {}
+    fn mouse_move(&mut self, _state: &mut Self::State, _pos: (i32, i32)) {}
     fn key(&mut self, _state: &mut Self::State, _key: KeyEvent) {}
 
     #[inline(always)]
     fn size() -> Vector {
         Vector::new(Self::WIDTH, Self::HEIGHT)
+    }
+    #[inline(always)]
+    fn area() -> Rectangle {
+        Rectangle::new_sized(Self::size())
     }
 }
 
