@@ -53,8 +53,8 @@ impl Frame for Paper {
         // Adapt canvas size to viewport on every frame
         canvas.fit_display(10.0);
 
-        let rect = Rectangle::new((0, 0), (1000, 700));
-        canvas.draw(&rect, WHITE);
+        // Paint background of frame white
+        canvas.fill(WHITE);
 
         for (rect, col) in &state.drawn_objects {
             canvas.draw(rect, *col);
@@ -135,11 +135,10 @@ impl Frame for Toolbar {
     const WIDTH: u32 = 260;
     const HEIGHT: u32 = 720;
 
-    fn draw(&mut self, _state: &mut Self::State, canvas: &mut DisplayArea, _timestamp: f64) {
-        let rect = Rectangle::new((0, 0), (260, 720));
-        canvas.draw(&rect, BLACK_CORAL);
+    fn draw(&mut self, _state: &mut Self::State, frame_display: &mut DisplayArea, _timestamp: f64) {
+        frame_display.fill(BLACK_CORAL);
         for (area, col) in &self.ui_elements {
-            canvas.draw(area, *col);
+            frame_display.draw(area, *col);
         }
     }
     fn left_click(&mut self, state: &mut Self::State, pos: (i32, i32)) {

@@ -43,6 +43,10 @@ impl DisplayArea {
             .canvas
             .draw_ex(draw, bkg.into(), self.frame_to_display_coordinates(), 0.0);
     }
+    /// Fills selected area with the given color (or image)
+    pub fn fill<'a>(&'a mut self, bkg: impl Into<Background<'a>>) {
+        self.display.canvas.draw(&self.region, bkg);
+    }
     /// Draw a Drawable to the window with more options provided (draw exhaustive)
     pub fn draw_ex<'a>(
         &'a mut self,

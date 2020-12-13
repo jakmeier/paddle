@@ -61,10 +61,7 @@ impl paddle::Frame for Game {
         canvas.fit_display(10.0);
 
         // Background image filling the screen
-        canvas.draw(
-            &Rectangle::new_sized((SCREEN_W, SCREEN_H)),
-            &global.background,
-        );
+        canvas.fill(&global.background);
 
         // Large icon in the center
         let icon_s = 500.0;
