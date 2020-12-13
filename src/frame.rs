@@ -12,12 +12,12 @@
 //!
 //! Frames can also be put in the background, in which state reduced events are handled and nothing is drawn.
 
-use crate::DisplayArea;
-use crate::{quicksilver_compat::Rectangle, Key};
+use crate::quicksilver_compat::Rectangle;
+use crate::{DisplayArea, KeyEvent};
 use nuts::*;
 
 mod frame_manipulation;
-pub use frame_manipulation::*;
+pub(crate) use frame_manipulation::*;
 mod frame_registration;
 pub use frame_registration::*;
 mod scheduling;
@@ -33,9 +33,7 @@ pub trait Frame {
     fn enter(&mut self, _state: &mut Self::State) {}
     fn left_click(&mut self, _state: &mut Self::State, _pos: (i32, i32)) {}
     fn right_click(&mut self, _state: &mut Self::State, _pos: (i32, i32)) {}
-    fn key(&mut self, _state: &mut Self::State, _key: Key) {}
-    // TODO:
-    // fn browser_event(&mut self, _state: &mut Self::State, event_info: SomeBrowserEventInfoStruct) {}
+    fn key(&mut self, _state: &mut Self::State, _key: KeyEvent) {}
 }
 
 /// Handle to frame is returned when adding it to the view manager.

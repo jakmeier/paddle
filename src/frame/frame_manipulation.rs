@@ -1,7 +1,7 @@
 use crate::Display;
 use nuts::DomainState;
 
-use crate::{quicksilver_compat::Rectangle, Domain, Frame, FrameHandle, NutsCheck, WebGLCanvas};
+use crate::{quicksilver_compat::Rectangle, Domain, Frame, FrameHandle, NutsCheck};
 
 struct FrameInitialization {
     div: div::PaneHandle,

@@ -1,9 +1,9 @@
 mod event;
 mod event_gate;
-use crate::{quicksilver_compat::Vector, Domain};
+// use crate::{quicksilver_compat::Vector, Domain};
 pub use event::*;
 pub use event_gate::*;
-use nuts::{ActivityId, DomainState};
+// use nuts::{ActivityId, DomainState};
 
 // pub(crate) struct InputState {
 //     last_mouse_pos: Vector,

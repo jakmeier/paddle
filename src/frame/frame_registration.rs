@@ -1,5 +1,7 @@
 use super::*;
-use crate::{Context, EventGate, EventType, MouseEventType};
+use crate::{
+    Context, EventGate, EventListenerType, KeyEventType, LeftClick, MouseEventType, RightClick,
+};
 
 pub fn register_frame<F: Frame + Activity>(
     frame: F,
@@ -63,7 +65,10 @@ impl<STATE: 'static, F: Frame<State = STATE> + Activity> FrameHandle<F> {
                 let click = msg.pos / display.browser_to_game_pixel_ratio();
                 a.left_click(global_state, (click.x as i32, click.y as i32))
             });
-            EventGate::listen(self, EventType::Mouse(MouseEventType::LeftClick))
+            EventGate::listen(
+                self,
+                EventListenerType::Mouse(vec![MouseEventType::LeftClick]),
+            )
         }
         if (F::right_click as usize) != (Nop::<F::State>::right_click as usize) {
             activity.private_domained_channel(|a, d, msg: RightClick| {
@@ -73,7 +78,10 @@ impl<STATE: 'static, F: Frame<State = STATE> + Activity> FrameHandle<F> {
                 let click = msg.pos / display.browser_to_game_pixel_ratio();
                 a.right_click(global_state, (click.x as i32, click.y as i32))
             });
-            EventGate::listen(self, EventType::Mouse(MouseEventType::RightClick))
+            EventGate::listen(
+                self,
+                EventListenerType::Mouse(vec![MouseEventType::RightClick]),
+            )
         }
         if (F::enter as usize) != (Nop::<F::State>::enter as usize) {
             activity.on_enter_domained(|a, d| {
@@ -88,8 +96,18 @@ impl<STATE: 'static, F: Frame<State = STATE> + Activity> FrameHandle<F> {
             });
         }
         if (F::key as usize) != (Nop::<F::State>::key as usize) {
-            // TODO: listen to KeyPressed
-            // EventGate::listen(self, EventType::Key(KeyEventType::KeyDown))
+            activity.private_domained_channel(|a, d, msg: KeyEvent| {
+                let global_state = d.try_get_mut::<F::State>().expect("Activity State missing");
+                a.key(global_state, msg)
+            });
+            EventGate::listen(
+                self,
+                EventListenerType::KeyBoard(vec![
+                    KeyEventType::KeyPress,
+                    KeyEventType::KeyUp,
+                    KeyEventType::KeyDown,
+                ]),
+            )
         }
     }
 }

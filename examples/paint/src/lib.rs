@@ -3,7 +3,7 @@
 //! the main area of the game, while allowing for interactions in between.
 
 use paddle::quicksilver_compat::*;
-use paddle::{DisplayArea, PaddleConfig};
+use paddle::{DisplayArea, KeyEvent, PaddleConfig};
 use wasm_bindgen::prelude::wasm_bindgen;
 
 const WHITE: Color = Color::new(1.0, 1.0, 1.0);
@@ -105,7 +105,14 @@ impl Toolbar {
         let rect_left = Rectangle::new((MARGIN, MARGIN), (W, W));
         let rect_right = Rectangle::new((frame_width - MARGIN - W, MARGIN), (W, W));
         // add all colors, row by row
-        let colors = [WHITE, BLACK, RED_CRAYOLA, NAPLES_YELLOW, TEA_GREEN, OXFORD_BLUE];
+        let colors = [
+            WHITE,
+            BLACK,
+            RED_CRAYOLA,
+            NAPLES_YELLOW,
+            TEA_GREEN,
+            OXFORD_BLUE,
+        ];
         for (i, col) in colors.iter().enumerate() {
             let mut rect;
             if i % 2 == 0 {
@@ -136,6 +143,15 @@ impl paddle::Frame for Toolbar {
             if area.contains(pos) {
                 state.selected_color = *col;
             }
+        }
+    }
+    fn key(&mut self, state: &mut Self::State, key_event: KeyEvent) {
+        match key_event {
+            KeyEvent(KeyEventType::KeyDown, Key::Delete)
+            | KeyEvent(KeyEventType::KeyDown, Key::Backspace) => {
+                state.drawn_objects.pop();
+            }
+            _ => {}
         }
     }
 }

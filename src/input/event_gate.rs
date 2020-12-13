@@ -1,13 +1,12 @@
-use crate::quicksilver_compat::Vector;
 use crate::{js::PaddleJsContext, FrameHandle, LeftClick};
-use crate::{EventType, Key};
+use crate::{quicksilver_compat::Vector, KeyEvent, KeyEventType};
+use crate::{EventListenerType, Key};
 use div::PaneHandle;
-use nuts::{Activity, ActivityId, DomainState, UncheckedActivityId};
-use wasm_bindgen::closure::Closure;
+use nuts::{Activity, UncheckedActivityId};
 use wasm_bindgen::prelude::wasm_bindgen;
 
 pub(crate) struct RegisterEventListener {
-    event_type: EventType,
+    event_type: EventListenerType,
     div: PaneHandle,
     activity: UncheckedActivityId,
 }
@@ -18,21 +17,17 @@ pub(crate) struct EventGate {
     js: PaddleJsContext,
 }
 
-// TODO
-// #[wasm_bindgen]
-// pub fn key_event(capsule_index: usize, event_type: Key) {
-// let aid = UncheckedActivityId::forge_from_usize(activity_id);
-// aid.private_message(KeyPressedd {
-//     pos: Vector::new(x, y),
-// });
-// }
-
 #[wasm_bindgen(module = "/src/js/paddle.js")]
 pub fn mouse_event_gate(activity_id: usize, x: f32, y: f32) {
     let aid = UncheckedActivityId::forge_from_usize(activity_id);
     aid.private_message(LeftClick {
         pos: Vector::new(x, y),
     });
+}
+#[wasm_bindgen(module = "/src/js/paddle.js")]
+pub fn keyboard_event_gate(activity_id: usize, event: KeyEventType, key: Key) {
+    let aid = UncheckedActivityId::forge_from_usize(activity_id);
+    aid.private_message(KeyEvent(event, key));
 }
 
 impl EventGate {
@@ -44,27 +39,30 @@ impl EventGate {
         let aid = nuts::new_activity(gate);
         aid.private_channel(Self::register_event_listener);
     }
-    pub fn listen<A: Activity>(frame: &FrameHandle<A>, event_type: EventType) {
+    pub fn listen<A: Activity>(frame: &FrameHandle<A>, event_type: EventListenerType) {
         nuts::send_to::<Self, _>(RegisterEventListener::new(frame, event_type));
     }
     fn register_event_listener(&mut self, msg: RegisterEventListener) {
         match msg.event_type {
-            EventType::Mouse(event) => {
-                self.js.register_mouse_event_listener(
-                    event as u32,
-                    msg.div.parent_element().unwrap(),
-                    msg.activity.as_usize(),
-                );
+            EventListenerType::Mouse(events) => {
+                let html = msg.div.parent_element().unwrap();
+                let aid = msg.activity.as_usize();
+                for event in events {
+                    self.js.register_mouse_event_listener(event, &html, aid);
+                }
             }
-            _ => {
-                // todo!()
+            EventListenerType::KeyBoard(events) => {
+                let aid = msg.activity.as_usize();
+                for event in events {
+                    self.js.register_keyboard_event_listener(event, aid);
+                }
             }
         }
     }
 }
 
 impl RegisterEventListener {
-    fn new<A: Activity>(frame: &FrameHandle<A>, event_type: EventType) -> Self {
+    fn new<A: Activity>(frame: &FrameHandle<A>, event_type: EventListenerType) -> Self {
         Self {
             activity: frame.activity().into(),
             event_type,

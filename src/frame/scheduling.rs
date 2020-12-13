@@ -1,5 +1,5 @@
+use crate::web_integration::*;
 use crate::*;
-use crate::{quicksilver_compat::Vector, web_integration::*};
 
 pub(crate) struct SchedulingContext {
     #[allow(dead_code)]
@@ -17,13 +17,6 @@ impl SchedulingContext {
             update_handle,
         })
     }
-}
-
-pub struct LeftClick {
-    pub pos: Vector,
-}
-pub struct RightClick {
-    pub pos: Vector,
 }
 
 pub struct UpdateWorld;
