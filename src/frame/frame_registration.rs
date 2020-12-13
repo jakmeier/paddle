@@ -7,21 +7,16 @@ pub fn register_frame<F: Frame + Activity>(
     frame: F,
     state: F::State,
     pos: (u32, u32),
-    size: (u32, u32),
 ) -> FrameHandle<F> {
     nuts::store_to_domain(&Domain::Frame, state);
-    register_frame_no_state(frame, pos, size)
+    register_frame_no_state(frame, pos)
 }
 
 /// Use this if the state has already been registered previously.
-pub fn register_frame_no_state<F: Frame + Activity>(
-    frame: F,
-    pos: (u32, u32),
-    size: (u32, u32),
-) -> FrameHandle<F> {
-    let div = div::new_pane(pos.0, pos.1, size.0, size.1, "").expect("Div failure");
+pub fn register_frame_no_state<F: Frame + Activity>(frame: F, pos: (u32, u32)) -> FrameHandle<F> {
+    let div = div::new_pane(pos.0, pos.1, F::WIDTH, F::HEIGHT, "").expect("Div failure");
     let activity = nuts::new_domained_activity(frame, &Domain::Frame);
-    let area = Rectangle::new(pos, size);
+    let area = Rectangle::new(pos, F::size());
     let handle = FrameHandle::new(activity, Some(div), area);
     handle.init_frame_activity();
     FrameManipulator::init_frame(&handle);
@@ -34,6 +29,8 @@ struct Nop<STATE> {
 }
 impl<STATE> Frame for Nop<STATE> {
     type State = STATE;
+    const WIDTH: u32 = 0;
+    const HEIGHT: u32 = 0;
 }
 
 impl<STATE: 'static, F: Frame<State = STATE> + Activity> FrameHandle<F> {

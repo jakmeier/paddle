@@ -27,18 +27,16 @@ impl<V: Hash + Eq + Copy> ViewManager<V> {
             .push(aid.into());
     }
     /// Activity with position and associated view(s)
-    // TODO: Does this interface need to be simplified?
     pub fn add_frame<S, E, FRAME>(
         &mut self,
         frame: FRAME,
         views: &[V],
         pos: (u32, u32),
-        size: (u32, u32),
     ) -> FrameHandle<FRAME>
     where
         FRAME: Frame<State = S> + nuts::Activity,
     {
-        let handle = register_frame_no_state(frame, pos, size);
+        let handle = register_frame_no_state(frame, pos);
         let activity_id = handle.activity();
 
         if let Some(div) = handle.div() {

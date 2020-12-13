@@ -12,7 +12,7 @@
 //!
 //! Frames can also be put in the background, in which state reduced events are handled and nothing is drawn.
 
-use crate::quicksilver_compat::Rectangle;
+use crate::quicksilver_compat::{Rectangle, Vector};
 use crate::{DisplayArea, KeyEvent};
 use nuts::*;
 
@@ -27,6 +27,8 @@ pub use scheduling::*;
 /// The position and size of a frame is static for now. (Static in game coordinates, it will adapt properly to screen resizing etc.)
 pub trait Frame {
     type State;
+    const WIDTH: u32;
+    const HEIGHT: u32;
     fn draw(&mut self, _state: &mut Self::State, _canvas: &mut DisplayArea, _timestamp: f64) {}
     fn update(&mut self, _state: &mut Self::State) {}
     fn leave(&mut self, _state: &mut Self::State) {}
@@ -34,6 +36,11 @@ pub trait Frame {
     fn left_click(&mut self, _state: &mut Self::State, _pos: (i32, i32)) {}
     fn right_click(&mut self, _state: &mut Self::State, _pos: (i32, i32)) {}
     fn key(&mut self, _state: &mut Self::State, _key: KeyEvent) {}
+
+    #[inline(always)]
+    fn size() -> Vector {
+        Vector::new(Self::WIDTH, Self::HEIGHT)
+    }
 }
 
 /// Handle to frame is returned when adding it to the view manager.

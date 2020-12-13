@@ -38,7 +38,7 @@ pub fn start() {
             paddlers_icon: paddlers_icon.await.expect("loading background failed"),
         };
         // Create our game state and register it
-        paddle::register_frame(Game {}, state, (0, 0), (SCREEN_W as u32, SCREEN_H as u32));
+        paddle::register_frame(Game {}, state, (0, 0));
     };
 
     wasm_bindgen_futures::spawn_local(future);
@@ -53,6 +53,8 @@ struct GlobalState {
 
 impl paddle::Frame for Game {
     type State = GlobalState;
+    const WIDTH: u32 = SCREEN_W as u32;
+    const HEIGHT: u32 = SCREEN_H as u32;
 
     // Will get called ~60 times per second, or might be adapted to the screen refresh rate. (Browser will decide)
     fn draw(&mut self, global: &mut Self::State, canvas: &mut DisplayArea, timestamp: f64) {

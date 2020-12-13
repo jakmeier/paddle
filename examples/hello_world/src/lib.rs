@@ -15,13 +15,17 @@ pub fn start() {
 
     // Create our game state and register it
     let state = ();
-    paddle::register_frame(Game {}, state, (0, 0), (960, 540));
+    paddle::register_frame(Game {}, state, (0, 0));
 }
 
 struct Game {}
 
 impl paddle::Frame for Game {
+    // This simple example does not need any shared state variables.
     type State = ();
+    // This defines the size of the frame (in game coordinates)
+    const WIDTH: u32 = 960;
+    const HEIGHT: u32 = 540;
 
     // Will get called ~60 times per second, or might be adapted to the screen refresh rate. (Browser will decide)
     fn draw(&mut self, _state: &mut Self::State, canvas: &mut DisplayArea, timestamp: f64) {

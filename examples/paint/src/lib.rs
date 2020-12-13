@@ -3,7 +3,7 @@
 //! the main area of the game, while allowing for interactions in between.
 
 use paddle::quicksilver_compat::*;
-use paddle::{DisplayArea, KeyEvent, PaddleConfig};
+use paddle::{DisplayArea, Frame, KeyEvent, PaddleConfig};
 use wasm_bindgen::prelude::wasm_bindgen;
 
 const WHITE: Color = Color::new(1.0, 1.0, 1.0);
@@ -29,10 +29,10 @@ pub fn start() {
     let mut state = SharedState::new(OXFORD_BLUE);
     state.add_rectangle((20, 20), (50, 50), RED_CRAYOLA);
     // Toolbar on the left
-    paddle::register_frame(Toolbar::new(260, 720), state, (0, 0), (260, 720));
+    paddle::register_frame(Toolbar::new(), state, (0, 0));
     // Area to draw on, with a shifted root position. (270|10)
     // All coordinates inside will be relative to that root.
-    paddle::register_frame_no_state(Paper::default(), (270, 10), (1000, 700));
+    paddle::register_frame_no_state(Paper::default(), (270, 10));
 }
 
 #[derive(Default)]
@@ -45,9 +45,11 @@ struct SharedState {
     selected_color: Color,
 }
 
-impl paddle::Frame for Paper {
+impl Frame for Paper {
     type State = SharedState;
-    fn draw(&mut self, state: &mut Self::State, canvas: &mut DisplayArea, timestamp: f64) {
+    const WIDTH: u32 = 1000;
+    const HEIGHT: u32 = 700;
+    fn draw(&mut self, state: &mut Self::State, canvas: &mut DisplayArea, _timestamp: f64) {
         // Adapt canvas size to viewport on every frame
         canvas.fit_display(10.0);
 
@@ -95,15 +97,15 @@ struct Toolbar {
     ui_elements: Vec<(Rectangle, Color)>,
 }
 impl Toolbar {
-    fn new(frame_width: usize, frame_height: usize) -> Self {
-        const W: usize = 100;
-        const MARGIN: usize = 20;
-        let w = frame_width - (2 * MARGIN);
+    fn new() -> Self {
+        const W: u32 = 100;
+        const MARGIN: u32 = 20;
+        let w = Self::WIDTH - (2 * MARGIN);
         let d = w - (2 * W);
         let mut ui_elements = Vec::new();
         // Place the first row of UI rectangles (to pick color)
         let rect_left = Rectangle::new((MARGIN, MARGIN), (W, W));
-        let rect_right = Rectangle::new((frame_width - MARGIN - W, MARGIN), (W, W));
+        let rect_right = Rectangle::new((Self::WIDTH - MARGIN - W, MARGIN), (W, W));
         // add all colors, row by row
         let colors = [
             WHITE,
@@ -120,7 +122,7 @@ impl Toolbar {
             } else {
                 rect = rect_right;
             }
-            rect.pos.y += ((i / 2) * (W + d)) as f32;
+            rect.pos.y += ((i as u32 / 2) * (W + d)) as f32;
 
             ui_elements.push((rect, *col));
         }
@@ -128,10 +130,12 @@ impl Toolbar {
         Self { ui_elements }
     }
 }
-impl paddle::Frame for Toolbar {
+impl Frame for Toolbar {
     type State = SharedState;
+    const WIDTH: u32 = 260;
+    const HEIGHT: u32 = 720;
 
-    fn draw(&mut self, _state: &mut Self::State, canvas: &mut DisplayArea, timestamp: f64) {
+    fn draw(&mut self, _state: &mut Self::State, canvas: &mut DisplayArea, _timestamp: f64) {
         let rect = Rectangle::new((0, 0), (260, 720));
         canvas.draw(&rect, BLACK_CORAL);
         for (area, col) in &self.ui_elements {
