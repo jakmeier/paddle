@@ -15,7 +15,6 @@ pub(crate) struct WebGLCanvas {
     /// Resolution used by WebGL
     pixels: Vector,
     mesh: Mesh,
-    fullscreen: bool,
     canvas: HtmlCanvasElement,
     gl: WebGlRenderingContext,
     buffer: WasmGpuBuffer,
@@ -47,10 +46,9 @@ impl WebGLCanvas {
             * Transform::scale(pixels.recip() * 2.0);
         let gpu = Gpu::new(&gl, projection)?;
 
-        let mut window = WebGLCanvas {
+        let window = WebGLCanvas {
             pixels,
             mesh: Mesh::new(),
-            fullscreen: false,
             canvas,
             gl,
             buffer,
@@ -84,14 +82,8 @@ impl WebGLCanvas {
         draw.draw(&mut self.mesh, bkg.into(), trans, z.float() / Z_MAX as f32);
     }
 
-    /// The mesh the window uses to draw
-    pub fn mesh(&mut self) -> &mut Mesh {
+    pub(crate) fn mesh(&mut self) -> &mut Mesh {
         &mut self.mesh
-    }
-
-    /// Get if the application is currently fullscreen
-    pub fn get_fullscreen(&self) -> bool {
-        self.fullscreen
     }
 
     /// Resize the area the canvas takes in the browser, (In browser coordinates)

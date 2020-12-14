@@ -27,7 +27,7 @@ impl<V: Hash + Eq + Copy> ViewManager<V> {
             .push(aid.into());
     }
     /// Activity with position and associated view(s)
-    pub fn add_frame<S, E, FRAME>(
+    pub fn add_frame<S, FRAME>(
         &mut self,
         frame: FRAME,
         views: &[V],

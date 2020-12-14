@@ -1,6 +1,8 @@
 use crate::{
     error::NutsCheck,
-    quicksilver_compat::{geom::Scalar, Background, Drawable, Rectangle, Shape, Transform, Vector},
+    quicksilver_compat::{
+        geom::Scalar, Background, Drawable, Mesh, Rectangle, Shape, Transform, Vector,
+    },
     Display,
 };
 
@@ -62,6 +64,16 @@ impl DisplayArea {
     /// Fit (the entire display) to be fully visible
     pub fn fit_display(&mut self, margin: f64) {
         self.display.fit_to_visible_area(margin).nuts_check();
+    }
+    /// Draw onto the display area from a mesh of triangles. Useful for custom tesselation.
+    pub fn draw_triangles(&mut self, mesh: &Mesh) {
+        let frame_transform = self.frame_to_display_coordinates();
+        self.display.draw_triangles_ex(mesh, frame_transform);
+    }
+    /// Draw onto the display area from a mesh of triangles. The transformation will be applied to each triangle.
+    pub fn draw_triangles_ex(&mut self, mesh: &Mesh, t: Transform) {
+        let frame_transform = self.frame_to_display_coordinates();
+        self.display.draw_triangles_ex(mesh, t * frame_transform);
     }
 }
 

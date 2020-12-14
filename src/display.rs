@@ -12,10 +12,10 @@ pub use canvas::*;
 pub use display_area::*;
 pub use text::*;
 
-use crate::graphics::TextureConfig;
 use crate::quicksilver_compat::Vector;
 use crate::*;
 use crate::{graphics::ImageLoader, quicksilver_compat::Color};
+use crate::{graphics::TextureConfig, quicksilver_compat::Mesh};
 use wasm_bindgen::JsCast;
 use web_sys::HtmlCanvasElement;
 
@@ -170,6 +170,41 @@ impl Display {
         if let Some(br) = find_browser_region(self.canvas.html_element()).nuts_check() {
             self.browser_region = br;
         }
+    }
+
+    pub(crate) fn mesh(&mut self) -> &mut Mesh {
+        self.canvas.mesh()
+    }
+
+    // Insert triangles to buffer without modifications.
+    pub fn draw_triangles(&mut self, mesh: &Mesh) {
+        let n = self.mesh().vertices.len() as u32;
+        self.mesh().vertices.extend_from_slice(&mesh.vertices);
+        self.mesh()
+            .triangles
+            .extend(mesh.triangles.iter().cloned().map(|mut t| {
+                t.indices[0] += n;
+                t.indices[1] += n;
+                t.indices[2] += n;
+                t
+            }));
+    }
+    // Insert triangles to buffer after applying a transform modifications.
+    pub fn draw_triangles_ex(&mut self, mesh: &Mesh, t: Transform) {
+        let n = self.mesh().vertices.len() as u32;
+        for mut vertex in mesh.vertices.iter().cloned() {
+            vertex.pos = t * vertex.pos;
+            vertex.tex_pos = vertex.tex_pos.map(|v| t * v);
+            self.mesh().vertices.push(vertex);
+        }
+        self.mesh()
+            .triangles
+            .extend(mesh.triangles.iter().cloned().map(|mut t| {
+                t.indices[0] += n;
+                t.indices[1] += n;
+                t.indices[2] += n;
+                t
+            }));
     }
 }
 
