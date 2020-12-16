@@ -1,6 +1,6 @@
 use crate::{
     frame::{Frame, FrameHandle},
-    register_frame_no_state, Domain,
+    register_frame_no_state,
 };
 use nuts::{LifecycleStatus::Active, LifecycleStatus::Inactive, UncheckedActivityId};
 use std::collections::HashMap;

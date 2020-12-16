@@ -118,7 +118,7 @@ impl LoadScheduler {
                 let resource = future.await;
                 let data = Box::new(resource);
                 let msg = FinishedLoading::VecItem(data, i);
-                nuts::publish(msg);
+                nuts::send_to::<LoadActivity, _>(msg);
             };
             wasm_bindgen_futures::spawn_local(outer_future);
         }
