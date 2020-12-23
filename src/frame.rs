@@ -53,30 +53,34 @@ pub trait Frame {
 #[derive(Clone)]
 pub struct FrameHandle<FRAME> {
     activity_id: ActivityId<FRAME>,
-    div: Option<div::PaneHandle>,
+    div: div::PaneHandle,
     region: Rectangle,
 }
 
 impl<FRAME> FrameHandle<FRAME> {
-    pub fn new(
-        activity_id: ActivityId<FRAME>,
-        div: Option<div::PaneHandle>,
-        region: Rectangle,
-    ) -> Self {
-        Self {
+    pub fn new(activity_id: ActivityId<FRAME>, div: div::PaneHandle, region: Rectangle) -> Self {
+        let fh = Self {
             activity_id,
             div,
             region,
-        }
+        };
+        #[cfg(debug_assertions)]
+        fh.set_id(std::any::type_name::<FRAME>());
+        fh
     }
     pub fn activity(&self) -> ActivityId<FRAME> {
         self.activity_id
     }
-    pub fn div(&self) -> Option<&div::PaneHandle> {
-        self.div.as_ref()
+    pub fn div(&self) -> &div::PaneHandle {
+        &self.div
     }
     pub fn region(&self) -> Rectangle {
         self.region
+    }
+    #[cfg(debug_assertions)]
+    fn set_id(&self, id: &str) {
+        let parent = self.div.parent_element().unwrap();
+        parent.set_id(id);
     }
 }
 

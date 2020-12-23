@@ -3,9 +3,7 @@ pub const Z_MAX: i32 = 1000;
 
 use super::gpu::{Gpu, WasmGpuBuffer};
 use crate::{
-    quicksilver_compat::{
-        geom::Scalar, Background, Color, Drawable, Mesh, Rectangle, Transform, Vector,
-    },
+    quicksilver_compat::{geom::Scalar, Background, Color, Drawable, Mesh, Transform, Vector},
     ErrorMessage, JsError, NutsCheck, PaddleResult,
 };
 use wasm_bindgen::JsCast;

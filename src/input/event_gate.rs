@@ -86,7 +86,7 @@ impl RegisterEventListener {
         Self {
             activity: frame.activity().into(),
             event_type,
-            div: frame.div().unwrap().clone(),
+            div: frame.div().clone(),
         }
     }
 }

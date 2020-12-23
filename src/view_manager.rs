@@ -39,12 +39,10 @@ impl<V: Hash + Eq + Copy> ViewManager<V> {
         let handle = register_frame_no_state(frame, pos);
         let activity_id = handle.activity();
 
-        if let Some(div) = handle.div() {
-            let div_copy = div.clone();
-            activity_id.on_enter(move |_| div_copy.show().expect("Div failure"));
-            let div_copy = div.clone();
-            activity_id.on_leave(move |_| div_copy.hide().expect("Div failure"));
-        }
+        let div_copy = handle.div().clone();
+        activity_id.on_enter(move |_| div_copy.show().expect("Div failure"));
+        let div_copy = handle.div().clone();
+        activity_id.on_leave(move |_| div_copy.hide().expect("Div failure"));
 
         let mut status = Inactive;
         for view in views {

@@ -20,10 +20,10 @@ impl FrameManipulator {
         aid.private_domained_channel(Self::priv_init_frame);
     }
     pub(crate) fn init_frame<F: Frame>(f: &FrameHandle<F>) {
-        if let Some(div) = f.div.clone() {
-            let region = f.region;
-            nuts::send_to::<FrameManipulator, _>(FrameInitialization { div, region });
-        }
+        nuts::send_to::<FrameManipulator, _>(FrameInitialization {
+            div: f.div().clone(),
+            region: f.region,
+        });
     }
     fn priv_init_frame(&mut self, domain: &mut DomainState, init: FrameInitialization) {
         let display = Display::from_domain(domain);

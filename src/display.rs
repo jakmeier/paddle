@@ -10,6 +10,7 @@ mod text;
 
 pub use canvas::*;
 pub use display_area::*;
+use div::PaneHandle;
 pub use text::*;
 
 use crate::quicksilver_compat::Vector;
@@ -29,6 +30,8 @@ pub struct Display {
     canvas: WebGLCanvas,
     /// Screen background color. A clear to this color is invoked every frame.
     background_color: Option<Color>,
+    /// Div element covering the full screen. (could be used for html elements outside of any frames)
+    div: PaneHandle,
 }
 
 pub struct DisplayConfig {
@@ -68,12 +71,9 @@ impl Display {
 
         let canvas = WebGLCanvas::new(canvas, config.pixels)?;
         let browser_region = find_browser_region(canvas.html_element())?;
-        div::init_ex(
-            Some("game-root"),
-            (browser_region.x() as u32, browser_region.y() as u32),
-            Some((config.pixels.x as u32, config.pixels.y as u32)),
-        )
-        .expect("Div initialization failed");
+        let pos = (browser_region.x() as u32, browser_region.y() as u32);
+        let size = (config.pixels.x as u32, config.pixels.y as u32);
+        div::init_ex(Some("game-root"), pos, Some(size)).expect("Div initialization failed");
 
         // For binding textures as they arrive
         ImageLoader::register(canvas.clone_webgl(), config.texture_config);
@@ -83,11 +83,22 @@ impl Display {
 
         let background_color = config.background;
 
+        let div = div::new_styled_pane::<_, _, &'static str, _, _>(
+            pos.0,
+            pos.1,
+            size.0,
+            size.1,
+            "",
+            &[],
+            &[("pointer-events", "None")],
+        )?;
+
         Ok(Self {
             canvas,
             browser_region,
             game_coordinates,
             background_color,
+            div,
         })
     }
     pub(crate) fn canvas_mut(&mut self) -> &mut WebGLCanvas {

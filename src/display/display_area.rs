@@ -3,20 +3,25 @@ use crate::{
     quicksilver_compat::{
         geom::Scalar, Background, Drawable, Mesh, Rectangle, Shape, Transform, Vector,
     },
-    Display,
+    Display, ErrorMessage,
 };
+use div::PaneHandle;
+use web_sys::Element;
 
 pub struct DisplayArea {
     /// in game coordinates (0|0 is at the top left of display)
     region: Rectangle,
     /// the full display
     display: Display,
+    /// Div element that covers the display area, which is used for displaying HTML
+    div: PaneHandle,
 }
 
 impl DisplayArea {
-    /// Select an area inside the full display. Specified in game coordinates.
-    pub fn select(&mut self, rect: Rectangle) -> &mut Self {
+    /// Select an area inside the full display. Ara specified in game coordinates.
+    pub fn select(&mut self, rect: Rectangle, div: PaneHandle) -> &mut Self {
         self.region = rect;
+        self.div = div;
         self
     }
     /// The full display area.
@@ -75,12 +80,21 @@ impl DisplayArea {
         let frame_transform = self.frame_to_display_coordinates();
         self.display.draw_triangles_ex(mesh, t * frame_transform);
     }
+    pub fn add_html(&self, element: Element) {
+        if let Some(parent) = self.div.parent_element().nuts_check() {
+            parent
+                .append_with_node_1(&element)
+                .map_err(|e| ErrorMessage::technical(format!("Failed to add HTML: {:?}", e)))
+                .nuts_check();
+        }
+    }
 }
 
 impl Into<DisplayArea> for Display {
     fn into(self) -> DisplayArea {
         DisplayArea {
             region: Rectangle::new_sized(self.game_coordinates),
+            div: self.div.clone(),
             display: self,
         }
     }

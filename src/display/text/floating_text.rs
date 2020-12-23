@@ -1,6 +1,4 @@
-use crate::{
-    quicksilver_compat::Rectangle, DisplayArea, FitStrategy, PaddleResult, TextNode, WebGLCanvas,
-};
+use crate::{quicksilver_compat::Rectangle, DisplayArea, FitStrategy, PaddleResult, TextNode};
 use div::PaneHandle;
 
 #[derive(Debug)]
@@ -29,7 +27,9 @@ impl FloatingText {
         let h = area.height() as u32;
 
         let html = &text;
-        let pane = div::new_styled_pane(x, y, w, h, html, classes, styles)?;
+        let mut styles_vec = vec![("pointer-events", "None")];
+        styles_vec.extend_from_slice(styles);
+        let pane = div::new_styled_pane(x, y, w, h, html, classes, &styles_vec)?;
 
         let text_node = pane.parent_element()?.into();
         let node = TextNode::new(text_node, text);
@@ -44,6 +44,7 @@ impl FloatingText {
         };
         Ok(float)
     }
+    // Position relative to full display
     pub fn update_position(&mut self, area: &Rectangle) -> Result<(), div::DivError> {
         let (x, y, w, h) = (
             area.x() as u32,
@@ -71,14 +72,17 @@ impl FloatingText {
     }
     pub fn write(
         &mut self,
-        _display: &DisplayArea,
+        display: &DisplayArea,
         max_area: &Rectangle,
         _z: i32,                 // TODO
         _fit_strat: FitStrategy, // TODO
         text: &str,
     ) -> PaddleResult<()> {
+        let area = *max_area
+            * display.frame_to_display_coordinates()
+            * display.full().game_to_browser_coordinates();
         self.update_text(text);
-        self.update_position(max_area)?;
+        self.update_position(&area)?;
         self.draw();
         Ok(())
     }

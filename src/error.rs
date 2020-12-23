@@ -87,7 +87,7 @@ impl<T> NutsCheck<T> for Result<T, ErrorMessage> {
         match self {
             Ok(t) => Some(t),
             Err(msg) => {
-                nuts::send_to::<ErrorForwardingActivity,_>(msg);
+                nuts::send_to::<ErrorForwardingActivity, _>(msg);
                 None
             }
         }
