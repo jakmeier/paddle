@@ -78,9 +78,9 @@ impl FloatingText {
         _fit_strat: FitStrategy, // TODO
         text: &str,
     ) -> PaddleResult<()> {
-        let area = *max_area
-            * display.frame_to_display_coordinates()
-            * display.full().game_to_browser_coordinates();
+        let area = display.frame_to_display_coordinates()
+            * display.full().game_to_browser_coordinates()
+            * *max_area;
         self.update_text(text);
         self.update_position(&area)?;
         self.draw();

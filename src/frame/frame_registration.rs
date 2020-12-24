@@ -1,7 +1,7 @@
 use super::*;
 use crate::{
     Context, EventGate, EventListenerType, KeyEventType, LeftClick, MouseEventType, MouseMovement,
-    RightClick,
+    NutsCheck, RightClick,
 };
 
 pub fn register_frame<F: Frame + Activity>(
@@ -20,7 +20,6 @@ pub fn register_frame_no_state<F: Frame + Activity>(frame: F, pos: (u32, u32)) -
     let area = Rectangle::new(pos, F::size());
     let handle = FrameHandle::new(activity, div, area);
     handle.init_frame_activity();
-    FrameManipulator::init_frame(&handle);
     handle
 }
 
@@ -94,14 +93,18 @@ impl<STATE: 'static, F: Frame<State = STATE> + Activity> FrameHandle<F> {
             });
             EventGate::listen(self, EventListenerType::Mouse(vec![MouseEventType::Move]))
         }
+        let div: div::PaneHandle = self.div().clone();
         if (F::enter as usize) != (Nop::<F::State>::enter as usize) {
-            activity.on_enter_domained(|a, d| {
+            activity.on_enter_domained(move |a, d| {
+                div.show().nuts_check();
                 let global_state: &mut F::State = d.try_get_mut().expect("Activity State missing");
                 a.enter(global_state)
             });
         }
+        let div: div::PaneHandle = self.div().clone();
         if (F::leave as usize) != (Nop::<F::State>::leave as usize) {
-            activity.on_leave_domained(|a, d| {
+            activity.on_leave_domained(move |a, d| {
+                div.hide().nuts_check();
                 let global_state: &mut F::State = d.try_get_mut().expect("Activity State missing");
                 a.leave(global_state)
             });

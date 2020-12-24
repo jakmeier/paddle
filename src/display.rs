@@ -15,10 +15,12 @@ pub use text::*;
 
 use crate::quicksilver_compat::Vector;
 use crate::*;
-use crate::{graphics::ImageLoader, quicksilver_compat::Color};
-use crate::{graphics::TextureConfig, quicksilver_compat::Mesh};
-use wasm_bindgen::JsCast;
-use web_sys::HtmlCanvasElement;
+use crate::{
+    graphics::ImageLoader, graphics::TextureConfig, quicksilver_compat::Color,
+    quicksilver_compat::Mesh,
+};
+use wasm_bindgen::{JsCast, JsValue};
+use web_sys::{Element, HtmlCanvasElement};
 
 /// An object to manage the *full* display area for your game inside the browser.
 pub struct Display {
@@ -69,23 +71,31 @@ impl Display {
             CanvasConfig::HtmlId(id) => canvas_by_id(id)?,
         };
 
+        // For now the only option is game_coordinates = pixels
+        let game_coordinates = config.pixels;
+
         let canvas = WebGLCanvas::new(canvas, config.pixels)?;
+        // Browser region is relative to window and needs to be known to handle input
         let browser_region = find_browser_region(canvas.html_element())?;
-        let pos = (browser_region.x() as u32, browser_region.y() as u32);
-        let size = (config.pixels.x as u32, config.pixels.y as u32);
-        div::init_ex(Some("game-root"), pos, Some(size)).expect("Div initialization failed");
+
+        // Initialize with game coordinates, which allows using them again for later calls
+        let size = (game_coordinates.x as u32, game_coordinates.y as u32);
+        div::init_ex(Some("game-root"), (0, 0), Some(size)).expect("Div initialization failed");
+
+        div::resize(
+            browser_region.width() as u32,
+            browser_region.height() as u32,
+        )
+        .expect("Div initialization failed");
 
         // For binding textures as they arrive
         ImageLoader::register(canvas.clone_webgl(), config.texture_config);
 
-        // For now the only option is game_coordinates = pixels
-        let game_coordinates = config.pixels;
-
         let background_color = config.background;
 
         let div = div::new_styled_pane::<_, _, &'static str, _, _>(
-            pos.0,
-            pos.1,
+            0,
+            0,
             size.0,
             size.1,
             "",
@@ -164,12 +174,17 @@ impl Display {
         self.canvas.set_size((w as f32, h as f32));
 
         // Resizing might change position (How exactly can be completely unpredictable due to CSS, media-queries etc.)
+        self.adjust_display()?;
+        Ok(())
+    }
+    /// Look up size and position of canvas in the browser and update input and drawing transformations accordingly.
+    /// This should be called after the canvas size has changed, for example when the window is resized.
+    /// When calling `fit_to_visible_area()`, the display is adjusted automatically (no need to call `adjust_display()` manually).
+    pub fn adjust_display(&mut self) -> PaddleResult<()> {
         self.update_browser_region();
 
-        div::reposition(
-            self.browser_region.pos.x as u32,
-            self.browser_region.pos.y as u32,
-        )?;
+        let (x, y) = self.div_offset()?;
+        div::reposition(x, y)?;
         div::resize(
             self.browser_region.size.x as u32,
             self.browser_region.size.y as u32,
@@ -181,6 +196,13 @@ impl Display {
         if let Some(br) = find_browser_region(self.canvas.html_element()).nuts_check() {
             self.browser_region = br;
         }
+    }
+    /// Offset to ancestor with respect to which absolute positioned elements will be placed. (in browser coordinates)
+    fn div_offset(&self) -> PaddleResult<(u32, u32)> {
+        find_div_offset(
+            self.canvas.html_element().clone().into(),
+            &self.browser_region,
+        )
     }
 
     pub(crate) fn mesh(&mut self) -> &mut Mesh {
@@ -231,6 +253,37 @@ fn find_browser_region(canvas: &HtmlCanvasElement) -> PaddleResult<Rectangle> {
     let h = dom_rect.height();
     let browser_region = Rectangle::new((x as f32, y as f32), (w as f32, h as f32));
     Ok(browser_region)
+}
+fn find_div_offset(canvas: Element, browser_region: &Rectangle) -> PaddleResult<(u32, u32)> {
+    let npa = nearest_positioned_ancestor(canvas).map_err(JsError::from_js_value)?;
+    let npa_rect = npa.get_bounding_client_rect();
+    let npa_pos = Vector::new(npa_rect.x(), npa_rect.y());
+    let offset = browser_region.pos - npa_pos;
+    Ok((offset.x as u32, offset.y as u32))
+}
+fn nearest_positioned_ancestor(element: Element) -> Result<Element, JsValue> {
+    let web_window = web_sys::window().unwrap();
+    let mut npa = element;
+    loop {
+        if let Some(property) = &web_window.get_computed_style(&npa)? {
+            match property.get_property_value("position")?.as_str() {
+                "" | "static" => {
+                    // go to parent
+                }
+                "absolute" | "relative" | "fixed" | "sticky" => {
+                    return Ok(npa);
+                }
+                _ => {
+                    return Err("Unexpected position attribute".into());
+                }
+            }
+        }
+        if let Some(parent) = npa.parent_element() {
+            npa = parent;
+        } else {
+            return Ok(npa);
+        }
+    }
 }
 
 fn canvas_by_id(id: &str) -> PaddleResult<HtmlCanvasElement> {
