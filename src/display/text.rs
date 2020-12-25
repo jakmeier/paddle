@@ -8,8 +8,9 @@ pub use text_node::*;
 pub use text_pool::*;
 pub use text_to_user::*;
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum FitStrategy {
-    TopLeft,
     Center,
+    LeftCenter,
+    TopLeft,
 }

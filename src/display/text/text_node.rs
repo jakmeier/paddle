@@ -1,10 +1,13 @@
 use web_sys::HtmlElement;
 
+use crate::{JsError, PaddleResult};
+
 #[derive(Debug)]
 pub struct TextNode {
     dom_node: HtmlElement,
     text: String,
     dirty: bool,
+    z: i32,
 }
 
 impl TextNode {
@@ -13,6 +16,7 @@ impl TextNode {
             text,
             dom_node,
             dirty: true,
+            z: 0,
         }
     }
     /// Update the inner text (without redrawing it)
@@ -43,6 +47,15 @@ impl TextNode {
                 .remove_child(&self.dom_node)
                 .map(|_| ())
                 .map_err(|_| "Child vanished");
+        }
+        Ok(())
+    }
+    pub fn set_z(&self, z: i32) -> PaddleResult<()> {
+        if self.z != z {
+            self.dom_node
+                .style()
+                .set_property("z", &z.to_string())
+                .map_err(JsError::from_js_value)?;
         }
         Ok(())
     }

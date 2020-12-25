@@ -57,6 +57,9 @@ impl JmrRectangle for Rectangle {
         }
         match fit_strat {
             FitStrategy::TopLeft => self.pos = frame.pos,
+            FitStrategy::LeftCenter => {
+                self.pos = frame.pos + ((frame.size - self.size).y_comp() / 2.0)
+            }
             FitStrategy::Center => {
                 self.pos = frame.pos;
                 self.pos = frame.pos + frame.center() - self.center()
@@ -71,6 +74,9 @@ impl JmrRectangle for Rectangle {
         match fit_strat {
             FitStrategy::Center => {
                 rect = rect.translate(((self.width() - rect.width()) / 2.0, 0.0));
+                rect = rect.translate((0.0, (self.height() - rect.height()) / 2.0));
+            }
+            FitStrategy::LeftCenter => {
                 rect = rect.translate((0.0, (self.height() - rect.height()) / 2.0));
             }
             FitStrategy::TopLeft => {}

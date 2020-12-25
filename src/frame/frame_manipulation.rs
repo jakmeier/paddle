@@ -1,12 +1,12 @@
-use crate::Display;
-use nuts::DomainState;
+// use crate::Display;
+// use nuts::DomainState;
 
-use crate::{quicksilver_compat::Rectangle, Domain, Frame, FrameHandle, NutsCheck};
+// use crate::{quicksilver_compat::Rectangle};
 
-struct FrameInitialization {
-    div: div::PaneHandle,
-    region: Rectangle,
-}
+// struct FrameInitialization {
+//     div: div::PaneHandle,
+//     region: Rectangle,
+// }
 
 pub(crate) struct FrameManipulator {
     _private: (),

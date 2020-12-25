@@ -66,7 +66,7 @@ impl TextBoard {
             let (line, rest) = area.cut_horizontal(60.0);
             let (_padding, rest) = rest.cut_horizontal(15.0);
             area = rest;
-            msg.float.update_position(&line)?;
+            msg.float.update_position(&line, 0)?;
             msg.float.draw();
         }
         Ok(())

@@ -9,12 +9,14 @@ pub struct FloatingText {
     h: u32,
     node: TextNode,
     pane: PaneHandle,
+    fit: FitStrategy,
 }
 
 impl FloatingText {
     pub fn new(area: &Rectangle, text: String) -> PaddleResult<Self> {
         Self::new_styled(area, text, &[], &[])
     }
+    // Use this to defined the exact CSS styles and/or CSS classes
     pub fn new_styled(
         area: &Rectangle,
         text: String,
@@ -41,22 +43,48 @@ impl FloatingText {
             h,
             node,
             pane,
+            fit: FitStrategy::TopLeft,
         };
         Ok(float)
     }
     // Position relative to full display
-    pub fn update_position(&mut self, area: &Rectangle) -> Result<(), div::DivError> {
+    pub fn update_position(&mut self, area: &Rectangle, z: i32) -> PaddleResult<()> {
         let (x, y, w, h) = (
             area.x() as u32,
             area.y() as u32,
             area.width() as u32,
             area.height() as u32,
         );
+        self.node.set_z(z)?;
 
-        self.pane.reposition_and_resize(x, y, w, h)
+        self.pane.reposition_and_resize(x, y, w, h)?;
+        Ok(())
     }
     pub fn update_text(&mut self, text: &str) {
         self.node.update(text);
+    }
+    pub fn update_fit_strategy(&mut self, fit: FitStrategy) -> Result<(), div::DivError> {
+        if self.fit == fit {
+            return Ok(());
+        }
+        self.fit = fit;
+        match self.fit {
+            FitStrategy::TopLeft => {
+                self.pane.set_css("justify-content", "start")?;
+                self.pane.set_css("align-items", "normal")?;
+            }
+            FitStrategy::LeftCenter => {
+                self.pane.set_css("display", "flex")?;
+                self.pane.set_css("justify-content", "start")?;
+                self.pane.set_css("align-items", "center")?;
+            }
+            FitStrategy::Center => {
+                self.pane.set_css("display", "flex")?;
+                self.pane.set_css("justify-content", "center")?;
+                self.pane.set_css("align-items", "center")?;
+            }
+        }
+        Ok(())
     }
     pub fn draw(&mut self) {
         self.node.draw();
@@ -74,15 +102,14 @@ impl FloatingText {
         &mut self,
         display: &DisplayArea,
         max_area: &Rectangle,
-        _z: i32,                 // TODO
-        _fit_strat: FitStrategy, // TODO
+        z: i32,
+        fit_strat: FitStrategy,
         text: &str,
     ) -> PaddleResult<()> {
-        let area = display.frame_to_display_coordinates()
-            * display.full().game_to_browser_coordinates()
-            * *max_area;
+        let area = display.frame_to_display_coordinates() * *max_area;
         self.update_text(text);
-        self.update_position(&area)?;
+        self.update_position(&area, z)?;
+        self.update_fit_strategy(fit_strat)?;
         self.draw();
         Ok(())
     }
