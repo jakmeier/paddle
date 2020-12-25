@@ -10,7 +10,7 @@ mod text;
 
 pub use canvas::*;
 pub use display_area::*;
-use div::PaneHandle;
+use div::DivHandle;
 pub use text::*;
 
 use crate::quicksilver_compat::Vector;
@@ -33,7 +33,7 @@ pub struct Display {
     /// Screen background color. A clear to this color is invoked every frame.
     background_color: Option<Color>,
     /// Div element covering the full screen. (could be used for html elements outside of any frames)
-    div: PaneHandle,
+    div: DivHandle,
 }
 
 pub struct DisplayConfig {
@@ -93,7 +93,7 @@ impl Display {
 
         let background_color = config.background;
 
-        let div = div::new_styled_pane::<_, _, &'static str, _, _>(
+        let div = div::new_styled::<_, _, &'static str, _, _>(
             0,
             0,
             size.0,

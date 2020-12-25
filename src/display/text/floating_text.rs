@@ -1,5 +1,5 @@
 use crate::{quicksilver_compat::Rectangle, DisplayArea, FitStrategy, PaddleResult, TextNode};
-use div::PaneHandle;
+use div::DivHandle;
 
 #[derive(Debug)]
 pub struct FloatingText {
@@ -8,7 +8,7 @@ pub struct FloatingText {
     w: u32,
     h: u32,
     node: TextNode,
-    pane: PaneHandle,
+    pane: DivHandle,
     fit: FitStrategy,
 }
 
@@ -31,7 +31,7 @@ impl FloatingText {
         let html = &text;
         let mut styles_vec = vec![("pointer-events", "None")];
         styles_vec.extend_from_slice(styles);
-        let pane = div::new_styled_pane(x, y, w, h, html, classes, &styles_vec)?;
+        let pane = div::new_styled(x, y, w, h, html, classes, &styles_vec)?;
 
         let text_node = pane.parent_element()?.into();
         let node = TextNode::new(text_node, text);

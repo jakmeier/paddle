@@ -12,7 +12,10 @@
 //!
 //! Frames can also be put in the background, in which state reduced events are handled and nothing is drawn.
 
-use crate::quicksilver_compat::{Rectangle, Vector};
+use crate::{
+    quicksilver_compat::{Rectangle, Vector},
+    NutsCheck,
+};
 use crate::{DisplayArea, KeyEvent};
 use nuts::*;
 
@@ -53,12 +56,12 @@ pub trait Frame {
 #[derive(Clone)]
 pub struct FrameHandle<FRAME> {
     activity_id: ActivityId<FRAME>,
-    div: div::PaneHandle,
+    div: div::DivHandle,
     region: Rectangle,
 }
 
 impl<FRAME> FrameHandle<FRAME> {
-    pub fn new(activity_id: ActivityId<FRAME>, div: div::PaneHandle, region: Rectangle) -> Self {
+    pub fn new(activity_id: ActivityId<FRAME>, div: div::DivHandle, region: Rectangle) -> Self {
         let fh = Self {
             activity_id,
             div,
@@ -71,7 +74,7 @@ impl<FRAME> FrameHandle<FRAME> {
     pub fn activity(&self) -> ActivityId<FRAME> {
         self.activity_id
     }
-    pub fn div(&self) -> &div::PaneHandle {
+    pub fn div(&self) -> &div::DivHandle {
         &self.div
     }
     pub fn region(&self) -> Rectangle {

@@ -15,7 +15,7 @@ pub fn register_frame<F: Frame + Activity>(
 
 /// Use this if the state has already been registered previously.
 pub fn register_frame_no_state<F: Frame + Activity>(frame: F, pos: (u32, u32)) -> FrameHandle<F> {
-    let div = div::new_pane(pos.0, pos.1, F::WIDTH, F::HEIGHT, "").expect("Div failure");
+    let div = div::new(pos.0, pos.1, F::WIDTH, F::HEIGHT, "").expect("Div failure");
     let activity = nuts::new_domained_activity(frame, &Domain::Frame);
     let area = Rectangle::new(pos, F::size());
     let handle = FrameHandle::new(activity, div, area);
@@ -37,7 +37,7 @@ impl<STATE: 'static, F: Frame<State = STATE> + Activity> FrameHandle<F> {
     fn init_frame_activity(&self) {
         let activity = self.activity();
         let area = self.region();
-        let div: div::PaneHandle = self.div().clone();
+        let div: div::DivHandle = self.div().clone();
         if (F::update as usize) != (Nop::<F::State>::update as usize) {
             activity.subscribe_domained(|a, d, _msg: &UpdateWorld| {
                 let global_state: &mut F::State = d.try_get_mut().expect("Activity State missing");
@@ -93,7 +93,7 @@ impl<STATE: 'static, F: Frame<State = STATE> + Activity> FrameHandle<F> {
             });
             EventGate::listen(self, EventListenerType::Mouse(vec![MouseEventType::Move]))
         }
-        let div: div::PaneHandle = self.div().clone();
+        let div: div::DivHandle = self.div().clone();
         if (F::enter as usize) != (Nop::<F::State>::enter as usize) {
             activity.on_enter_domained(move |a, d| {
                 div.show().nuts_check();
@@ -101,7 +101,7 @@ impl<STATE: 'static, F: Frame<State = STATE> + Activity> FrameHandle<F> {
                 a.enter(global_state)
             });
         }
-        let div: div::PaneHandle = self.div().clone();
+        let div: div::DivHandle = self.div().clone();
         if (F::leave as usize) != (Nop::<F::State>::leave as usize) {
             activity.on_leave_domained(move |a, d| {
                 div.hide().nuts_check();

@@ -2,7 +2,7 @@ use crate::{
     quicksilver_compat::Rectangle, DisplayArea, Domain, PaddleResult, SchedulingContext,
     WebGLCanvas,
 };
-use div::PaneHandle;
+use div::DivHandle;
 use nuts::DomainState;
 
 mod config;
@@ -28,7 +28,7 @@ impl Context {
     pub(crate) fn display_region(
         &mut self,
         region: Rectangle,
-        div: PaneHandle,
+        div: DivHandle,
     ) -> &mut DisplayArea {
         self.display.select(region, div)
     }

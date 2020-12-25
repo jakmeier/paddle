@@ -4,7 +4,7 @@
 // use crate::{quicksilver_compat::Rectangle};
 
 // struct FrameInitialization {
-//     div: div::PaneHandle,
+//     div: div::DivHandle,
 //     region: Rectangle,
 // }
 

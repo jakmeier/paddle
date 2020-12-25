@@ -5,7 +5,7 @@ use crate::{
     },
     Display, ErrorMessage,
 };
-use div::PaneHandle;
+use div::DivHandle;
 use web_sys::Element;
 
 pub struct DisplayArea {
@@ -14,12 +14,12 @@ pub struct DisplayArea {
     /// the full display
     display: Display,
     /// Div element that covers the display area, which is used for displaying HTML
-    div: PaneHandle,
+    div: DivHandle,
 }
 
 impl DisplayArea {
     /// Select an area inside the full display. Ara specified in game coordinates.
-    pub fn select(&mut self, rect: Rectangle, div: PaneHandle) -> &mut Self {
+    pub fn select(&mut self, rect: Rectangle, div: DivHandle) -> &mut Self {
         self.region = rect;
         self.div = div;
         self

@@ -3,13 +3,13 @@ use crate::{
 };
 use crate::{quicksilver_compat::Vector, KeyEvent, KeyEventType};
 use crate::{EventListenerType, Key};
-use div::PaneHandle;
+use div::DivHandle;
 use nuts::{Activity, UncheckedActivityId};
 use wasm_bindgen::prelude::wasm_bindgen;
 
 pub(crate) struct RegisterEventListener {
     event_type: EventListenerType,
-    div: PaneHandle,
+    div: DivHandle,
     activity: UncheckedActivityId,
 }
 
