@@ -1,7 +1,7 @@
 use crate::{
     js::PaddleJsContext, FrameHandle, LeftClick, MouseEventType, MouseMovement, RightClick,
 };
-use crate::{quicksilver_compat::Vector, KeyEvent, KeyEventType};
+use crate::{Vector, KeyEvent, KeyEventType};
 use crate::{EventListenerType, Key};
 use div::DivHandle;
 use nuts::{Activity, UncheckedActivityId};

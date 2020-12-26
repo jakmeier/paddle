@@ -1,7 +1,4 @@
-use crate::{
-    quicksilver_compat::Rectangle, DisplayArea, Domain, PaddleResult, SchedulingContext,
-    WebGLCanvas,
-};
+use crate::{DisplayArea, Domain, PaddleResult, Rectangle, SchedulingContext, WebGLCanvas};
 use div::DivHandle;
 use nuts::DomainState;
 
@@ -25,11 +22,7 @@ impl Context {
         nuts::store_to_domain(&Domain::Frame, ctx);
         Ok(())
     }
-    pub(crate) fn display_region(
-        &mut self,
-        region: Rectangle,
-        div: DivHandle,
-    ) -> &mut DisplayArea {
+    pub(crate) fn display_region(&mut self, region: Rectangle, div: DivHandle) -> &mut DisplayArea {
         self.display.select(region, div)
     }
     pub(crate) fn canvas_mut(&mut self) -> &mut WebGLCanvas {

@@ -1,4 +1,4 @@
-use super::super::Vector;
+use crate::Vector;
 use serde::{Deserialize, Serialize};
 use std::cmp::{Eq, PartialEq};
 

@@ -1,6 +1,6 @@
 mod shader;
 
-use crate::quicksilver_compat::Transform;
+use crate::Transform;
 use js_sys::Float32Array;
 use js_sys::Uint16Array;
 use web_sys::{WebGlBuffer, WebGlProgram, WebGlRenderingContext, WebGlShader, WebGlTexture};
@@ -9,8 +9,8 @@ use web_sys::{WebGlBuffer, WebGlProgram, WebGlRenderingContext, WebGlShader, Web
 const VERTEX_SIZE: usize = 10; // the number of floats in a vertex
 
 use crate::{
-    quicksilver_compat::{GpuTriangle, Vector, Vertex},
-    ErrorMessage, PaddleResult,
+    quicksilver_compat::{GpuTriangle, Vertex},
+    ErrorMessage, PaddleResult, Vector,
 };
 
 /// Used to prepare data in GPU readable format for a frame.

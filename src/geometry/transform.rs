@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 
-use super::{about_equal, Rectangle, Scalar, Vector};
+use crate::quicksilver_compat::about_equal;
+use crate::{Rectangle, Scalar, Vector};
 use std::{
     cmp::{Eq, PartialEq},
     default::Default,
@@ -83,15 +84,6 @@ impl Transform {
             self.0[0], self.0[3], self.0[6], self.0[1], self.0[4], self.0[7], self.0[2], self.0[5],
             self.0[8],
         ]
-    }
-
-    #[cfg(feature = "nalgebra")]
-    ///Convert the Transform into an nalgebra Matrix3
-    pub fn into_matrix(self) -> Matrix3<f32> {
-        Matrix3::new(
-            self.0[0], self.0[1], self.0[2], self.0[3], self.0[4], self.0[5], self.0[6], self.0[7],
-            self.0[8],
-        )
     }
 
     ///Find the inverse of a Transform
@@ -242,17 +234,6 @@ impl PartialEq for Transform {
 
 impl Eq for Transform {}
 
-#[cfg(feature = "nalgebra")]
-impl From<Matrix3<f32>> for Transform {
-    fn from(other: Matrix3<f32>) -> Transform {
-        Transform([
-            [other[0], other[1], other[2]],
-            [other[3], other[4], other[5]],
-            [other[6], other[7], other[8]],
-        ])
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -311,18 +292,5 @@ mod tests {
         let vec = Vector::new(120f32, 151f32);
         assert_eq!(vec, a * a_inv * vec);
         assert_eq!(vec, a_inv * a * vec);
-    }
-
-    #[test]
-    #[cfg(feature = "nalgebra")]
-    fn conversion() {
-        let transform = Transform::rotate(5);
-        let vector = Vector::new(1, 2);
-        let na_matrix = transform.into_matrix();
-        let na_vector = vector.into_vector();
-        assert_eq!(
-            transform * vector,
-            (na_matrix.transform_vector(&na_vector)).into()
-        );
     }
 }

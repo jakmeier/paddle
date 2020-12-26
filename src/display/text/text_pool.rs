@@ -1,4 +1,4 @@
-use crate::quicksilver_compat::Rectangle;
+use crate::Rectangle;
 
 use super::FloatingText;
 

@@ -7,7 +7,7 @@ pub struct TextNode {
     dom_node: HtmlElement,
     text: String,
     dirty: bool,
-    z: i32,
+    z: i16,
 }
 
 impl TextNode {
@@ -50,7 +50,7 @@ impl TextNode {
         }
         Ok(())
     }
-    pub fn set_z(&self, z: i32) -> PaddleResult<()> {
+    pub fn set_z(&self, z: i16) -> PaddleResult<()> {
         if self.z != z {
             self.dom_node
                 .style()

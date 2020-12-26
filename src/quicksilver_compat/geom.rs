@@ -9,21 +9,13 @@
 
 mod circle;
 mod objects;
-mod rectangle;
-mod scalar;
 mod shape;
 mod tilemap;
-mod transform;
 mod util;
-mod vector;
 pub use self::{
     circle::Circle,
     objects::{Line, Triangle},
-    rectangle::Rectangle,
-    scalar::Scalar,
     shape::Shape,
     tilemap::{Tile, Tilemap},
-    transform::Transform,
     util::{about_equal, lerp, lerp_angle},
-    vector::Vector,
 };

@@ -1,5 +1,5 @@
-use super::{about_equal, Circle, Line, Rectangle, Transform, Triangle, Vector};
-
+use super::{about_equal, Circle, Line, Triangle};
+use crate::geometry::{Rectangle, Transform, Vector};
 /// The collision and positional attributes of shapes
 pub trait Shape {
     /// If the point lies on the shape's boundary or within it
@@ -290,7 +290,6 @@ impl Shape for Vector {
     fn overlaps(&self, shape: &impl Shape) -> bool {
         shape.contains(*self)
     }
-
     fn center(&self) -> Vector {
         *self
     }

@@ -1,8 +1,6 @@
-use super::{
-    super::geom::{Transform, Vector},
-    Background,
-};
+use super::Background;
 use super::{GpuTriangle, Vertex};
+use crate::{Transform, Vector, Z_MAX};
 
 /// A way to store rendered objects without having to re-process them
 pub struct Mesh {
@@ -46,8 +44,15 @@ impl Mesh {
     }
 
     /// Add all the data from the other mesh into this mesh
-    pub fn extend(&mut self, other: &Mesh) {
-        self.vertices.extend(other.vertices.iter().cloned());
-        self.triangles.extend(other.triangles.iter().cloned());
+    // pub fn extend(&mut self, other: &Mesh) {
+    //     self.vertices.extend(other.vertices.iter().cloned());
+    //     self.triangles.extend(other.triangles.iter().cloned());
+    // }
+
+    /// Sets the z value for all vertices in the Mesh
+    pub fn set_z(&mut self, z: i16) {
+        for v in &mut self.vertices {
+            v.z = z as f32 / Z_MAX as f32;
+        }
     }
 }

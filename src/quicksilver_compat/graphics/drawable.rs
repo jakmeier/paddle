@@ -1,8 +1,9 @@
 use crate::graphics::Image;
 use crate::quicksilver_compat::{
-    geom::{Circle, Line, Rectangle, Scalar, Shape, Transform, Triangle, Vector},
+    geom::{Circle, Line, Shape, Triangle},
     graphics::{Color, GpuTriangle, Mesh},
 };
+use crate::{Rectangle, Scalar, Transform, Vector};
 use std::iter;
 
 /// Some object that can be drawn to the screen

@@ -1,6 +1,8 @@
 //! Paddle is a framework for easy game building for the browser.
 //! TODO: more description, README
 //!
+#![cfg_attr(feature = "const_fn", feature(const_fn))]
+#![cfg_attr(feature = "const_fn", feature(const_fn_floating_point_arithmetic))]
 
 pub use nuts;
 
@@ -9,11 +11,9 @@ pub(crate) mod debug;
 
 pub(crate) mod context;
 pub(crate) mod error;
-pub(crate) mod frame; // TODO: Probably rename (e.g. to activity)
+pub(crate) mod frame;
 pub mod graphics;
-pub(crate) mod grid;
 pub(crate) mod input;
-pub(crate) mod jmr_geometry;
 pub(crate) mod js;
 pub(crate) mod load;
 pub mod quicksilver_compat;
@@ -21,13 +21,14 @@ pub(crate) mod view_manager;
 pub mod web_integration;
 
 mod display;
+mod geometry;
 pub use display::*;
+pub use geometry::*;
 
 pub use context::*;
 pub use error::*;
 pub use frame::*;
 pub use input::*;
-pub use jmr_geometry::*;
 pub use load::*;
 pub use view_manager::*;
 

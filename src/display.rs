@@ -13,7 +13,7 @@ pub use display_area::*;
 use div::DivHandle;
 pub use text::*;
 
-use crate::quicksilver_compat::Vector;
+use crate::Vector;
 use crate::*;
 use crate::{
     graphics::ImageLoader, graphics::TextureConfig, quicksilver_compat::Color,
@@ -60,9 +60,7 @@ pub enum CanvasConfig {
     HtmlElement(HtmlCanvasElement),
 }
 
-use crate::quicksilver_compat::Rectangle;
-use crate::quicksilver_compat::Transform;
-use crate::{NutsCheck, PaddleResult};
+use crate::{NutsCheck, PaddleResult, Rectangle, Transform};
 
 impl Display {
     pub(super) fn new(config: DisplayConfig) -> PaddleResult<Self> {
@@ -209,8 +207,8 @@ impl Display {
         self.canvas.mesh()
     }
 
-    // Insert triangles to buffer without modifications.
-    pub fn draw_triangles(&mut self, mesh: &Mesh) {
+    // Insert triangles to buffer without modifications. (Make sure transformations are already applied and Z value is in range [-1.0,1.0])
+    pub fn draw_raw_triangles(&mut self, mesh: &Mesh) {
         let n = self.mesh().vertices.len() as u32;
         self.mesh().vertices.extend_from_slice(&mesh.vertices);
         self.mesh()
@@ -222,12 +220,13 @@ impl Display {
                 t
             }));
     }
-    // Insert triangles to buffer after applying a transform modifications.
+    // Insert triangles to buffer after applying a transform and scaling z to target range [-1.0,1.0].
     pub fn draw_triangles_ex(&mut self, mesh: &Mesh, t: Transform) {
         let n = self.mesh().vertices.len() as u32;
         for mut vertex in mesh.vertices.iter().cloned() {
             vertex.pos = t * vertex.pos;
             vertex.tex_pos = vertex.tex_pos.map(|v| t * v);
+            vertex.z = vertex.z / Z_MAX as f32;
             self.mesh().vertices.push(vertex);
         }
         self.mesh()

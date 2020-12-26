@@ -1,8 +1,6 @@
 use crate::graphics::Image;
-use crate::quicksilver_compat::{
-    geom::{Scalar, Vector},
-    graphics::{Background, Color},
-};
+use crate::quicksilver_compat::graphics::{Background, Color};
+use crate::{Scalar, Vector};
 use std::cmp::Ordering;
 
 #[derive(Clone, Copy, Debug)]

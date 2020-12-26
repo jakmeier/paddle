@@ -1,10 +1,10 @@
-pub const Z_MIN: i32 = 0;
-pub const Z_MAX: i32 = 1000;
+pub const Z_MIN: i16 = 0;
+pub const Z_MAX: i16 = 32_767i16;
 
 use super::gpu::{Gpu, WasmGpuBuffer};
 use crate::{
-    quicksilver_compat::{geom::Scalar, Background, Color, Drawable, Mesh, Transform, Vector},
-    ErrorMessage, JsError, NutsCheck, PaddleResult,
+    quicksilver_compat::{Background, Color, Drawable, Mesh},
+    ErrorMessage, JsError, NutsCheck, PaddleResult, Scalar, Transform, Vector,
 };
 use wasm_bindgen::JsCast;
 use web_sys::{HtmlCanvasElement, WebGlRenderingContext};

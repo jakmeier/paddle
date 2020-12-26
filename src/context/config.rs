@@ -1,6 +1,6 @@
-use crate::quicksilver_compat::Vector;
 use crate::CanvasConfig;
 use crate::DisplayConfig;
+use crate::Vector;
 use crate::{graphics::TextureConfig, quicksilver_compat::Color};
 use web_sys::HtmlCanvasElement;
 

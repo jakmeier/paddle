@@ -1,4 +1,5 @@
-use super::{Rectangle, Shape, Vector};
+use super::Shape;
+use crate::{Rectangle, Vector};
 use serde::{Deserialize, Serialize};
 use std::ops::Fn;
 

@@ -1,4 +1,5 @@
-use super::{about_equal, Scalar};
+use crate::quicksilver_compat::geom::about_equal;
+use crate::Scalar;
 use rand::{
     distributions::{Distribution, Standard},
     Rng,
@@ -11,7 +12,7 @@ use std::{
 };
 
 #[derive(Copy, Clone, Default, Debug, Deserialize, Serialize)]
-///A 2D vector with an arbitrary numeric type
+///A 2D vector with single-precision floating point numbers
 pub struct Vector {
     ///The x coordinate of the vector
     pub x: f32,
@@ -37,17 +38,6 @@ impl Vector {
             x: x.float(),
             y: y.float(),
         }
-    }
-
-    ///Convert this vector into an nalgebra Vector2
-    #[cfg(feature = "nalgebra")]
-    pub fn into_vector(self) -> Vector2<f32> {
-        Vector2::new(self.x, self.y)
-    }
-    ///Convert this vector into an nalgebra Point2
-    #[cfg(feature = "nalgebra")]
-    pub fn into_point(self) -> Point2<f32> {
-        Point2::new(self.x, self.y)
     }
 
     ///Create a unit vector at a given angle
@@ -147,6 +137,12 @@ impl Vector {
     pub fn max(self, other: impl Into<Vector>) -> Vector {
         let other = other.into();
         Vector::new(self.x.max(other.x), self.y.max(other.y))
+    }
+
+    pub fn distance_2(&self, other: &Vector) -> f32 {
+        let x = self.x - other.x;
+        let y = self.y - other.y;
+        x * x + y * y
     }
 }
 

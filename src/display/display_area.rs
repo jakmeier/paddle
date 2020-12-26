@@ -1,9 +1,7 @@
 use crate::{
     error::NutsCheck,
-    quicksilver_compat::{
-        geom::Scalar, Background, Drawable, Mesh, Rectangle, Shape, Transform, Vector,
-    },
-    Display, ErrorMessage,
+    quicksilver_compat::{Background, Drawable, Mesh, Shape},
+    Display, ErrorMessage, Rectangle, Scalar, Transform, Vector,
 };
 use div::DivHandle;
 use web_sys::Element;

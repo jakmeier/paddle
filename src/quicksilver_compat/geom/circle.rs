@@ -1,6 +1,5 @@
-use super::{about_equal, Scalar, Vector};
-#[cfg(feature = "ncollide2d")]
-use ncollide2d::shape::Ball;
+use super::about_equal;
+use crate::{Scalar, Vector};
 use serde::{Deserialize, Serialize};
 use std::cmp::{Eq, PartialEq};
 

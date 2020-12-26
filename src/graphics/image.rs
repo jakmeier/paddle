@@ -1,15 +1,13 @@
 use crate::graphics::Texture;
 use crate::graphics::TextureConfig;
-use crate::quicksilver_compat::Transform;
-use crate::quicksilver_compat::Vector;
+use crate::Transform;
+use crate::Vector;
 use std::{cell::Cell, rc::Rc};
 use web_sys::WebGlTexture;
 
 use web_sys::{HtmlImageElement, WebGlRenderingContext};
 
-use crate::{
-    quicksilver_compat::Rectangle, Domain, ErrorMessage, JsError, NutsCheck, PaddleResult,
-};
+use crate::{Domain, ErrorMessage, JsError, NutsCheck, PaddleResult, Rectangle};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 ///An image that can be drawn to the screen

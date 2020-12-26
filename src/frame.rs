@@ -12,11 +12,7 @@
 //!
 //! Frames can also be put in the background, in which state reduced events are handled and nothing is drawn.
 
-use crate::{
-    quicksilver_compat::{Rectangle, Vector},
-    NutsCheck,
-};
-use crate::{DisplayArea, KeyEvent};
+use crate::*;
 use nuts::*;
 
 mod frame_manipulation;

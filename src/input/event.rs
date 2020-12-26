@@ -1,4 +1,4 @@
-use crate::quicksilver_compat::Vector;
+use crate::Vector;
 use wasm_bindgen::prelude::wasm_bindgen;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]

@@ -1,7 +1,5 @@
-use crate::quicksilver_compat::{
-    geom::{Transform, Vector},
-    graphics::{Background::Col, Color, GpuTriangle, Mesh, Vertex},
-};
+use crate::quicksilver_compat::graphics::{Background::Col, Color, GpuTriangle, Mesh, Vertex};
+use crate::{Transform, Vector};
 use lyon::tessellation::{
     geometry_builder::{Count, GeometryBuilder, GeometryBuilderError, VertexId},
     FillVertex, StrokeVertex, VertexConstructor,

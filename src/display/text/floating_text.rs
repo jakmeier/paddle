@@ -1,4 +1,4 @@
-use crate::{quicksilver_compat::Rectangle, DisplayArea, FitStrategy, PaddleResult, TextNode};
+use crate::{Rectangle, DisplayArea, FitStrategy, PaddleResult, TextNode};
 use div::DivHandle;
 
 #[derive(Debug)]
@@ -48,7 +48,7 @@ impl FloatingText {
         Ok(float)
     }
     // Position relative to full display
-    pub fn update_position(&mut self, area: &Rectangle, z: i32) -> PaddleResult<()> {
+    pub fn update_position(&mut self, area: &Rectangle, z: i16) -> PaddleResult<()> {
         let (x, y, w, h) = (
             area.x() as u32,
             area.y() as u32,
@@ -102,7 +102,7 @@ impl FloatingText {
         &mut self,
         display: &DisplayArea,
         max_area: &Rectangle,
-        z: i32,
+        z: i16,
         fit_strat: FitStrategy,
         text: &str,
     ) -> PaddleResult<()> {

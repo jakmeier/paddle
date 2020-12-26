@@ -1,6 +1,7 @@
+use crate::*;
 use crate::{error::NutsCheck, WebGLCanvas};
 use crate::{quicksilver_compat::*, Domain};
-use crate::{DrawWorld, FloatingText, JmrRectangle, PaddleResult};
+use crate::{DrawWorld, FloatingText, PaddleResult};
 use chrono::*;
 
 const ERROR_COLOR: Color = Color {
