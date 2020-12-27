@@ -1,8 +1,5 @@
 use super::*;
-use crate::{
-    Context, EventGate, EventListenerType, KeyEventType, LeftClick, MouseEventType, MouseMovement,
-    NutsCheck, RightClick,
-};
+use crate::{Context, EventGate, EventListenerType, KeyEventType, MouseEventType, NutsCheck};
 
 pub fn register_frame<F: Frame + Activity>(
     frame: F,
@@ -57,41 +54,27 @@ impl<STATE: 'static, F: Frame<State = STATE> + Activity> FrameHandle<F> {
                 )
             });
         }
-        if (F::left_click as usize) != (Nop::<F::State>::left_click as usize) {
-            activity.private_domained_channel(|a, d, msg: LeftClick| {
+        if (F::mouse as usize) != (Nop::<F::State>::mouse as usize) {
+            activity.private_domained_channel(|a, d, msg: MouseEvent| {
                 let (global_state, ctx) = d.try_get_2_mut::<F::State, Context>();
                 let global_state: &mut F::State = global_state.expect("Activity State missing");
                 let display = ctx.expect("Context missing").display.full();
-                let click = msg.pos / display.browser_to_game_pixel_ratio();
-                a.left_click(global_state, (click.x as i32, click.y as i32))
+                let projected_pos = msg.1 / display.browser_to_game_pixel_ratio();
+                a.mouse(global_state, MouseEvent(msg.0, projected_pos))
             });
             EventGate::listen(
                 self,
-                EventListenerType::Mouse(vec![MouseEventType::LeftClick]),
+                EventListenerType::Mouse(vec![
+                    MouseEventType::LeftClick,
+                    MouseEventType::RightClick,
+                    MouseEventType::DoubleClick,
+                    MouseEventType::Down,
+                    MouseEventType::Enter,
+                    MouseEventType::Leave,
+                    MouseEventType::Move,
+                    MouseEventType::Up,
+                ]),
             )
-        }
-        if (F::right_click as usize) != (Nop::<F::State>::right_click as usize) {
-            activity.private_domained_channel(|a, d, msg: RightClick| {
-                let (global_state, ctx) = d.try_get_2_mut::<F::State, Context>();
-                let global_state: &mut F::State = global_state.expect("Activity State missing");
-                let display = ctx.expect("Context missing").display.full();
-                let click = msg.pos / display.browser_to_game_pixel_ratio();
-                a.right_click(global_state, (click.x as i32, click.y as i32))
-            });
-            EventGate::listen(
-                self,
-                EventListenerType::Mouse(vec![MouseEventType::RightClick]),
-            )
-        }
-        if (F::mouse_move as usize) != (Nop::<F::State>::mouse_move as usize) {
-            activity.private_domained_channel(|a, d, msg: MouseMovement| {
-                let (global_state, ctx) = d.try_get_2_mut::<F::State, Context>();
-                let global_state: &mut F::State = global_state.expect("Activity State missing");
-                let display = ctx.expect("Context missing").display.full();
-                let pos = msg.pos / display.browser_to_game_pixel_ratio();
-                a.mouse_move(global_state, (pos.x as i32, pos.y as i32))
-            });
-            EventGate::listen(self, EventListenerType::Mouse(vec![MouseEventType::Move]))
         }
         let div: div::DivHandle = self.div().clone();
         if (F::enter as usize) != (Nop::<F::State>::enter as usize) {

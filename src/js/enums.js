@@ -8,12 +8,16 @@ export function mouseEventString(paddleEventNum) {
             return "contextmenu";
         case MouseEventType.DoubleClick:
             return "dblclick";
+        case MouseEventType.Up:
+            return "mouseup";
         case MouseEventType.Down:
             return "mousedown";
         case MouseEventType.Move:
             return "mousemove";
-        case MouseEventType.Up:
-            return "mouseup";
+        case MouseEventType.Enter:
+            return "mouseenter";
+        case MouseEventType.Leave:
+            return "mouseleave";
     }
     return `Event ${MouseEventType[paddleEventNum]}(${paddleEventNum}) not implemented`;
 }

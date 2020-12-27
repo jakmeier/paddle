@@ -23,6 +23,9 @@ use wasm_bindgen::{JsCast, JsValue};
 use web_sys::{Element, HtmlCanvasElement};
 
 /// An object to manage the *full* display area for your game inside the browser.
+/// 
+/// The `Display` object is responsible for putting stuff to see in front of the user and nothing else.
+/// It also includes configuration options, such as GPU settings.
 pub struct Display {
     /// Position relative to browser page (in browser coordinates)
     browser_region: Rectangle,

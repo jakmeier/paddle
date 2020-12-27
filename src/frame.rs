@@ -23,7 +23,10 @@ mod scheduling;
 pub use scheduling::*;
 
 /// A frame takes up some area on the screen where it is drawn and reacts to UI events.
-/// The position and size of a frame is static for now. (Static in game coordinates, it will adapt properly to screen resizing etc.)
+///
+/// Define trait methods to accept user input, react to frame lifecycle changes, and draw to the screen.
+//
+/// The position and size of a frame is static (for now). (Static in game coordinates, the actual size and position will adapt properly to screen resizing etc.)
 pub trait Frame {
     type State;
     const WIDTH: u32;
@@ -32,10 +35,8 @@ pub trait Frame {
     fn update(&mut self, _state: &mut Self::State) {}
     fn leave(&mut self, _state: &mut Self::State) {}
     fn enter(&mut self, _state: &mut Self::State) {}
-    fn left_click(&mut self, _state: &mut Self::State, _pos: (i32, i32)) {}
-    fn right_click(&mut self, _state: &mut Self::State, _pos: (i32, i32)) {}
-    fn mouse_move(&mut self, _state: &mut Self::State, _pos: (i32, i32)) {}
     fn key(&mut self, _state: &mut Self::State, _key: KeyEvent) {}
+    fn mouse(&mut self, _state: &mut Self::State, _event: MouseEvent) {}
 
     #[inline(always)]
     fn size() -> Vector {

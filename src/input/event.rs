@@ -2,21 +2,27 @@ use crate::Vector;
 use wasm_bindgen::prelude::wasm_bindgen;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
-pub struct LeftClick {
-    pub pos: Vector,
-}
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
-pub struct RightClick {
-    pub pos: Vector,
-}
-
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
-pub struct MouseMovement {
-    pub pos: Vector,
+/// Event type and cursor position
+pub struct MouseEvent(pub MouseEventType, pub Vector);
+impl MouseEvent {
+    pub fn event_type(&self) -> MouseEventType {
+        self.0
+    }
+    pub fn pos(&self) -> Vector {
+        self.1
+    }
 }
 
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
 pub struct KeyEvent(pub KeyEventType, pub Key);
+impl KeyEvent {
+    pub fn event_type(&self) -> KeyEventType {
+        self.0
+    }
+    pub fn key(&self) -> Key {
+        self.1
+    }
+}
 
 pub enum EventListenerType {
     KeyBoard(Vec<KeyEventType>),
@@ -28,7 +34,7 @@ pub enum EventListenerType {
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
 #[repr(u8)]
 /// Rust representation for key event types.
-/// Needs to be translated before the browser can make use of them.
+/// Has a one-to-one correspondence to browser events.
 pub enum KeyEventType {
     KeyDown,
     KeyPress,
@@ -38,18 +44,18 @@ pub enum KeyEventType {
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
 #[repr(u8)]
 /// Rust representation for mouse event types.
-/// Needs to be translated before the browser can make use of them.
+/// Has a one-to-one correspondence to browser events.
 pub enum MouseEventType {
     LeftClick,
     RightClick,
     DoubleClick,
-    Down,
-    // Enter,
-    // Leave,
-    Move,
-    // Over,
-    // Out,
     Up,
+    Down,
+    Move,
+    /// Cursor is moved from outside the frame to inside the frame
+    Enter,
+    /// Cursor is moved from inside the frame to outside the frame
+    Leave,
 }
 
 #[wasm_bindgen(js_name = KeyEnum)]
