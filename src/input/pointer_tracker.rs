@@ -1,20 +1,20 @@
-use crate::{MouseEvent, MouseEventType, Vector};
+use crate::{PointerEvent, PointerEventType, Vector};
 
 /// Helper struct that can be added to a frame to track advanced cursor updates.
 ///
-/// This can be useful to make the mouse position available to the draw function, for example to draw hover effects.
+/// This can be useful to make the cursor position available to the draw function, for example to draw hover effects.
 /// Drag gestures are also supported, to perform e.g. scrolling.
 ///
-/// **Usage**: Add it as a field to a frame and then call `track_mouse_event()` from the mouse method of the frame.
+/// **Usage**: Add it as a field to a frame and then call `track_pointer_event()` from the mouse method of the frame.
 /// Then read e.g. position from the field in any of the frame methods.
 #[derive(Copy, Clone, Debug, Default)]
-pub struct MouseTracker {
+pub struct PointerTracker {
     pos: Option<Vector>,
     mouse_down: Option<Vector>,
     drag: Drag,
 }
 
-impl MouseTracker {
+impl PointerTracker {
     pub fn new() -> Self {
         Self::default()
     }
@@ -29,9 +29,9 @@ impl MouseTracker {
     pub fn take_drag(&mut self) -> Option<(Vector, Vector)> {
         self.drag.take()
     }
-    pub fn track_mouse_event(&mut self, event: &MouseEvent) {
+    pub fn track_pointer_event(&mut self, event: &PointerEvent) {
         match event.event_type() {
-            MouseEventType::Move => {
+            PointerEventType::Move => {
                 let to = event.pos();
                 self.pos = Some(to);
                 if let Some(from) = self.mouse_down {
@@ -39,13 +39,13 @@ impl MouseTracker {
                     self.mouse_down = Some(to);
                 }
             }
-            MouseEventType::Leave => {
+            PointerEventType::Leave => {
                 self.pos = None;
             }
-            MouseEventType::Down => {
+            PointerEventType::Down => {
                 self.mouse_down = Some(event.pos());
             }
-            MouseEventType::Up => {
+            PointerEventType::Up => {
                 self.mouse_down = None;
             }
             _ => { /* NOP */ }

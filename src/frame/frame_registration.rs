@@ -1,5 +1,5 @@
 use super::*;
-use crate::{Context, EventGate, EventListenerType, KeyEventType, MouseEventType, NutsCheck};
+use crate::{Context, EventGate, EventListenerType, NutsCheck};
 
 pub fn register_frame<F: Frame + Activity>(
     frame: F,
@@ -54,27 +54,24 @@ impl<STATE: 'static, F: Frame<State = STATE> + Activity> FrameHandle<F> {
                 )
             });
         }
-        if (F::mouse as usize) != (Nop::<F::State>::mouse as usize) {
-            activity.private_domained_channel(|a, d, msg: MouseEvent| {
+        if (F::pointer as usize) != (Nop::<F::State>::pointer as usize) {
+            activity.private_domained_channel(|a, d, msg: PointerEvent| {
                 let (global_state, ctx) = d.try_get_2_mut::<F::State, Context>();
                 let global_state: &mut F::State = global_state.expect("Activity State missing");
                 let display = ctx.expect("Context missing").display.full();
                 let projected_pos = msg.1 / display.browser_to_game_pixel_ratio();
-                a.mouse(global_state, MouseEvent(msg.0, projected_pos))
+                a.pointer(global_state, PointerEvent(msg.0, projected_pos))
             });
-            EventGate::listen(
-                self,
-                EventListenerType::Mouse(vec![
-                    MouseEventType::LeftClick,
-                    MouseEventType::RightClick,
-                    MouseEventType::DoubleClick,
-                    MouseEventType::Down,
-                    MouseEventType::Enter,
-                    MouseEventType::Leave,
-                    MouseEventType::Move,
-                    MouseEventType::Up,
-                ]),
-            )
+            // Clicks are available in all browsers and should be generated even from touchstart + touchend, as long as it is not cancelled explicitly.
+            EventGate::listen(self, EventListenerType::Click);
+            if js::supports_pointer_events() {
+                // For all browsers that support pointer events
+                EventGate::listen(self, EventListenerType::BrowserPointer);
+            } else {
+                // Mouse and touch input for browsers without pointer events
+                EventGate::listen(self, EventListenerType::Mouse);
+                EventGate::listen(self, EventListenerType::Touch);
+            }
         }
         let div: div::DivHandle = self.div().clone();
         if (F::enter as usize) != (Nop::<F::State>::enter as usize) {
@@ -97,14 +94,7 @@ impl<STATE: 'static, F: Frame<State = STATE> + Activity> FrameHandle<F> {
                 let global_state = d.try_get_mut::<F::State>().expect("Activity State missing");
                 a.key(global_state, msg)
             });
-            EventGate::listen(
-                self,
-                EventListenerType::KeyBoard(vec![
-                    KeyEventType::KeyPress,
-                    KeyEventType::KeyUp,
-                    KeyEventType::KeyDown,
-                ]),
-            )
+            EventGate::listen(self, EventListenerType::Keyboard)
         }
     }
 }

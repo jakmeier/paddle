@@ -1,4 +1,4 @@
-import { MouseEventType, KeyEventType, KeyEnum } from "#RUST#";
+import { MouseEventType, TouchEventType, BrowserPointerEventType, KeyEventType, KeyEnum } from "#RUST#";
 
 export function mouseEventString(paddleEventNum) {
     switch (paddleEventNum) {
@@ -20,6 +20,38 @@ export function mouseEventString(paddleEventNum) {
             return "mouseleave";
     }
     return `Event ${MouseEventType[paddleEventNum]}(${paddleEventNum}) not implemented`;
+}
+
+export function touchEventString(paddleEventNum) {
+    switch (paddleEventNum) {
+        case TouchEventType.Start:
+            return "touchstart";
+        case TouchEventType.End:
+            return "touchend";
+        case TouchEventType.Move:
+            return "touchmove";
+        case TouchEventType.Cancel:
+            return "touchcancel";
+    }
+    return `Touch Event ${TouchEventType[paddleEventNum]}(${paddleEventNum}) not implemented`;
+}
+
+export function pointerEventString(paddleEventNum) {
+    switch (paddleEventNum) {
+        case BrowserPointerEventType.Down:
+            return "pointerdown";
+        case BrowserPointerEventType.Up:
+            return "pointerup";
+        case BrowserPointerEventType.Move:
+            return "pointermove";
+        case BrowserPointerEventType.Enter:
+            return "pointerenter";
+        case BrowserPointerEventType.Leave:
+            return "pointerleave";
+        case BrowserPointerEventType.Cancel:
+            return "pointercancel";
+    }
+    return `Pointer Event ${BrowserPointerEventType[paddleEventNum]}(${paddleEventNum}) not implemented`;
 }
 
 export function keyboardEventString(paddleEventNum) {

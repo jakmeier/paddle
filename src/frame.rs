@@ -36,7 +36,7 @@ pub trait Frame {
     fn leave(&mut self, _state: &mut Self::State) {}
     fn enter(&mut self, _state: &mut Self::State) {}
     fn key(&mut self, _state: &mut Self::State, _key: KeyEvent) {}
-    fn mouse(&mut self, _state: &mut Self::State, _event: MouseEvent) {}
+    fn pointer(&mut self, _state: &mut Self::State, _event: PointerEvent) {}
 
     #[inline(always)]
     fn size() -> Vector {

@@ -1,4 +1,4 @@
-use crate::{Rectangle, DisplayArea, FitStrategy, PaddleResult, TextNode};
+use crate::{DisplayArea, FitStrategy, PaddleResult, Rectangle, TextNode};
 use div::DivHandle;
 
 #[derive(Debug)]

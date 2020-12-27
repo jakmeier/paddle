@@ -3,7 +3,8 @@
 use wasm_bindgen::prelude::wasm_bindgen;
 use web_sys::HtmlElement;
 
-use crate::{KeyEventType, MouseEventType};
+use crate::input::browser_pointer_events::*;
+use crate::*;
 
 #[wasm_bindgen(module = "/src/js/paddle.js")]
 extern "C" {
@@ -13,10 +14,34 @@ extern "C" {
     pub fn new() -> PaddleJsContext;
 
     #[wasm_bindgen(method)]
+    #[wasm_bindgen(js_name = registerClickEventListener)]
+    pub fn register_click_event_listener(
+        this: &PaddleJsContext,
+        event_type: ClickEventType,
+        listener: &HtmlElement,
+        callback_id: usize,
+    );
+    #[wasm_bindgen(method)]
     #[wasm_bindgen(js_name = registerMouseEventListener)]
     pub fn register_mouse_event_listener(
         this: &PaddleJsContext,
         event_type: MouseEventType,
+        listener: &HtmlElement,
+        callback_id: usize,
+    );
+    #[wasm_bindgen(method)]
+    #[wasm_bindgen(js_name = registerTouchEventListener)]
+    pub fn register_touch_event_listener(
+        this: &PaddleJsContext,
+        event_type: TouchEventType,
+        listener: &HtmlElement,
+        callback_id: usize,
+    );
+    #[wasm_bindgen(method)]
+    #[wasm_bindgen(js_name = registerPointerEventListener)]
+    pub fn register_pointer_event_listener(
+        this: &PaddleJsContext,
+        event_type: BrowserPointerEventType,
         listener: &HtmlElement,
         callback_id: usize,
     );
@@ -28,6 +53,9 @@ extern "C" {
         event_type: KeyEventType,
         callback_id: usize,
     );
+
+    #[wasm_bindgen(js_name = supportsPointerEvents)]
+    pub fn supports_pointer_events() -> bool;
 }
 
 #[wasm_bindgen(module = "/src/js/enums.js")]

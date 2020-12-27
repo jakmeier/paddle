@@ -23,7 +23,7 @@ use wasm_bindgen::{JsCast, JsValue};
 use web_sys::{Element, HtmlCanvasElement};
 
 /// An object to manage the *full* display area for your game inside the browser.
-/// 
+///
 /// The `Display` object is responsible for putting stuff to see in front of the user and nothing else.
 /// It also includes configuration options, such as GPU settings.
 pub struct Display {
@@ -45,6 +45,7 @@ pub struct DisplayConfig {
     pub texture_config: TextureConfig,
     pub update_delay_ms: i32,
     pub background: Option<Color>,
+    pub capture_touch: bool,
 }
 impl Default for DisplayConfig {
     fn default() -> Self {
@@ -54,6 +55,7 @@ impl Default for DisplayConfig {
             update_delay_ms: 8,
             texture_config: Default::default(),
             background: None,
+            capture_touch: true,
         }
     }
 }
@@ -71,6 +73,17 @@ impl Display {
             CanvasConfig::HtmlElement(el) => el,
             CanvasConfig::HtmlId(id) => canvas_by_id(id)?,
         };
+        let parent_element = canvas.parent_element().expect("Canvas has no parent");
+        if config.capture_touch {
+            let parent_html = parent_element
+                .clone()
+                .dyn_into::<web_sys::HtmlElement>()
+                .expect("Canvas parent is not an HTML element");
+            parent_html
+                .style()
+                .set_property("touch-action", "none")
+                .expect("Setting CSS failed");
+        }
 
         // For now the only option is game_coordinates = pixels
         let game_coordinates = config.pixels;
@@ -81,7 +94,8 @@ impl Display {
 
         // Initialize with game coordinates, which allows using them again for later calls
         let size = (game_coordinates.x as u32, game_coordinates.y as u32);
-        div::init_ex(Some("game-root"), (0, 0), Some(size)).expect("Div initialization failed");
+        div::init_ex_with_element(parent_element, (0, 0), Some(size))
+            .expect("Div initialization failed");
 
         div::resize(
             browser_region.width() as u32,
