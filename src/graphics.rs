@@ -1,8 +1,8 @@
-/// Parent module for stuff related to graphics manipulation, such as textures and images.
+/// Parent module for stuff related to graphics manipulation, such as textures and tessellation.
 /// (exclusive display + GPU)
-mod image;
+mod tessellation;
 mod texture;
 
-pub use image::{Image, ImageLoader};
+pub use tessellation::*;
 pub use texture::TextureConfig;
-pub(crate) use texture::*;
+pub use texture::*;

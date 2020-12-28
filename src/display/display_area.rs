@@ -1,7 +1,8 @@
 use crate::{
     error::NutsCheck,
-    quicksilver_compat::{Background, Drawable, Mesh, Shape},
-    Display, ErrorMessage, Rectangle, Scalar, Transform, Vector,
+    graphics::AbstractMesh,
+    quicksilver_compat::{Background, Shape},
+    Display, ErrorMessage, Rectangle, Tessellate, Transform, Vector,
 };
 use div::DivHandle;
 use web_sys::Element;
@@ -43,25 +44,24 @@ impl DisplayArea {
         self.region.contains(display_coordinates)
     }
     /// Draw a Drawable to the window, which will be finalized on the next flush
-    pub fn draw<'a>(&'a mut self, draw: &impl Drawable, bkg: impl Into<Background<'a>>) {
+    pub fn draw<'a>(&'a mut self, draw: &impl Tessellate, bkg: impl Into<Background<'a>>) {
         self.display
-            .canvas
-            .draw_ex(draw, bkg.into(), self.frame_to_display_coordinates(), 0.0);
+            .draw_ex(draw, bkg.into(), self.frame_to_display_coordinates(), 0);
     }
     /// Fills selected area with the given color (or image)
     pub fn fill<'a>(&'a mut self, bkg: impl Into<Background<'a>>) {
-        self.display.canvas.draw(&self.region, bkg);
+        let region = self.region;
+        self.draw(&region, bkg);
     }
     /// Draw a Drawable to the window with more options provided (draw exhaustive)
     pub fn draw_ex<'a>(
         &'a mut self,
-        draw: &impl Drawable,
+        draw: &impl Tessellate,
         bkg: impl Into<Background<'a>>,
         trans: Transform,
-        z: impl Scalar,
+        z: i16,
     ) {
         self.display
-            .canvas
             .draw_ex(draw, bkg, self.frame_to_display_coordinates() * trans, z)
     }
     /// Fit (the entire display) to be fully visible
@@ -69,14 +69,14 @@ impl DisplayArea {
         self.display.fit_to_visible_area(margin).nuts_check();
     }
     /// Draw onto the display area from a mesh of triangles. Useful for custom tesselation.
-    pub fn draw_triangles(&mut self, mesh: &Mesh) {
+    pub fn draw_mesh(&mut self, mesh: &AbstractMesh) {
         let frame_transform = self.frame_to_display_coordinates();
-        self.display.draw_triangles_ex(mesh, frame_transform);
+        self.display.draw_mesh_ex(mesh, frame_transform, 0);
     }
     /// Draw onto the display area from a mesh of triangles. The transformation will be applied to each triangle.
-    pub fn draw_triangles_ex(&mut self, mesh: &Mesh, t: Transform) {
+    pub fn draw_mesh_ex(&mut self, mesh: &AbstractMesh, t: Transform, z: i16) {
         let frame_transform = self.frame_to_display_coordinates();
-        self.display.draw_triangles_ex(mesh, t * frame_transform);
+        self.display.draw_mesh_ex(mesh, frame_transform * t, z);
     }
     pub fn add_html(&self, element: Element) {
         if let Some(parent) = self.div.parent_element().nuts_check() {

@@ -96,11 +96,10 @@ impl Rectangle {
         match fit_strat {
             FitStrategy::TopLeft => self.pos = frame.pos,
             FitStrategy::LeftCenter => {
-                self.pos = frame.pos + ((frame.size - self.size).y_comp() / 2.0)
+                self.pos = frame.pos + ((frame.size - self.size).y_comp() / 2.0);
             }
             FitStrategy::Center => {
-                self.pos = frame.pos;
-                self.pos = frame.pos + frame.center() - self.center()
+                self.pos = frame.pos + ((frame.size - self.size) / 2.0);
             }
         }
         self

@@ -1,31 +1,28 @@
-use crate::quicksilver_compat::graphics::{Background::Col, Color, GpuTriangle, Mesh, Vertex};
-use crate::{Transform, Vector};
+use crate::quicksilver_compat::graphics::{Background::Col, Color};
+use crate::Vector;
 use lyon::tessellation::{
     geometry_builder::{Count, GeometryBuilder, GeometryBuilderError, VertexId},
     FillVertex, StrokeVertex, VertexConstructor,
 };
 
+use super::{AbstractMesh, AbstractTriangle, AbstractVertex};
+
 /// A way to render complex shapes using the lyon API
 ///
-/// The ShapeRenderer has a color, transform, and z-ordering it applies to all
-/// incoming shapes. It outputs the shapes to a mutable Mesh reference, which
-/// can be a standalone mesh object or the one obtained by `window.mesh()`
+/// The ShapeRenderer has a color which applies to all incoming shapes.
+/// It outputs the shapes to a mutable AbstractMesh reference
 pub struct ShapeRenderer<'a> {
-    mesh: &'a mut Mesh,
+    mesh: &'a mut AbstractMesh,
     color: Color,
-    z: f32,
-    trans: Transform,
     dirty: Option<usize>,
 }
 
 impl<'a> ShapeRenderer<'a> {
     /// Create a shape renderer with a target mesh and an initial color
-    pub fn new(mesh: &'a mut Mesh, color: Color) -> ShapeRenderer<'a> {
+    pub fn new(mesh: &'a mut AbstractMesh, color: Color) -> ShapeRenderer<'a> {
         ShapeRenderer {
             mesh,
             color,
-            z: 1.0,
-            trans: Transform::IDENTITY,
             dirty: None,
         }
     }
@@ -39,31 +36,11 @@ impl<'a> ShapeRenderer<'a> {
     pub fn set_color(&mut self, color: Color) {
         self.color = color;
     }
-
-    /// Get the Z position of the incoming shapes
-    pub fn z(&self) -> f32 {
-        self.z
-    }
-
-    /// Set the Z position of the incoming shapes
-    pub fn set_z(&mut self, z: f32) {
-        self.z = z;
-    }
-
-    /// Get the transformation that will be applied to all incoming shapes
-    pub fn transform(&self) -> Transform {
-        self.trans
-    }
-
-    /// Set the transformation that will be applied to all incoming shapes
-    pub fn set_transform(&mut self, trans: Transform) {
-        self.trans = trans;
-    }
 }
 
 impl<'a, Input> GeometryBuilder<Input> for ShapeRenderer<'a>
 where
-    Color: VertexConstructor<Input, Vertex>,
+    Color: VertexConstructor<Input, AbstractVertex>,
 {
     fn begin_geometry(&mut self) {
         assert!(self.dirty.is_none());
@@ -82,14 +59,13 @@ where
     }
 
     fn add_vertex(&mut self, vertex: Input) -> Result<VertexId, GeometryBuilderError> {
-        let mut vertex = self.color.new_vertex(vertex);
-        vertex.pos = self.trans * vertex.pos;
+        let vertex = self.color.new_vertex(vertex);
         self.mesh.vertices.push(vertex);
         Ok(VertexId(self.mesh.vertices.len() as u32 - 1))
     }
 
     fn add_triangle(&mut self, a: VertexId, b: VertexId, c: VertexId) {
-        let triangle = GpuTriangle::new(0, [a.0, b.0, c.0], self.z, Col(Color::WHITE));
+        let triangle = AbstractTriangle::new(0, [a.0, b.0, c.0], Col(Color::WHITE));
         self.mesh.triangles.push(triangle);
     }
 
@@ -103,16 +79,16 @@ where
     }
 }
 
-impl VertexConstructor<FillVertex, Vertex> for Color {
-    fn new_vertex(&mut self, vertex: FillVertex) -> Vertex {
+impl VertexConstructor<FillVertex, AbstractVertex> for Color {
+    fn new_vertex(&mut self, vertex: FillVertex) -> AbstractVertex {
         let position = Vector::new(vertex.position.x, vertex.position.y);
-        Vertex::new(position, 1.0, None, Col(*self))
+        AbstractVertex::new(position, None, Col(*self))
     }
 }
 
-impl VertexConstructor<StrokeVertex, Vertex> for Color {
-    fn new_vertex(&mut self, vertex: StrokeVertex) -> Vertex {
+impl VertexConstructor<StrokeVertex, AbstractVertex> for Color {
+    fn new_vertex(&mut self, vertex: StrokeVertex) -> AbstractVertex {
         let position = Vector::new(vertex.position.x, vertex.position.y);
-        Vertex::new(position, 1.0, None, Col(*self))
+        AbstractVertex::new(position, None, Col(*self))
     }
 }

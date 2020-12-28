@@ -1,4 +1,9 @@
+mod gpu_mesh;
+mod primitives;
 mod shader;
+
+pub use gpu_mesh::*;
+pub use primitives::*;
 
 use crate::Transform;
 use js_sys::Float32Array;
@@ -8,10 +13,7 @@ use web_sys::{WebGlBuffer, WebGlProgram, WebGlRenderingContext, WebGlShader, Web
 // TODO: Better way to deal with this?
 const VERTEX_SIZE: usize = 10; // the number of floats in a vertex
 
-use crate::{
-    quicksilver_compat::{GpuTriangle, Vertex},
-    ErrorMessage, PaddleResult, Vector,
-};
+use crate::{ErrorMessage, PaddleResult, Vector};
 
 /// Used to prepare data in GPU readable format for a frame.
 /// Once this gives access to JS through a Float32Array view,
@@ -32,7 +34,7 @@ impl WasmGpuBuffer {
         }
     }
 
-    fn naive_prepare_vertices(&mut self, vertices: &[Vertex]) {
+    fn naive_prepare_vertices(&mut self, vertices: &[GpuVertex]) {
         // Turn the provided vertex data into stored vertex data
         vertices.iter().for_each(|vertex| {
             // attribute vec3 position;
@@ -59,7 +61,7 @@ impl WasmGpuBuffer {
         &mut self,
         gl: &WebGlRenderingContext,
         gpu: &mut Gpu,
-        vertices: &[Vertex],
+        vertices: &[GpuVertex],
         triangles: &[GpuTriangle],
     ) -> PaddleResult<()> {
         self.vertices.clear();

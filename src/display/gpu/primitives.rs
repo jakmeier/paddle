@@ -1,11 +1,13 @@
-use crate::graphics::Image;
+//! GPU primitives ready to be drawn, after tesselation and all CPU-side transformations have finished
+
+use crate::graphics::{AbstractTriangle, Image};
 use crate::quicksilver_compat::graphics::{Background, Color};
 use crate::{Scalar, Vector};
 use std::cmp::Ordering;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Debug)]
 /// A vertex for drawing items to the GPU
-pub struct Vertex {
+pub struct GpuVertex {
     /// The position of the vertex in space
     pub pos: Vector,
     /// If there is a texture attached to this vertex, where to get the texture data from
@@ -14,13 +16,19 @@ pub struct Vertex {
     pub tex_pos: Option<Vector>,
     /// The color to blend this vertex with
     pub col: Color,
+    /// Z coordinate in range [-1,1]
     pub z: f32,
 }
 
-impl Vertex {
+impl GpuVertex {
     /// Create a new GPU vertex
-    pub fn new(pos: impl Into<Vector>, z: f32, tex_pos: Option<Vector>, bkg: Background) -> Vertex {
-        Vertex {
+    pub fn new(
+        pos: impl Into<Vector>,
+        z: f32,
+        tex_pos: Option<Vector>,
+        bkg: Background,
+    ) -> GpuVertex {
+        GpuVertex {
             pos: pos.into(),
             tex_pos,
             col: bkg.color(),
@@ -54,6 +62,17 @@ impl GpuTriangle {
                 indices[2] + offset,
             ],
             image: bkg.image().cloned(),
+        }
+    }
+    pub fn from_abstract(t: &AbstractTriangle, offset: u32, z: f32) -> Self {
+        Self {
+            z,
+            indices: [
+                t.indices[0] + offset,
+                t.indices[1] + offset,
+                t.indices[2] + offset,
+            ],
+            image: t.image.clone(),
         }
     }
 }

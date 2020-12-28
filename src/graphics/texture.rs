@@ -1,5 +1,7 @@
 mod texture_config;
+mod image;
 pub use texture_config::TextureConfig;
+pub use image::*;
 
 use crate::{ErrorMessage, JsError, PaddleResult};
 use web_sys::{HtmlImageElement, WebGlRenderingContext, WebGlTexture};

@@ -22,12 +22,12 @@ pub mod web_integration;
 
 mod display;
 mod geometry;
-pub use display::*;
-pub use geometry::*;
-
 pub use context::*;
+pub use display::*;
 pub use error::*;
 pub use frame::*;
+pub use geometry::*;
+pub use graphics::*;
 pub use input::*;
 pub use load::*;
 pub use view_manager::*;

@@ -1,24 +1,28 @@
 //! Parent module around code that puts stuff on the screen.
 //!
-//! This covers basics things like working with an HTML canvas and some WebGL interfacing.
-//! Displaying text is currently also under this parent module.
+//! This covers an HTML canvas with WebGL (implemented in Paddle itself), as well as HTML display through the crate `div`.
+//! While `Display` covers the full screen, `DisplayArea` are views into parts of tje display, used for light-weight window management.
+//!
+//! In Paddle, drawing an object to the WebGL canvas consists of two separate phases on the CPU, tesselation + rendering.
+//! The display accepts pre-tessellated and raw objects, using either `draw_mesh()` or `draw()` (on DisplayArea).
 
 mod canvas;
 mod display_area;
 mod gpu;
+mod render;
 mod text;
 
 pub use canvas::*;
 pub use display_area::*;
 use div::DivHandle;
+pub use gpu::{GpuMesh, GpuTriangle, GpuVertex};
+pub use render::*;
 pub use text::*;
 
-use crate::Vector;
+use crate::quicksilver_compat::Background;
 use crate::*;
-use crate::{
-    graphics::ImageLoader, graphics::TextureConfig, quicksilver_compat::Color,
-    quicksilver_compat::Mesh,
-};
+use crate::{graphics::AbstractMesh, Vector};
+use crate::{graphics::ImageLoader, graphics::TextureConfig, quicksilver_compat::Color};
 use wasm_bindgen::{JsCast, JsValue};
 use web_sys::{Element, HtmlCanvasElement};
 
@@ -37,6 +41,8 @@ pub struct Display {
     background_color: Option<Color>,
     /// Div element covering the full screen. (could be used for html elements outside of any frames)
     div: DivHandle,
+    /// Buffer for on-the-fly tessellation
+    tessellation_buffer: AbstractMesh,
 }
 
 pub struct DisplayConfig {
@@ -124,6 +130,7 @@ impl Display {
             game_coordinates,
             background_color,
             div,
+            tessellation_buffer: AbstractMesh::new(),
         })
     }
     pub(crate) fn canvas_mut(&mut self) -> &mut WebGLCanvas {
@@ -153,17 +160,6 @@ impl Display {
     /// Gives result for x axis (assuming y is the same)
     pub fn browser_to_game_pixel_ratio(&self) -> f32 {
         self.browser_region.width() / self.game_coordinates.x
-    }
-
-    ///Get the unprojection matrix according to the View
-    pub fn unproject(&self) -> Transform {
-        todo!()
-        // Transform::scale(self.browser_region().size()) * self.view.normalize
-    }
-
-    ///Get the projection matrix according to the View
-    pub fn project(&self) -> Transform {
-        self.unproject().inverse()
     }
 
     /// Fixed to 16:9 ratio for now
@@ -220,40 +216,21 @@ impl Display {
         )
     }
 
-    pub(crate) fn mesh(&mut self) -> &mut Mesh {
-        self.canvas.mesh()
+    pub fn draw_ex<'a>(
+        &'a mut self,
+        draw: &impl Tessellate,
+        bkg: impl Into<Background<'a>>,
+        trans: Transform,
+        z: i16,
+    ) {
+        // TODO: Keep tesselation for frame and apply transformation once per frame (potentially on GPU)
+        draw.tessellate(&mut self.tessellation_buffer, bkg.into());
+        self.canvas.render(&self.tessellation_buffer, trans, z);
+        self.tessellation_buffer.clear();
     }
-
-    // Insert triangles to buffer without modifications. (Make sure transformations are already applied and Z value is in range [-1.0,1.0])
-    pub fn draw_raw_triangles(&mut self, mesh: &Mesh) {
-        let n = self.mesh().vertices.len() as u32;
-        self.mesh().vertices.extend_from_slice(&mesh.vertices);
-        self.mesh()
-            .triangles
-            .extend(mesh.triangles.iter().cloned().map(|mut t| {
-                t.indices[0] += n;
-                t.indices[1] += n;
-                t.indices[2] += n;
-                t
-            }));
-    }
-    // Insert triangles to buffer after applying a transform and scaling z to target range [-1.0,1.0].
-    pub fn draw_triangles_ex(&mut self, mesh: &Mesh, t: Transform) {
-        let n = self.mesh().vertices.len() as u32;
-        for mut vertex in mesh.vertices.iter().cloned() {
-            vertex.pos = t * vertex.pos;
-            vertex.tex_pos = vertex.tex_pos.map(|v| t * v);
-            vertex.z = vertex.z / Z_MAX as f32;
-            self.mesh().vertices.push(vertex);
-        }
-        self.mesh()
-            .triangles
-            .extend(mesh.triangles.iter().cloned().map(|mut t| {
-                t.indices[0] += n;
-                t.indices[1] += n;
-                t.indices[2] += n;
-                t
-            }));
+    // Insert triangles to buffer with a transform and z value
+    pub fn draw_mesh_ex(&mut self, mesh: &AbstractMesh, t: Transform, z: i16) {
+        self.canvas.render(mesh, t, z);
     }
 }
 

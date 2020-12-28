@@ -1,10 +1,10 @@
 pub const Z_MIN: i16 = 0;
 pub const Z_MAX: i16 = 32_767i16;
 
-use super::gpu::{Gpu, WasmGpuBuffer};
+use super::gpu::{Gpu, GpuMesh, WasmGpuBuffer};
 use crate::{
-    quicksilver_compat::{Background, Color, Drawable, Mesh},
-    ErrorMessage, JsError, NutsCheck, PaddleResult, Scalar, Transform, Vector,
+    quicksilver_compat::Color, ErrorMessage, JsError, NutsCheck, PaddleResult, Render, Transform,
+    Vector,
 };
 use wasm_bindgen::JsCast;
 use web_sys::{HtmlCanvasElement, WebGlRenderingContext};
@@ -12,7 +12,7 @@ use web_sys::{HtmlCanvasElement, WebGlRenderingContext};
 pub(crate) struct WebGLCanvas {
     /// Resolution used by WebGL
     pixels: Vector,
-    mesh: Mesh,
+    mesh: GpuMesh,
     canvas: HtmlCanvasElement,
     gl: WebGlRenderingContext,
     buffer: WasmGpuBuffer,
@@ -46,7 +46,7 @@ impl WebGLCanvas {
 
         let window = WebGLCanvas {
             pixels,
-            mesh: Mesh::new(),
+            mesh: GpuMesh::new(),
             canvas,
             gl,
             buffer,
@@ -62,26 +62,11 @@ impl WebGLCanvas {
         self.gl.clone()
     }
 
-    /// Draw a Drawable to the window, which will be finalized on the next flush
-    pub fn draw<'a>(&'a mut self, draw: &impl Drawable, bkg: impl Into<Background<'a>>) {
-        self.draw_ex(draw, bkg.into(), Transform::IDENTITY, 0.0);
-    }
-
-    /// Draw a Drawable to the window with more options provided (draw exhaustive)
-    pub fn draw_ex<'a>(
-        &'a mut self,
-        draw: &impl Drawable,
-        bkg: impl Into<Background<'a>>,
-        trans: Transform,
-        z: impl Scalar,
-    ) {
-        debug_assert!(z.float() >= Z_MIN as f32);
-        debug_assert!(z.float() <= Z_MAX as f32);
-        draw.draw(&mut self.mesh, bkg.into(), trans, z.float() / Z_MAX as f32);
-    }
-
-    pub(crate) fn mesh(&mut self) -> &mut Mesh {
-        &mut self.mesh
+    /// Render object to the display buffer, to be forwarded to the GPU on the next flush
+    pub fn render(&mut self, draw: &impl Render, trans: Transform, z: i16) {
+        debug_assert!(z >= Z_MIN);
+        debug_assert!(z <= Z_MAX);
+        draw.render(&mut self.mesh, trans, z);
     }
 
     /// Resize the area the canvas takes in the browser, (In browser coordinates)
