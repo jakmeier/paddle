@@ -34,4 +34,12 @@ impl PaddleConfig {
         self.display.background = Some(color);
         self
     }
+    pub fn with_text_board(mut self) -> Self {
+        self.enable_text_board = true;
+        self
+    }
+    pub fn without_text_board(mut self) -> Self {
+        self.enable_text_board = false;
+        self
+    }
 }

@@ -18,9 +18,9 @@ where
     F: Fn(ErrorMessage) + 'static,
 {
     let id = nuts::new_activity(ErrorForwardingActivity);
-    id.private_channel(move |_, error| f(error));
+    id.private_channel(move |_, error: ErrorMessage| f(error));
 }
-pub fn enable_nuts_checks() {
+pub fn enable_nuts_checks_to_textboard() {
     enable_custom_nuts_checks(|error| match error.channel {
         MessageChannel::Technical => {
             web_sys::console::error_1(&error.text.into());
@@ -30,6 +30,9 @@ pub fn enable_nuts_checks() {
                 .expect("Failed to display error message.");
         }
     });
+}
+pub fn enable_nuts_checks_to_console() {
+    enable_custom_nuts_checks(|error| web_sys::console::error_1(&error.text.into()));
 }
 
 impl ErrorMessage {
