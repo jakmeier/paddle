@@ -86,6 +86,10 @@ impl DisplayArea {
                 .nuts_check();
         }
     }
+    /// The size of the selected area, in game coordinates
+    pub fn size(&self) -> Vector {
+        self.region.size()
+    }
 }
 
 impl Into<DisplayArea> for Display {

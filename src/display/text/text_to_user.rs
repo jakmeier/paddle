@@ -1,7 +1,5 @@
 use crate::*;
-use crate::{error::NutsCheck, WebGLCanvas};
-use crate::{quicksilver_compat::*, Domain};
-use crate::{DrawWorld, FloatingText, PaddleResult};
+use crate::{error::NutsCheck, quicksilver_compat::*};
 use chrono::*;
 
 const ERROR_COLOR: Color = Color {
@@ -19,18 +17,22 @@ struct TextMessage {
 #[derive(Default)]
 pub struct TextBoard {
     messages: Vec<TextMessage>,
+    region: Rectangle,
 }
 
 impl TextBoard {
-    pub(crate) fn init() {
-        let tb = TextBoard::default();
+    pub(crate) fn init(region: Rectangle) {
+        let tb = TextBoard {
+            messages: vec![],
+            region,
+        };
         let tb_id = nuts::new_domained_activity(tb, &Domain::Frame);
         tb_id.private_channel(|tb, msg: TextMessage| {
             tb.messages.push(msg);
         });
         tb_id.subscribe_domained(|tb, domain, _msg: &DrawWorld| {
-            let window = WebGLCanvas::from_domain(domain);
-            tb.render_text_messages(window).nuts_check();
+            let display = Display::from_domain(domain);
+            tb.draw(display).nuts_check();
         });
     }
     pub fn display_error_message(msg: String) -> PaddleResult<()> {
@@ -49,20 +51,9 @@ impl TextBoard {
         nuts::send_to::<TextBoard, _>(TextMessage { float, show_until });
         Ok(())
     }
-    fn render_text_messages(&mut self, window: &mut WebGLCanvas) -> PaddleResult<()> {
-        todo!()
-        // let screen = window.project() * window.browser_region().size();
-        // let w = 300.0;
-        // let h = screen.y;
-        // let x = (screen.x - w) / 2.0;
-        // let y = 0.0;
-        // let area = Rectangle::new((x, y), (w, h));
-        // self.draw(&area)?;
-        // Ok(())
-    }
-    fn draw(&mut self, max_area: &Rectangle) -> PaddleResult<()> {
+    fn draw(&mut self, display: &Display) -> PaddleResult<()> {
         self.remove_old_messages();
-        let mut area = max_area.clone();
+        let mut area = display.game_to_browser_coordinates() * self.region;
         for msg in self.messages.iter_mut() {
             let (line, rest) = area.cut_horizontal(60.0);
             let (_padding, rest) = rest.cut_horizontal(15.0);

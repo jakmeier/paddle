@@ -42,11 +42,10 @@ pub fn utc_now() -> chrono::NaiveDateTime {
 
 pub fn init(config: PaddleConfig) -> PaddleResult<()> {
     web_integration::register_debug_hook();
-    if config.enable_text_board {
-        crate::TextBoard::init();
+    if let Some(region) = config.text_board_region {
+        crate::TextBoard::init(region);
         enable_nuts_checks_to_textboard();
-    }
-    else {
+    } else {
         enable_nuts_checks_to_console();
     }
     Context::init(config)?;

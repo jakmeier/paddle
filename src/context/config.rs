@@ -1,13 +1,13 @@
-use crate::CanvasConfig;
 use crate::DisplayConfig;
 use crate::Vector;
 use crate::{graphics::TextureConfig, quicksilver_compat::Color};
+use crate::{CanvasConfig, Rectangle};
 use web_sys::HtmlCanvasElement;
 
 #[derive(Default)]
 pub struct PaddleConfig {
     pub display: DisplayConfig,
-    pub enable_text_board: bool,
+    pub text_board_region: Option<Rectangle>,
 }
 
 impl PaddleConfig {
@@ -34,12 +34,12 @@ impl PaddleConfig {
         self.display.background = Some(color);
         self
     }
-    pub fn with_text_board(mut self) -> Self {
-        self.enable_text_board = true;
+    pub fn with_text_board(mut self, region: Rectangle) -> Self {
+        self.text_board_region = Some(region);
         self
     }
     pub fn without_text_board(mut self) -> Self {
-        self.enable_text_board = false;
+        self.text_board_region = None;
         self
     }
 }

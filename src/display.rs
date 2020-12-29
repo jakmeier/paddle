@@ -123,6 +123,7 @@ impl Display {
             &[],
             &[("pointer-events", "None")],
         )?;
+        div.set_css("z-index", &(-1).to_string())?;
 
         Ok(Self {
             canvas,
@@ -140,6 +141,10 @@ impl Display {
     /// Position relative to browser page and size in browser pixels
     pub fn browser_region(&self) -> Rectangle {
         self.browser_region
+    }
+    /// How many pixels are rendered in the Canvas
+    pub fn resolution(&self) -> Vector {
+        self.canvas.resolution()
     }
 
     pub fn clear(&mut self) {

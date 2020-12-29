@@ -36,10 +36,3 @@ impl Display {
         context.display.full_mut()
     }
 }
-
-impl WebGLCanvas {
-    pub fn from_domain(domain: &mut DomainState) -> &mut Self {
-        let context = domain.get_mut::<Context>();
-        context.display.full_mut().canvas_mut()
-    }
-}

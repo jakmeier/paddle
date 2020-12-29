@@ -61,6 +61,10 @@ impl WebGLCanvas {
     pub fn clone_webgl(&self) -> WebGlRenderingContext {
         self.gl.clone()
     }
+    /// How many pixels are rendered in the Canvas
+    pub fn resolution(&self) -> Vector {
+        self.pixels
+    }
 
     /// Render object to the display buffer, to be forwarded to the GPU on the next flush
     pub fn render(&mut self, draw: &impl Render, trans: Transform, z: i16) {
