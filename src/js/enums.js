@@ -1,13 +1,18 @@
-import { MouseEventType, TouchEventType, BrowserPointerEventType, KeyEventType, KeyEnum } from "#RUST#";
+import { ClickEventType, MouseEventType, TouchEventType, BrowserPointerEventType, KeyEventType, KeyEnum } from "#RUST#";
 
+export function clickEventString(paddleEventNum) {
+    switch (paddleEventNum) {
+        case ClickEventType.LeftClick:
+            return "click";
+        case ClickEventType.RightClick:
+            return "contextmenu";
+        case ClickEventType.DoubleClick:
+            return "dblclick";
+    }
+    return `Click Event ${TouchEventType[paddleEventNum]}(${paddleEventNum}) not implemented`;
+}
 export function mouseEventString(paddleEventNum) {
     switch (paddleEventNum) {
-        case MouseEventType.LeftClick:
-            return "click";
-        case MouseEventType.RightClick:
-            return "contextmenu";
-        case MouseEventType.DoubleClick:
-            return "dblclick";
         case MouseEventType.Up:
             return "mouseup";
         case MouseEventType.Down:
@@ -19,7 +24,7 @@ export function mouseEventString(paddleEventNum) {
         case MouseEventType.Leave:
             return "mouseleave";
     }
-    return `Event ${MouseEventType[paddleEventNum]}(${paddleEventNum}) not implemented`;
+    return `Mouse Event ${MouseEventType[paddleEventNum]}(${paddleEventNum}) not implemented`;
 }
 
 export function touchEventString(paddleEventNum) {

@@ -1,5 +1,5 @@
 import { click_event_gate, mouse_event_gate, keyboard_event_gate, pointer_event_gate, touch_event_gate } from "#RUST#";
-import { mouseEventString, touchEventString, pointerEventString, keyboardEventString, keyEventEnum } from "./enums";
+import { mouseEventString, clickEventString, touchEventString, pointerEventString, keyboardEventString, keyEventEnum } from "./enums";
 
 export class PaddleJsContext {
     constructor() {}
@@ -15,7 +15,7 @@ export class PaddleJsContext {
         listener.addEventListener(event, (ev) => this.forwardMouseEvent(ev, eventType, callbackId));
     }
     registerClickEventListener(eventType, listener, callbackId) {
-        const event = mouseEventString(eventType);
+        const event = clickEventString(eventType);
         listener.addEventListener(event, (ev) => this.forwardClickEvent(ev, eventType, callbackId));
     }
     registerTouchEventListener(eventType, listener, callbackId) {
