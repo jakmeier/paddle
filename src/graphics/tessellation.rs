@@ -4,7 +4,7 @@ use crate::{
         geom::{Line, Triangle},
         Background, Circle, Shape,
     },
-    Image, Rectangle, Transform, Vector,
+    Rectangle, Transform, Vector,
 };
 
 mod abstract_mesh;
@@ -29,7 +29,7 @@ impl Tessellate for Rectangle {
         let trans = Transform::translate(self.top_left() + self.size() / 2)
             * Transform::translate(-self.size() / 2)
             * Transform::scale(self.size());
-        let tex_trans = bkg.image().map(Image::texture_transform);
+        let tex_trans = bkg.texture_transform();
         let offset = mesh.add_positioned_vertices(
             [Vector::ZERO, Vector::X, Vector::ONE, Vector::Y]
                 .iter()
@@ -49,7 +49,7 @@ impl Tessellate for Circle {
     fn tessellate<'a>(&self, mesh: &mut AbstractMesh, bkg: Background<'a>) {
         let trans =
             Transform::translate(self.center()) * Transform::scale(Vector::ONE * self.radius);
-        let tex_trans = bkg.image().map(Image::texture_transform);
+        let tex_trans = bkg.texture_transform();
         let offset =
             mesh.add_positioned_vertices(CIRCLE_POINTS.iter().cloned(), trans, tex_trans, bkg);
         mesh.triangles.extend(
@@ -63,7 +63,7 @@ impl Tessellate for Circle {
 impl Tessellate for Triangle {
     fn tessellate<'a>(&self, mesh: &mut AbstractMesh, bkg: Background<'a>) {
         let trans = Transform::translate(self.center()) * Transform::translate(-self.center());
-        let tex_trans = bkg.image().map(Image::texture_transform);
+        let tex_trans = bkg.texture_transform();
         let offset = mesh.add_positioned_vertices(
             [self.a, self.b, self.c].iter().cloned(),
             trans,

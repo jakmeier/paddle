@@ -102,7 +102,7 @@ impl<T, E: std::error::Error + 'static> NutsCheck<T> for Result<T, E> {
             Ok(t) => Some(t),
             Err(e) => {
                 let msg: ErrorMessage = e.into();
-                nuts::publish(msg);
+                nuts::send_to::<ErrorForwardingActivity, _>(msg);
                 None
             }
         }

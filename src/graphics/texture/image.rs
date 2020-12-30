@@ -15,6 +15,8 @@ pub struct Image {
     pub(crate) texture: Texture,
     // Region within the texture, in normalized Texture coordinates (UV) ranging from (0|0) to (1|1)
     pub(crate) region: Rectangle,
+    /// Transformation of texture (e.g. mirrored image)
+    pub (crate) transform: Transform,
 }
 
 // Message sent after HTML image element finished loading and it is ready to be bound to WebGL context.
@@ -58,7 +60,8 @@ impl Image {
         };
 
         let region = Rectangle::new_sized((1.0, 1.0));
-        Ok(Image { texture, region })
+        let transform = Transform::IDENTITY;
+        Ok(Image { texture, region, transform })
     }
 
     pub fn natural_width(&self) -> f32 {
@@ -88,6 +91,7 @@ impl Image {
                 ),
                 (rect.width(), rect.height()),
             ),
+            transform: self.transform,
         };
         debug_assert!(img.region.x() <= 1.0);
         debug_assert!(img.region.y() <= 1.0);
@@ -110,6 +114,7 @@ impl Image {
                 ),
                 (rect.width(), rect.height()),
             ),
+            transform: self.transform,
         };
         debug_assert!(img.region.x() <= 1.0);
         debug_assert!(img.region.y() <= 1.0);
@@ -125,7 +130,7 @@ impl Image {
     /// Transformation to project the full texture coordinates space onto the selected region by this image.
     pub(crate) fn texture_transform(&self) -> Transform {
         // note: If Image and SubImage become different struct, only SubImage would actually need this function
-        Transform::translate(self.region.pos) * Transform::scale(self.region.size())
+        self.transform * Transform::translate(self.region.pos) * Transform::scale(self.region.size())
     }
 }
 

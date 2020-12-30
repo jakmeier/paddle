@@ -26,13 +26,12 @@ impl TextBoard {
             messages: vec![],
             region,
         };
-        let tb_id = nuts::new_domained_activity(tb, &Domain::Frame);
+        let tb_id = nuts::new_activity(tb);
         tb_id.private_channel(|tb, msg: TextMessage| {
             tb.messages.push(msg);
         });
-        tb_id.subscribe_domained(|tb, domain, _msg: &DrawWorld| {
-            let display = Display::from_domain(domain);
-            tb.draw(display).nuts_check();
+        tb_id.subscribe(|tb, _msg: &DrawWorld| {
+            tb.draw().nuts_check();
         });
     }
     pub fn display_error_message(msg: String) -> PaddleResult<()> {
@@ -51,9 +50,9 @@ impl TextBoard {
         nuts::send_to::<TextBoard, _>(TextMessage { float, show_until });
         Ok(())
     }
-    fn draw(&mut self, display: &Display) -> PaddleResult<()> {
+    fn draw(&mut self) -> PaddleResult<()> {
         self.remove_old_messages();
-        let mut area = display.game_to_browser_coordinates() * self.region;
+        let mut area = self.region;
         for msg in self.messages.iter_mut() {
             let (line, rest) = area.cut_horizontal(60.0);
             let (_padding, rest) = rest.cut_horizontal(15.0);

@@ -1,5 +1,8 @@
-use crate::graphics::Image;
+//! TODO: What's left in here needs to be cleaned up.
+//! This extends to the general draw interface, where the separation between tesselation and rendering is not well represented now.
+
 use crate::quicksilver_compat::graphics::Color;
+use crate::{graphics::Image, Transform};
 
 /// The background to use for a given drawable
 ///
@@ -13,6 +16,8 @@ pub enum Background<'a> {
     Col(Color),
     /// A textured background
     Img(&'a Image),
+    /// A view into an image with transformation
+    ImgView(&'a Image, Transform),
     /// A color and image blended multiplicatively
     Blended(&'a Image, Color),
 }
@@ -22,7 +27,9 @@ impl<'a> Background<'a> {
     pub fn image(&self) -> Option<&Image> {
         match self {
             Background::Col(_) => None,
-            Background::Img(img) | Background::Blended(img, _) => Some(img),
+            Background::Img(img) | Background::Blended(img, _) | Background::ImgView(img, _) => {
+                Some(img)
+            }
         }
     }
 
@@ -30,7 +37,16 @@ impl<'a> Background<'a> {
     pub fn color(&self) -> Color {
         match self {
             Background::Col(color) | Background::Blended(_, color) => *color,
-            Background::Img(_) => Color::WHITE,
+            Background::Img(_) | Background::ImgView(_, _) => Color::WHITE,
+        }
+    }
+
+    /// Transformation to be applied to the texture (in normalized texture coordinates)
+    pub fn texture_transform(&self) -> Option<Transform> {
+        match self {
+            Background::Col(_) | Background::Blended(_, _) => None,
+            Background::Img(img) => Some(img.texture_transform()),
+            Background::ImgView(img, transform) => Some(img.texture_transform() * *transform),
         }
     }
 }
