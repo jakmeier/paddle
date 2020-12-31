@@ -258,7 +258,7 @@ fn find_div_offset(canvas: Element, browser_region: &Rectangle) -> PaddleResult<
     let npa = nearest_positioned_ancestor(canvas).map_err(JsError::from_js_value)?;
     let npa_rect = npa.get_bounding_client_rect();
     let npa_pos = Vector::new(npa_rect.x(), npa_rect.y());
-    let offset = npa_pos - browser_region.pos;
+    let offset = browser_region.pos - npa_pos;
     Ok((offset.x as u32, offset.y as u32))
 }
 fn nearest_positioned_ancestor(element: Element) -> Result<Element, JsValue> {

@@ -3,7 +3,9 @@
 //! the main area of the game, while allowing for interactions in between.
 
 use paddle::quicksilver_compat::*;
-use paddle::{DisplayArea, Frame, KeyEvent, PaddleConfig};
+use paddle::{
+    DisplayArea, Frame, KeyEvent, PaddleConfig, PointerEvent, PointerEventType, Rectangle, Vector,
+};
 use wasm_bindgen::prelude::wasm_bindgen;
 
 const WHITE: Color = Color::new(1.0, 1.0, 1.0);
@@ -66,20 +68,25 @@ impl Frame for Paper {
             canvas.draw(&rect, state.selected_color);
         }
     }
-    fn left_click(&mut self, state: &mut Self::State, pos: (i32, i32)) {
-        if let Some(first_click) = self.first_click {
-            let rect = rectangle_from_two_points(first_click, pos.into());
-            state.add_rectangle(rect, state.selected_color);
-            self.first_click = None;
-        } else {
-            self.first_click = Some(pos.into());
+    fn pointer(&mut self, state: &mut Self::State, event: PointerEvent) {
+        match event {
+            PointerEvent(PointerEventType::PrimaryClick, pos) => {
+                if let Some(first_click) = self.first_click {
+                    let rect = rectangle_from_two_points(first_click, pos);
+                    state.add_rectangle(rect, state.selected_color);
+                    self.first_click = None;
+                } else {
+                    self.first_click = Some(pos);
+                }
+            }
+            PointerEvent(PointerEventType::SecondaryClick, _pos) => {
+                self.first_click = None;
+            }
+            PointerEvent(PointerEventType::Move, pos) => {
+                self.mouse_pos = Some(pos);
+            }
+            _ => {}
         }
-    }
-    fn right_click(&mut self, _state: &mut Self::State, _pos: (i32, i32)) {
-        self.first_click = None;
-    }
-    fn mouse_move(&mut self, _state: &mut Self::State, pos: (i32, i32)) {
-        self.mouse_pos = Some(pos.into());
     }
 }
 impl SharedState {
@@ -143,11 +150,16 @@ impl Frame for Toolbar {
             frame_display.draw(area, *col);
         }
     }
-    fn left_click(&mut self, state: &mut Self::State, pos: (i32, i32)) {
-        for (area, col) in &self.ui_elements {
-            if area.contains(pos) {
-                state.selected_color = *col;
+    fn pointer(&mut self, state: &mut Self::State, event: PointerEvent) {
+        match event {
+            PointerEvent(PointerEventType::PrimaryClick, pos) => {
+                for (area, col) in &self.ui_elements {
+                    if area.contains(pos) {
+                        state.selected_color = *col;
+                    }
+                }
             }
+            _ => {}
         }
     }
     fn key(&mut self, state: &mut Self::State, key_event: KeyEvent) {
@@ -162,9 +174,9 @@ impl Frame for Toolbar {
 }
 
 fn rectangle_from_two_points(pos1: Vector, pos2: Vector) -> Rectangle {
-    let w = (pos1.x - pos2.x as f32).abs();
-    let h = (pos1.y - pos2.y as f32).abs();
-    let x = pos1.x.min(pos2.x as f32);
-    let y = pos1.y.min(pos2.y as f32);
+    let w = (pos1.x - pos2.x).abs();
+    let h = (pos1.y - pos2.y).abs();
+    let x = pos1.x.min(pos2.x);
+    let y = pos1.y.min(pos2.y);
     Rectangle::new((x, y), (w, h))
 }

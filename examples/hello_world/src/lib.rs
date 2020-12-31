@@ -1,5 +1,5 @@
 use paddle::quicksilver_compat::*;
-use paddle::{DisplayArea, PaddleConfig};
+use paddle::*;
 use wasm_bindgen::prelude::wasm_bindgen;
 
 #[wasm_bindgen]
@@ -34,8 +34,10 @@ impl paddle::Frame for Game {
 
         // Spinning white square, 50 degree/s
         let rect = Rectangle::new((410, 200), (140, 140));
-        let transform = Transform::rotate((timestamp / 20.0) as f32 % 360.0);
-        let z = 1.0;
+        let transform = Transform::translate(rect.center())
+            * Transform::rotate((timestamp / 20.0) as f32 % 360.0)
+            * Transform::translate(-rect.center());
+        let z = 1;
         canvas.draw_ex(&rect, Col(Color::WHITE), transform, z);
     }
 }

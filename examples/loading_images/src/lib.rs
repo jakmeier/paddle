@@ -1,6 +1,6 @@
 use paddle::graphics::{Image, TextureConfig};
 use paddle::quicksilver_compat::*;
-use paddle::{DisplayArea, LoadScheduler, PaddleConfig};
+use paddle::{DisplayArea, LoadScheduler, PaddleConfig, Vector, Rectangle};
 use wasm_bindgen::prelude::wasm_bindgen;
 
 const SCREEN_W: f32 = 1920.0;

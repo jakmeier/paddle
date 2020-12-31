@@ -87,7 +87,9 @@ dependencies = [
 
 [[package]]
 name = "div"
-version = "0.2.0"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3704dbbe060f0f33063dee164b9be783159644273ad1f99223f4a21d52546fba"
 dependencies = [
  "wasm-bindgen",
  "web-sys",
@@ -152,6 +154,15 @@ name = "gimli"
 version = "0.23.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f6503fe142514ca4799d4c26297c4248239fe8838d827db6bd6065c6ed29a6ce"
+
+[[package]]
+name = "heck"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "87cbf45460356b7deeb5e3415b5563308c0a9b057c85e12b06ad551f98d0a6ac"
+dependencies = [
+ "unicode-segmentation",
+]
 
 [[package]]
 name = "js-sys"
@@ -301,6 +312,8 @@ dependencies = [
 [[package]]
 name = "nuts"
 version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b914b9cbb6ca17ed8d0857da8c1c35be93c4dccf5b7ccd905887431c44ece2da"
 dependencies = [
  "wasm-bindgen",
  "web-sys",
@@ -314,7 +327,7 @@ checksum = "8d3b63360ec3cb337817c2dbd47ab4a0f170d285d8e5a2064600f3def1402397"
 
 [[package]]
 name = "paddle"
-version = "0.1.0"
+version = "0.1.0-beta.0"
 dependencies = [
  "chrono",
  "console_error_panic_hook",
@@ -324,6 +337,8 @@ dependencies = [
  "nuts",
  "rand",
  "serde",
+ "strum",
+ "strum_macros",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
@@ -481,6 +496,24 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0b8de496cf83d4ed58b6be86c3a275b8602f6ffe98d3024a869e124147a9a3ac"
 
 [[package]]
+name = "strum"
+version = "0.20.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7318c509b5ba57f18533982607f24070a55d353e90d4cae30c467cdb2ad5ac5c"
+
+[[package]]
+name = "strum_macros"
+version = "0.20.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ee8bc6b87a5112aeeab1f4a9f7ab634fe6cbefc4850006df31267f4cfb9e3149"
+dependencies = [
+ "heck",
+ "proc-macro2 1.0.24",
+ "quote 1.0.7",
+ "syn 1.0.48",
+]
+
+[[package]]
 name = "svgparser"
 version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -536,6 +569,12 @@ dependencies = [
  "wasi 0.10.0+wasi-snapshot-preview1",
  "winapi",
 ]
+
+[[package]]
+name = "unicode-segmentation"
+version = "1.7.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bb0d2e7be6ae3a5fa87eed5fb451aff96f2573d2694942e40543ae0bbe19c796"
 
 [[package]]
 name = "unicode-xid"

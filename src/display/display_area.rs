@@ -50,7 +50,7 @@ impl DisplayArea {
     }
     /// Fills selected area with the given color (or image)
     pub fn fill<'a>(&'a mut self, bkg: impl Into<Background<'a>>) {
-        let region = self.region;
+        let region = Rectangle::new_sized(self.region.size);
         self.draw(&region, bkg);
     }
     /// Draw a Drawable to the window with more options provided (draw exhaustive)
