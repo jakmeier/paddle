@@ -61,7 +61,7 @@ export class PaddleJsContext {
     }
     forwardKeyboardEvent(event, eventType, callbackId) {
         let key = keyEventEnum(event);
-        if (key) {
+        if (typeof(key) === "number") {
             keyboard_event_gate(callbackId, eventType, key);
         }
     }
