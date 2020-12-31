@@ -1,7 +1,5 @@
-use crate::DisplayConfig;
-use crate::Vector;
 use crate::{graphics::TextureConfig, quicksilver_compat::Color};
-use crate::{CanvasConfig, Rectangle};
+use crate::{CanvasConfig, DisplayConfig, GpuConfig, Rectangle, Vector};
 use web_sys::HtmlCanvasElement;
 
 #[derive(Default)]
@@ -28,6 +26,10 @@ impl PaddleConfig {
     }
     pub fn with_texture_config(mut self, texture_config: TextureConfig) -> Self {
         self.display.texture_config = texture_config;
+        self
+    }
+    pub fn with_gpu_config(mut self, config: GpuConfig) -> Self {
+        self.display.gpu_config = config;
         self
     }
     pub fn with_background_color(mut self, color: Color) -> Self {

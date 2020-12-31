@@ -1,7 +1,7 @@
 pub const Z_MIN: i16 = 0;
 pub const Z_MAX: i16 = 32_767i16;
 
-use super::gpu::{Gpu, GpuMesh, WasmGpuBuffer};
+use super::gpu::{Gpu, GpuConfig, GpuMesh, WasmGpuBuffer};
 use crate::{
     quicksilver_compat::Color, ErrorMessage, JsError, NutsCheck, PaddleResult, Render, Transform,
     Vector,
@@ -23,7 +23,11 @@ impl WebGLCanvas {
     ///
     /// The pixels argument define how many webgl pixels should be rendered and has nothing to do with browser pixels.
     /// Use `set_size()` or `fit_to_screen()` to change the size of the screen area taken by this element.
-    pub fn new(canvas: HtmlCanvasElement, pixels: impl Into<Vector>) -> PaddleResult<Self> {
+    pub fn new(
+        canvas: HtmlCanvasElement,
+        pixels: impl Into<Vector>,
+        gpu_config: &GpuConfig,
+    ) -> PaddleResult<Self> {
         let pixels = pixels.into();
         canvas.set_width(pixels.x as u32);
         canvas.set_height(pixels.y as u32);
@@ -42,7 +46,7 @@ impl WebGLCanvas {
         let projection = Transform::scale((1.0, -1.0))
             * Transform::translate((-1.0, -1.0))
             * Transform::scale(pixels.recip() * 2.0);
-        let gpu = Gpu::new(&gl, projection)?;
+        let gpu = Gpu::new(&gl, projection, gpu_config)?;
 
         let window = WebGLCanvas {
             pixels,

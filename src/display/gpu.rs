@@ -1,7 +1,9 @@
+mod gpu_config;
 mod gpu_mesh;
 mod primitives;
 mod shader;
 
+pub use gpu_config::*;
 pub use gpu_mesh::*;
 pub use primitives::*;
 
@@ -108,7 +110,11 @@ pub(super) struct Gpu {
 }
 
 impl Gpu {
-    pub fn new(gl: &WebGlRenderingContext, projection: Transform) -> PaddleResult<Self> {
+    pub fn new(
+        gl: &WebGlRenderingContext,
+        projection: Transform,
+        config: &GpuConfig,
+    ) -> PaddleResult<Self> {
         let vertex_buffer = gl
             .create_buffer()
             .ok_or_else(|| ErrorMessage::technical("failed to create buffer".to_owned()))?;
@@ -130,12 +136,15 @@ impl Gpu {
         );
         gl.enable(WebGlRenderingContext::BLEND);
 
-        // If we can, we want to use the depth buffer for z ordering
-        gl.enable(WebGlRenderingContext::DEPTH_TEST);
-        let depth_tests_enabled = gl.is_enabled(WebGlRenderingContext::DEPTH_TEST);
-        if depth_tests_enabled {
-            gl.clear_depth(0.0);
-            gl.depth_func(WebGlRenderingContext::GEQUAL);
+        let mut depth_tests_enabled = false;
+        if config.depth_test {
+            // If we can, we want to use the depth buffer for z ordering
+            gl.enable(WebGlRenderingContext::DEPTH_TEST);
+            depth_tests_enabled = gl.is_enabled(WebGlRenderingContext::DEPTH_TEST);
+            if depth_tests_enabled {
+                gl.clear_depth(0.0);
+                gl.depth_func(WebGlRenderingContext::GEQUAL);
+            }
         }
 
         let vertex_shader = shader::new_vertex_shader(&gl)?;

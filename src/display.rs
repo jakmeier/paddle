@@ -15,7 +15,7 @@ mod text;
 pub use canvas::*;
 pub use display_area::*;
 use div::DivHandle;
-pub use gpu::{GpuMesh, GpuTriangle, GpuVertex};
+pub use gpu::{GpuConfig, GpuMesh, GpuTriangle, GpuVertex};
 pub use render::*;
 pub use text::*;
 
@@ -49,6 +49,7 @@ pub struct DisplayConfig {
     pub canvas: CanvasConfig,
     pub pixels: Vector,
     pub texture_config: TextureConfig,
+    pub gpu_config: GpuConfig,
     pub update_delay_ms: i32,
     pub background: Option<Color>,
     pub capture_touch: bool,
@@ -60,6 +61,7 @@ impl Default for DisplayConfig {
             pixels: Vector::new(1280, 720),
             update_delay_ms: 8,
             texture_config: Default::default(),
+            gpu_config: Default::default(),
             background: None,
             capture_touch: true,
         }
@@ -94,7 +96,7 @@ impl Display {
         // For now the only option is game_coordinates = pixels
         let game_coordinates = config.pixels;
 
-        let canvas = WebGLCanvas::new(canvas, config.pixels)?;
+        let canvas = WebGLCanvas::new(canvas, config.pixels, &config.gpu_config)?;
         // Browser region is relative to window and needs to be known to handle input
         let browser_region = find_browser_region(canvas.html_element())?;
 
