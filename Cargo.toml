@@ -4,6 +4,11 @@ version = "0.1.0-beta.0"
 authors = ["Jakob Meier <inbox@jakobmeier.ch>"]
 edition = "2018"
 license = "MIT/Apache-2.0"
+categories = ["game-engines", "game-development", "wasm", "web-programming"]
+keywords = ["paddlers"]
+readme = "README.md"
+repository = "https://github.com/jakmeier/paddle"
+description = "2D Game Engine for Rust on the Web"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
