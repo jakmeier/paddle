@@ -19,7 +19,6 @@ pub use gpu::{GpuConfig, GpuMesh, GpuTriangle, GpuVertex};
 pub use render::*;
 pub use text::*;
 
-use crate::quicksilver_compat::Background;
 use crate::*;
 use crate::{graphics::AbstractMesh, Vector};
 use crate::{graphics::ImageLoader, graphics::TextureConfig, quicksilver_compat::Color};
@@ -226,18 +225,30 @@ impl Display {
     pub fn draw_ex<'a>(
         &'a mut self,
         draw: &impl Tessellate,
-        bkg: impl Into<Background<'a>>,
+        paint: impl Into<Paint<'a>>,
         trans: Transform,
         z: i16,
     ) {
         // TODO: Keep tesselation for frame and apply transformation once per frame (potentially on GPU)
-        draw.tessellate(&mut self.tessellation_buffer, bkg.into());
-        self.canvas.render(&self.tessellation_buffer, trans, z);
         self.tessellation_buffer.clear();
+        draw.tessellate(&mut self.tessellation_buffer);
+        let area = draw.bounding_box();
+        let trans = Transform::translate(quicksilver_compat::Shape::center(&area))
+            * trans
+            * Transform::translate(-quicksilver_compat::Shape::center(&area));
+        self.canvas
+            .render(&self.tessellation_buffer, area, trans, paint.into(), z);
     }
     // Insert triangles to buffer with a transform and z value
-    pub fn draw_mesh_ex(&mut self, mesh: &AbstractMesh, t: Transform, z: i16) {
-        self.canvas.render(mesh, t, z);
+    pub fn draw_mesh_ex<'a>(
+        &mut self,
+        mesh: &AbstractMesh,
+        paint: impl Into<Paint<'a>>,
+        area: Rectangle,
+        t: Transform,
+        z: i16,
+    ) {
+        self.canvas.render(mesh, area, t, paint.into(), z);
     }
 }
 

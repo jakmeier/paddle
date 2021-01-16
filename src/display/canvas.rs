@@ -3,8 +3,8 @@ pub const Z_MAX: i16 = 32_767i16;
 
 use super::gpu::{Gpu, GpuConfig, GpuMesh, WasmGpuBuffer};
 use crate::{
-    quicksilver_compat::Color, ErrorMessage, JsError, NutsCheck, PaddleResult, Render, Transform,
-    Vector,
+    quicksilver_compat::Color, ErrorMessage, JsError, NutsCheck, PaddleResult, Paint, Rectangle,
+    Render, Transform, Vector,
 };
 use wasm_bindgen::JsCast;
 use web_sys::{HtmlCanvasElement, WebGlRenderingContext};
@@ -71,10 +71,17 @@ impl WebGLCanvas {
     }
 
     /// Render object to the display buffer, to be forwarded to the GPU on the next flush
-    pub fn render(&mut self, draw: &impl Render, trans: Transform, z: i16) {
+    pub fn render(
+        &mut self,
+        draw: &impl Render,
+        area: Rectangle,
+        trans: Transform,
+        paint: Paint,
+        z: i16,
+    ) {
         debug_assert!(z >= Z_MIN);
         debug_assert!(z <= Z_MAX);
-        draw.render(&mut self.mesh, trans, z);
+        draw.render(&mut self.mesh, area, trans, paint, z);
     }
 
     /// Resize the area the canvas takes in the browser, (In browser coordinates)

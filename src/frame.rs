@@ -78,7 +78,7 @@ impl<FRAME> FrameHandle<FRAME> {
         self.region
     }
     /// Define z-index property of HTML.
-    /// 
+    ///
     /// This might be necessary to ensure user input is processed by the intended frame. Drawing order for WebGL is not affected.
     pub fn set_z(&self, z: i32) {
         self.div.set_css("z-index", &z.to_string()).nuts_check();

@@ -46,7 +46,7 @@ impl Eq for Triangle {}
 mod tests {
     use geom::objects::Line;
 
-    use crate::quicksilver_compat::*;
+    use crate::{quicksilver_compat::*, *};
 
     use super::Triangle;
 

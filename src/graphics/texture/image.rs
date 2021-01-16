@@ -1,22 +1,18 @@
-use crate::graphics::Texture;
+use crate::graphics::Texture2D;
 use crate::graphics::TextureConfig;
-use crate::Transform;
 use crate::Vector;
 use std::{cell::Cell, rc::Rc};
-use web_sys::WebGlTexture;
 
 use web_sys::{HtmlImageElement, WebGlRenderingContext};
 
 use crate::{Domain, ErrorMessage, JsError, NutsCheck, PaddleResult, Rectangle};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-///An image that can be drawn to the screen
+/// An image that can be drawn to the screen
 pub struct Image {
-    pub(crate) texture: Texture,
+    pub(crate) texture: Texture2D,
     // Region within the texture, in normalized Texture coordinates (UV) ranging from (0|0) to (1|1)
     pub(crate) region: Rectangle,
-    /// Transformation of texture (e.g. mirrored image)
-    pub (crate) transform: Transform,
 }
 
 // Message sent after HTML image element finished loading and it is ready to be bound to WebGL context.
@@ -26,7 +22,7 @@ struct BindTextureMessage {
 }
 enum BindTexturePayload {
     Request(HtmlImageElement),
-    Response(Texture),
+    Response(Texture2D),
     Done,
 }
 /// Register this for it to handle BindTextureMessage.
@@ -60,24 +56,19 @@ impl Image {
         };
 
         let region = Rectangle::new_sized((1.0, 1.0));
-        let transform = Transform::IDENTITY;
-        Ok(Image { texture, region, transform })
+        Ok(Image { texture, region })
     }
 
     pub fn natural_width(&self) -> f32 {
-        self.texture.texel_width * self.region.width()
+        (self.texture.texel_width * self.region.width()).abs()
     }
 
     pub fn natural_height(&self) -> f32 {
-        self.texture.texel_height * self.region.height()
+        (self.texture.texel_height * self.region.height()).abs()
     }
 
     pub fn natural_size(&self) -> Vector {
         (self.natural_width(), self.natural_height()).into()
-    }
-
-    pub(crate) fn texture(&self) -> &WebGlTexture {
-        &self.texture.webgl_texture()
     }
 
     /// Create a view into an existing image, using texel coordinates (number of pixels in source texture)
@@ -91,7 +82,6 @@ impl Image {
                 ),
                 (rect.width(), rect.height()),
             ),
-            transform: self.transform,
         };
         debug_assert!(img.region.x() <= 1.0);
         debug_assert!(img.region.y() <= 1.0);
@@ -114,7 +104,6 @@ impl Image {
                 ),
                 (rect.width(), rect.height()),
             ),
-            transform: self.transform,
         };
         debug_assert!(img.region.x() <= 1.0);
         debug_assert!(img.region.y() <= 1.0);
@@ -126,12 +115,6 @@ impl Image {
         debug_assert!(img.region.height() >= 0.0);
         img
     }
-
-    /// Transformation to project the full texture coordinates space onto the selected region by this image.
-    pub(crate) fn texture_transform(&self) -> Transform {
-        // note: If Image and SubImage become different struct, only SubImage would actually need this function
-        self.transform * Transform::translate(self.region.pos) * Transform::scale(self.region.size())
-    }
 }
 
 impl ImageLoader {
@@ -139,7 +122,7 @@ impl ImageLoader {
         let activity = nuts::new_domained_activity(Self { gl, texture_config }, &Domain::Frame);
         activity.subscribe(move |a, msg: &BindTextureMessage| {
             if let BindTexturePayload::Request(el) = msg.payload.take() {
-                if let Some(data) = Texture::new(&a.gl, &el, &a.texture_config).nuts_check() {
+                if let Some(data) = Texture2D::new(&a.gl, &el, &a.texture_config).nuts_check() {
                     msg.payload.replace(BindTexturePayload::Response(data));
                 }
             }

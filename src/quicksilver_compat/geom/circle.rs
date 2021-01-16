@@ -46,7 +46,7 @@ impl Eq for Circle {}
 
 #[cfg(test)]
 mod tests {
-    use crate::quicksilver_compat::*;
+    use crate::{quicksilver_compat::*, *};
 
     #[test]
     fn construction() {

@@ -1,5 +1,5 @@
 use super::{primitives::GpuTriangle, GpuVertex};
-use crate::{quicksilver_compat::Background, Transform, Vector, Z_MAX};
+use crate::Z_MAX;
 
 /// Buffer for GPU primitives ready to be drawn, after tesselation and all CPU-side transformations have finished
 pub struct GpuMesh {
@@ -24,22 +24,6 @@ impl GpuMesh {
         self.triangles.clear();
     }
 
-    /// Add vertices from an iterator, some transforms, and a background
-    pub fn add_positioned_vertices(
-        &mut self,
-        vertices: impl Iterator<Item = Vector>,
-        z: f32,
-        trans: Transform,
-        tex_trans: Option<Transform>,
-        bkg: Background,
-    ) -> u32 {
-        let offset = self.vertices.len();
-        self.vertices.extend(
-            vertices.map(|v| GpuVertex::new(trans * v, z, tex_trans.map(|trans| trans * v), bkg)),
-        );
-        offset as u32
-    }
-
     /// Sets the z value for all vertices in the Mesh
     pub fn set_z(&mut self, z: i16) {
         for v in &mut self.vertices {
@@ -54,9 +38,6 @@ impl GpuMesh {
     pub fn scale(&mut self, r: f32) {
         for p in self.vertices.iter_mut() {
             p.pos *= r;
-            if let Some(mut tp) = p.tex_pos {
-                tp *= r;
-            }
         }
     }
 }

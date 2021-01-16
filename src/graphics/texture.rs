@@ -1,20 +1,20 @@
-mod texture_config;
 mod image;
-pub use texture_config::TextureConfig;
+mod texture_config;
 pub use image::*;
+pub use texture_config::TextureConfig;
 
 use crate::{ErrorMessage, JsError, PaddleResult};
 use web_sys::{HtmlImageElement, WebGlRenderingContext, WebGlTexture};
 
-/// 2D texture
+/// Holds the raw data for a loaded 2D texture
 #[derive(Debug, Clone)]
-pub(crate) struct Texture {
+pub(crate) struct Texture2D {
     webgl_texture: WebGlTexture,
     pub(crate) texel_width: f32,
     pub(crate) texel_height: f32,
 }
 
-impl Texture {
+impl Texture2D {
     /// Upload a new texture to the GPU
     pub fn new(
         gl: &WebGlRenderingContext,
@@ -80,16 +80,16 @@ impl Texture {
     }
 }
 
-impl PartialEq for Texture {
+impl PartialEq for Texture2D {
     fn eq(&self, other: &Self) -> bool {
         self.webgl_texture == other.webgl_texture
     }
 }
-impl Eq for Texture {}
+impl Eq for Texture2D {}
 
-// This could be done if a single reference to the Texture was kept. Currently this is clones all over the place...
+// This could be done if a single reference to the Texture2D was kept. Currently this is clones all over the place...
 // use wasm_bindgen::JsCast;
-// impl Drop for Texture {
+// impl Drop for Texture2D {
 //     fn drop(&mut self) {
 //         if let Some(document) = web_sys::window().and_then(|w| w.document()) {
 //             if let Some(canvas) = document.get_elements_by_tag_name("canvas").item(0) {

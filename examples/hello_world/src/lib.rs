@@ -38,7 +38,7 @@ impl paddle::Frame for Game {
             * Transform::rotate((timestamp / 20.0) as f32 % 360.0)
             * Transform::translate(-rect.center());
         let z = 1;
-        canvas.draw_ex(&rect, Col(Color::WHITE), transform, z);
+        canvas.draw_ex(&rect, Color::WHITE, transform, z);
     }
 }
 

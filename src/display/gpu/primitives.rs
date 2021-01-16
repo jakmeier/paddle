@@ -1,7 +1,9 @@
 //! GPU primitives ready to be drawn, after tesselation and all CPU-side transformations have finished
 
+use web_sys::WebGlTexture;
+
 use crate::graphics::{AbstractTriangle, Image};
-use crate::quicksilver_compat::graphics::{Background, Color};
+use crate::{quicksilver_compat::graphics::Color, Rectangle};
 use crate::{Scalar, Vector};
 use std::cmp::Ordering;
 
@@ -10,30 +12,54 @@ use std::cmp::Ordering;
 pub struct GpuVertex {
     /// The position of the vertex in space
     pub pos: Vector,
-    /// If there is a texture attached to this vertex, where to get the texture data from
-    ///
-    /// It is normalized from 0 to 1
-    pub tex_pos: Option<Vector>,
+    /// The image to sample from when drawing the triangel.
+    /// When no image is defined, just the colors on the vertices will be used.
+    /// If both are defined, the image is blended on top of the colors.
+    pub image: Option<TexturePoisition>,
     /// The color to blend this vertex with
     pub col: Color,
     /// Z coordinate in range [-1,1]
     pub z: f32,
 }
 
+#[derive(Clone, Debug)]
+pub struct TexturePoisition {
+    /// normalized texture coordinate
+    pub st: Vector,
+    pub tex: WebGlTexture,
+}
+
+impl TexturePoisition {
+    pub fn new(st: Vector, tex: WebGlTexture) -> Self {
+        Self { st, tex }
+    }
+}
+
+impl Image {
+    pub fn sample(&self, bounding_box: &Rectangle, position: &Vector) -> TexturePoisition {
+        let w = bounding_box.width();
+        let h = bounding_box.height();
+        let x = position.x - bounding_box.pos.x;
+        let y = position.y - bounding_box.pos.y;
+        let s = (x / w + self.region.x()) / self.region.width();
+        let t = (y / h + self.region.y()) / self.region.height();
+        TexturePoisition::new((s, t).into(), self.texture.webgl_texture().clone())
+    }
+}
+
 impl GpuVertex {
-    /// Create a new GPU vertex
-    pub fn new(
-        pos: impl Into<Vector>,
-        z: f32,
-        tex_pos: Option<Vector>,
-        bkg: Background,
-    ) -> GpuVertex {
-        GpuVertex {
-            pos: pos.into(),
-            tex_pos,
-            col: bkg.color(),
-            z,
-        }
+    pub fn new(pos: Vector, image: Option<TexturePoisition>, col: Color, z: f32) -> Self {
+        Self { pos, image, col, z }
+    }
+    pub fn has_texture(&self) -> bool {
+        self.image.is_some()
+    }
+    // ST-coordinates (normalized)
+    pub fn tex_coordinate(&self) -> Option<Vector> {
+        self.image.as_ref().map(|img| img.st)
+    }
+    pub fn tex(&self) -> Option<&WebGlTexture> {
+        self.image.as_ref().map(|img| &img.tex)
     }
 }
 
@@ -44,16 +70,11 @@ pub struct GpuTriangle {
     pub z: f32,
     /// The indexes in the vertex list that the GpuTriangle uses
     pub indices: [u32; 3],
-    /// The (optional) image used by the GpuTriangle
-    ///
-    /// All of the vertices used by the triangle should agree on whether it uses an image,
-    /// it is up to you to maintain this
-    pub image: Option<Image>,
 }
 
 impl GpuTriangle {
     /// Create a new untextured GPU Triangle
-    pub fn new(offset: u32, indices: [u32; 3], z: impl Scalar, bkg: Background) -> GpuTriangle {
+    pub fn new(offset: u32, indices: [u32; 3], z: impl Scalar) -> GpuTriangle {
         GpuTriangle {
             z: z.float(),
             indices: [
@@ -61,7 +82,6 @@ impl GpuTriangle {
                 indices[1] + offset,
                 indices[2] + offset,
             ],
-            image: bkg.image().cloned(),
         }
     }
     pub fn from_abstract(t: &AbstractTriangle, offset: u32, z: f32) -> Self {
@@ -72,18 +92,14 @@ impl GpuTriangle {
                 t.indices[1] + offset,
                 t.indices[2] + offset,
             ],
-            image: t.image.clone(),
         }
     }
 }
 
+// For sorting by z-order
 impl PartialEq for GpuTriangle {
     fn eq(&self, other: &GpuTriangle) -> bool {
-        match (&self.image, &other.image) {
-            (&Some(ref a), &Some(ref b)) => a == b,
-            (&None, &None) => true,
-            _ => false,
-        }
+        self.z.eq(&other.z)
     }
 }
 
@@ -97,14 +113,6 @@ impl PartialOrd for GpuTriangle {
 
 impl Ord for GpuTriangle {
     fn cmp(&self, other: &GpuTriangle) -> Ordering {
-        match self.z.partial_cmp(&other.z) {
-            None | Some(Ordering::Equal) => match (&self.image, &other.image) {
-                (&Some(_), &Some(_)) => Ordering::Equal,
-                (&Some(_), &None) => Ordering::Greater,
-                (&None, &Some(_)) => Ordering::Less,
-                (&None, &None) => Ordering::Equal,
-            },
-            Some(result) => result,
-        }
+        self.z.partial_cmp(&other.z).unwrap()
     }
 }

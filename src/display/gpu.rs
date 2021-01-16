@@ -46,7 +46,7 @@ impl WasmGpuBuffer {
             debug_assert!(vertex.z >= -1.0);
             self.vertices.push(vertex.z);
             // attribute vec2 tex_coord;
-            let tex_pos = vertex.tex_pos.unwrap_or(Vector::ZERO);
+            let tex_pos = vertex.tex_coordinate().unwrap_or(Vector::ZERO);
             self.vertices.push(tex_pos.x);
             self.vertices.push(tex_pos.y);
             // attribute vec4 color;
@@ -56,7 +56,7 @@ impl WasmGpuBuffer {
             self.vertices.push(vertex.col.a);
             // attribute lowp float uses_texture;
             self.vertices
-                .push(if vertex.tex_pos.is_some() { 1.0 } else { 0.0 });
+                .push(if vertex.has_texture() { 1.0 } else { 0.0 });
         });
     }
     pub(super) fn draw(
@@ -74,16 +74,16 @@ impl WasmGpuBuffer {
         // texture switches, flush and switch the bound texture)
         let mut current_texture: Option<&WebGlTexture> = None;
         for triangle in triangles.iter() {
-            if let Some(ref img) = triangle.image {
+            if let Some(img) = vertices[triangle.indices[0] as usize].tex() {
                 let should_flush = match current_texture {
-                    Some(val) => img.texture() != val,
+                    Some(val) => img != val,
                     None => true,
                 };
                 if should_flush {
                     gpu.draw_single_texture(gl, current_texture, &self.triangle_indices);
                     self.triangle_indices.clear();
                 }
-                current_texture = Some(img.texture());
+                current_texture = Some(img);
             }
             self.triangle_indices
                 .extend(triangle.indices.iter().map(|n| *n as u16));

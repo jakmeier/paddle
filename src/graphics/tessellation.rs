@@ -2,7 +2,7 @@
 use crate::{
     quicksilver_compat::{
         geom::{Line, Triangle},
-        Background, Circle, Shape,
+        Circle, Shape,
     },
     Rectangle, Transform, Vector,
 };
@@ -13,77 +13,68 @@ mod lyon_tessellator;
 pub use abstract_mesh::*;
 pub use lyon_tessellator::*;
 
-/// Some geometry object that can be tessellated to an AbstractMesh of triangles
+/// Some geometry object or shape that can be tessellated to an AbstractMesh of triangles
 pub trait Tessellate {
-    fn tessellate<'a>(&self, mesh: &mut AbstractMesh, background: Background<'a>);
-}
-
-impl Tessellate for Vector {
-    fn tessellate<'a>(&self, mesh: &mut AbstractMesh, bkg: Background<'a>) {
-        Rectangle::new(*self, Vector::ONE).tessellate(mesh, bkg);
-    }
+    /// Creates triangles and vertices as necessary to represent the tesselatated object.
+    fn tessellate<'a>(&self, mesh: &mut AbstractMesh);
+    /// The area in which the tesselated object is positioned. This is used for texture lookup.
+    fn bounding_box(&self) -> Rectangle;
 }
 
 impl Tessellate for Rectangle {
-    fn tessellate<'a>(&self, mesh: &mut AbstractMesh, bkg: Background<'a>) {
-        let trans = Transform::translate(self.top_left() + self.size() / 2)
-            * Transform::translate(-self.size() / 2)
-            * Transform::scale(self.size());
-        let tex_trans = bkg.texture_transform();
-        let offset = mesh.add_positioned_vertices(
-            [Vector::ZERO, Vector::X, Vector::ONE, Vector::Y]
-                .iter()
-                .cloned(),
-            trans,
-            tex_trans,
-            bkg,
-        );
-        mesh.triangles
-            .push(AbstractTriangle::new(offset, [0, 1, 2], bkg));
-        mesh.triangles
-            .push(AbstractTriangle::new(offset, [2, 3, 0], bkg));
+    fn tessellate<'a>(&self, mesh: &mut AbstractMesh) {
+        let vertices = vec![
+            Vector::new(-1, -1),
+            Vector::new(1, -1),
+            Vector::new(1, 1),
+            Vector::new(-1, 1),
+        ];
+        let triangles: Vec<[u32; 3]> = vec![[0, 1, 2], [2, 3, 0]];
+        mesh.add_triangles(&vertices, &triangles);
+    }
+    fn bounding_box(&self) -> Rectangle {
+        Shape::bounding_box(self)
     }
 }
 
+// TODO: Everything below needs to be in [-1,1]
 impl Tessellate for Circle {
-    fn tessellate<'a>(&self, mesh: &mut AbstractMesh, bkg: Background<'a>) {
-        let trans =
-            Transform::translate(self.center()) * Transform::scale(Vector::ONE * self.radius);
-        let tex_trans = bkg.texture_transform();
+    fn tessellate<'a>(&self, mesh: &mut AbstractMesh) {
         let offset =
-            mesh.add_positioned_vertices(CIRCLE_POINTS.iter().cloned(), trans, tex_trans, bkg);
+            mesh.add_positioned_vertices(CIRCLE_POINTS.iter().cloned(), Transform::IDENTITY);
         mesh.triangles.extend(
-            (0..CIRCLE_POINTS.len()).map(|index| {
-                AbstractTriangle::new(offset, [0, index as u32, index as u32 + 1], bkg)
-            }),
+            (0..CIRCLE_POINTS.len())
+                .map(|index| AbstractTriangle::new(offset, [0, index as u32, index as u32 + 1])),
         );
+    }
+    fn bounding_box(&self) -> Rectangle {
+        Shape::bounding_box(self)
     }
 }
 
 impl Tessellate for Triangle {
-    fn tessellate<'a>(&self, mesh: &mut AbstractMesh, bkg: Background<'a>) {
-        let trans = Transform::translate(self.center()) * Transform::translate(-self.center());
-        let tex_trans = bkg.texture_transform();
-        let offset = mesh.add_positioned_vertices(
-            [self.a, self.b, self.c].iter().cloned(),
-            trans,
-            tex_trans,
-            bkg,
-        );
+    fn tessellate<'a>(&self, mesh: &mut AbstractMesh) {
+        let trans = Shape::bounding_box(self).project(&Rectangle::new((-1, -1), (2, 2)));
+        let offset = mesh.add_positioned_vertices([self.a, self.b, self.c].iter().cloned(), trans);
         mesh.triangles
-            .push(AbstractTriangle::new(offset, [0, 1, 2], bkg));
+            .push(AbstractTriangle::new(offset, [0, 1, 2]));
+    }
+    fn bounding_box(&self) -> Rectangle {
+        Shape::bounding_box(self)
     }
 }
 
 impl Tessellate for Line {
-    fn tessellate<'a>(&self, mesh: &mut AbstractMesh, bkg: Background<'a>) {
+    fn tessellate<'a>(&self, mesh: &mut AbstractMesh) {
         // create rectangle in right size
         let rect = Rectangle::new(
             (self.a.x, self.a.y + self.t / 2.0),
             (self.a.distance(self.b), self.t),
         );
-
-        rect.tessellate(mesh, bkg)
+        rect.tessellate(mesh)
+    }
+    fn bounding_box(&self) -> Rectangle {
+        Shape::bounding_box(self)
     }
 }
 

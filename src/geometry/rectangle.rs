@@ -1,5 +1,8 @@
-use crate::geometry::{grid::Grid, Vector};
 use crate::quicksilver_compat::geom::Shape;
+use crate::{
+    geometry::{grid::Grid, Vector},
+    Transform,
+};
 use crate::{quicksilver_compat::about_equal, FitStrategy};
 use serde::{Deserialize, Serialize};
 use std::cmp::{Eq, PartialEq};
@@ -33,6 +36,9 @@ impl Rectangle {
     ///Get the top left coordinate of the Rectangle
     pub fn top_left(&self) -> Vector {
         self.pos
+    }
+    pub fn bottom_right(&self) -> Vector {
+        self.pos + self.size
     }
 
     ///Get the x-coordinate of the Rectangle
@@ -150,6 +156,14 @@ impl Rectangle {
         right.pos.x += w;
         (left, right)
     }
+    /// Transforma that maps self onto another rectangle
+    pub fn project(&self, other: &Rectangle) -> Transform {
+        let xs = other.size.x / self.size.x;
+        let ys = other.size.y / self.size.y;
+        Transform::translate(other.pos)
+            * Transform::scale((xs, ys))
+            * Transform::translate(-self.pos)
+    }
 }
 
 #[cfg(feature = "const_fn")]
@@ -220,5 +234,13 @@ mod tests {
         let v = Vector::new(1, -1);
         let translated = a.translate(v);
         assert_eq!(a.top_left() + v, translated.top_left());
+    }
+    #[test]
+    fn project() {
+        let a = Rectangle::new((10, 10), (5, 5));
+        let b = Rectangle::new((20, 20), (50, 50));
+        let t = a.project(&b);
+        assert_eq!(t * a.top_left(), b.top_left());
+        assert_eq!(t * a.bottom_right(), b.bottom_right());
     }
 }

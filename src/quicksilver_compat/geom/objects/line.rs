@@ -43,9 +43,8 @@ impl Eq for Line {}
 
 #[cfg(test)]
 mod tests {
-    use crate::quicksilver_compat::*;
-
     use super::*;
+    use crate::{quicksilver_compat::*, *};
 
     #[test]
     fn overlap_rectangle() {

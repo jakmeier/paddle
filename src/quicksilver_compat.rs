@@ -7,5 +7,4 @@ pub mod graphics;
 
 pub use super::input::*;
 pub use geom::{about_equal, Circle, Shape};
-pub use graphics::Background::Img;
 pub use graphics::*;

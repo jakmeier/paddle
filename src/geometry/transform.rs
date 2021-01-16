@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::quicksilver_compat::about_equal;
-use crate::{Rectangle, Scalar, Vector};
+use crate::{Scalar, Vector};
 use std::{
     cmp::{Eq, PartialEq},
     default::Default,
@@ -74,6 +74,14 @@ impl Transform {
     pub fn scale(vec: impl Into<Vector>) -> Transform {
         let vec = vec.into();
         Transform::from_array([[vec.x, 0f32, 0f32], [0f32, vec.y, 0f32], [0f32, 0f32, 1f32]])
+    }
+
+    pub fn horizontal_flip() -> Transform {
+        Transform::from_array([[-1f32, 0f32, 0f32], [0f32, 1f32, 0f32], [0f32, 0f32, 1f32]])
+    }
+
+    pub fn vertical_flip() -> Transform {
+        Transform::from_array([[1f32, 0f32, 0f32], [0f32, -1f32, 0f32], [0f32, 0f32, 1f32]])
     }
 
     pub fn as_slice(&self) -> &[f32] {
@@ -156,28 +164,6 @@ impl Mul<Transform> for Vector {
             self.x * t.0[0] + self.y * t.0[3] + t.0[6],
             self.x * t.0[1] + self.y * t.0[4] + t.0[7],
         )
-    }
-}
-
-/// Apply Transform to all points of a Rectangle
-impl Mul<Transform> for Rectangle {
-    type Output = Rectangle;
-
-    fn mul(mut self, t: Transform) -> Rectangle {
-        let bottom_right = (self.pos + self.size) * t;
-        self.pos = self.pos * t;
-        self.size = bottom_right - self.pos;
-        self
-    }
-}
-impl Mul<Rectangle> for Transform {
-    type Output = Rectangle;
-
-    fn mul(self, mut r: Rectangle) -> Rectangle {
-        let bottom_right = self * (r.pos + r.size);
-        r.pos = self * r.pos;
-        r.size = bottom_right - r.pos;
-        r
     }
 }
 
