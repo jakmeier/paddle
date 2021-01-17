@@ -38,7 +38,7 @@ impl DisplayArea {
         rect.pos += self.region.pos;
         rect
     }
-    pub fn frame_to_browser_area(&self, mut rect: Rectangle) -> Rectangle {
+    pub fn frame_to_browser_area(&self, rect: Rectangle) -> Rectangle {
         self.full()
             .game_to_browser_area(self.frame_to_display_area(rect))
     }
@@ -81,9 +81,9 @@ impl DisplayArea {
         area: Rectangle,
         paint: impl Into<Paint<'a>>,
     ) {
-        let frame_transform = self.frame_to_display_coordinates();
+        let area = self.frame_to_display_area(area);
         self.display
-            .draw_mesh_ex(mesh, paint, area, frame_transform, 0);
+            .draw_mesh_ex(mesh, paint, area, Transform::IDENTITY, 0);
     }
     /// Draw onto the display area from a mesh of triangles. The transformation will be applied to each triangle.
     pub fn draw_mesh_ex<'a>(
@@ -94,9 +94,8 @@ impl DisplayArea {
         t: Transform,
         z: i16,
     ) {
-        let frame_transform = self.frame_to_display_coordinates();
-        self.display
-            .draw_mesh_ex(mesh, paint, area, frame_transform * t, z);
+        let area = self.frame_to_display_area(area);
+        self.display.draw_mesh_ex(mesh, paint, area, t, z);
     }
     pub fn add_html(&self, element: Element) {
         if let Some(parent) = self.div.parent_element().nuts_check() {

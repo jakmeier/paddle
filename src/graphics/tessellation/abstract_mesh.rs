@@ -55,6 +55,30 @@ impl AbstractMesh {
             p.pos *= r;
         }
     }
+
+    /// Temporary solution to fix vertices that have been created in a different coordinate space than should be used for AbstractMesh
+    pub fn normalize(&mut self) {
+        let mut min_x = 0.0;
+        let mut min_y = 0.0;
+        let mut max_x = 0.0;
+        let mut max_y = 0.0;
+        for v in &self.vertices {
+            min_x = v.pos.x.min(min_x);
+            min_y = v.pos.y.min(min_y);
+            max_x = v.pos.x.max(max_x);
+            max_y = v.pos.y.max(max_y);
+        }
+        debug_assert_ne!(min_x, max_x, "Cannot normalize mesh with 0 area");
+        debug_assert_ne!(min_y, max_y, "Cannot normalize mesh with 0 area");
+        let offset = Vector::new(-min_x, -min_y);
+        let scale = Vector::new(2.0 / (max_x - min_x), 2.0 / (max_y - min_y));
+        let const_offset = Vector::new(-1.0, -1.0);
+        for v in &mut self.vertices {
+            v.pos += offset;
+            v.pos = v.pos.times(scale);
+            v.pos += const_offset;
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug)]

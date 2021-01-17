@@ -10,12 +10,10 @@
 mod circle;
 mod objects;
 mod shape;
-mod tilemap;
 mod util;
 pub use self::{
     circle::Circle,
     objects::{Line, Triangle},
     shape::Shape,
-    tilemap::{Tile, Tilemap},
     util::{about_equal, lerp, lerp_angle},
 };
