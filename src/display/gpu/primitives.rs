@@ -41,8 +41,8 @@ impl Image {
         let h = bounding_box.height();
         let x = position.x - bounding_box.pos.x;
         let y = position.y - bounding_box.pos.y;
-        let s = (x / w + self.region.x()) / self.region.width();
-        let t = (y / h + self.region.y()) / self.region.height();
+        let s = (x / w) * self.region.width() + self.region.x();
+        let t = (y / h) * self.region.height() + self.region.y();
         TexturePoisition::new((s, t).into(), self.texture.webgl_texture().clone())
     }
 }

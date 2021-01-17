@@ -162,6 +162,16 @@ impl Display {
                 .times(self.game_coordinates.recip()),
         ) * Transform::translate(self.browser_region.pos)
     }
+    /// Transforms an area from coordinates used inside the game (aka world coordinates) to browser coordinates (as used by e.g. CSS pixels)
+    pub fn game_to_browser_area(&self, mut rect: Rectangle) -> Rectangle {
+        rect.pos += self.browser_region.pos;
+        rect.size = rect.size.times(
+            self.browser_region
+                .size
+                .times(self.game_coordinates.recip()),
+        );
+        rect
+    }
 
     /// Gives result for x axis (assuming y is the same)
     pub fn browser_to_game_pixel_ratio(&self) -> f32 {

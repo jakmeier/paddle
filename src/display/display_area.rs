@@ -38,6 +38,10 @@ impl DisplayArea {
         rect.pos += self.region.pos;
         rect
     }
+    pub fn frame_to_browser_area(&self, mut rect: Rectangle) -> Rectangle {
+        self.full()
+            .game_to_browser_area(self.frame_to_display_area(rect))
+    }
     pub fn display_to_frame_coordinates(&self) -> Transform {
         Transform::translate(-self.region.pos)
     }
