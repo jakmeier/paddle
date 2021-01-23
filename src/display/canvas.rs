@@ -1,7 +1,10 @@
 pub const Z_MIN: i16 = 0;
 pub const Z_MAX: i16 = 32_767i16;
 
-use super::gpu::{Gpu, GpuConfig, GpuMesh, WasmGpuBuffer};
+use super::gpu::{
+    new_fragment_shader, new_vertex_shader, Gpu, GpuConfig, GpuMesh, RenderPipelineHandle,
+    UniformValue, VertexDescriptor, WasmGpuBuffer,
+};
 use crate::{
     quicksilver_compat::Color, ErrorMessage, JsError, NutsCheck, PaddleResult, Paint, Rectangle,
     Render, Transform, Vector,
@@ -76,7 +79,7 @@ impl WebGLCanvas {
         draw: &impl Render,
         area: Rectangle,
         trans: Transform,
-        paint: Paint,
+        paint: &impl Paint,
         z: i16,
     ) {
         debug_assert!(z >= Z_MIN);
@@ -127,6 +130,36 @@ impl WebGLCanvas {
         self.gl.clear(
             WebGlRenderingContext::COLOR_BUFFER_BIT | WebGlRenderingContext::DEPTH_BUFFER_BIT,
         );
+    }
+    pub fn active_render_pipeline(&self) -> RenderPipelineHandle {
+        self.gpu.active_render_pipeline()
+    }
+    /// If this RP is not already active, buffers will be flushed and RP is set
+    pub fn ensure_render_pipeline(&mut self, rp: RenderPipelineHandle) -> PaddleResult<()> {
+        if rp != self.gpu.active_render_pipeline() {
+            self.flush()?;
+            self.gpu.use_render_pipeline(&self.gl, rp);
+        }
+        Ok(())
+    }
+
+    pub fn new_render_pipeline(
+        &mut self,
+        vertex_shader_text: &'static str,
+        fragment_shader_text: &'static str,
+        vertex_descriptor: VertexDescriptor,
+        uniform_values: &[(&'static str, UniformValue)],
+    ) -> PaddleResult<RenderPipelineHandle> {
+        let vertex_shader = new_vertex_shader(&self.gl, vertex_shader_text)?;
+        let fragment_shader = new_fragment_shader(&self.gl, fragment_shader_text)?;
+
+        self.gpu.new_render_pipeline(
+            &self.gl,
+            vertex_shader,
+            fragment_shader,
+            vertex_descriptor,
+            uniform_values,
+        )
     }
 }
 

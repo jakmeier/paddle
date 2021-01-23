@@ -50,12 +50,12 @@ impl DisplayArea {
         self.region.contains(display_coordinates)
     }
     /// Draw a Drawable to the window, which will be finalized on the next flush
-    pub fn draw<'a>(&'a mut self, draw: &impl Tessellate, bkg: impl Into<Paint<'a>>) {
+    pub fn draw<'a>(&'a mut self, draw: &impl Tessellate, bkg: &impl Paint) {
         self.display
-            .draw_ex(draw, bkg.into(), self.frame_to_display_coordinates(), 0);
+            .draw_ex(draw, bkg, self.frame_to_display_coordinates(), 0);
     }
     /// Fills selected area with the given color (or image)
-    pub fn fill<'a>(&'a mut self, bkg: impl Into<Paint<'a>>) {
+    pub fn fill<'a>(&'a mut self, bkg: &impl Paint) {
         let region = Rectangle::new_sized(self.region.size);
         self.draw(&region, bkg);
     }
@@ -63,7 +63,7 @@ impl DisplayArea {
     pub fn draw_ex<'a>(
         &'a mut self,
         draw: &impl Tessellate,
-        bkg: impl Into<Paint<'a>>,
+        bkg: &impl Paint,
         trans: Transform,
         z: i16,
     ) {
@@ -75,12 +75,7 @@ impl DisplayArea {
         self.display.fit_to_visible_area(margin).nuts_check();
     }
     /// Draw onto the display area from a mesh of triangles. Useful for custom tesselation.
-    pub fn draw_mesh<'a>(
-        &mut self,
-        mesh: &AbstractMesh,
-        area: Rectangle,
-        paint: impl Into<Paint<'a>>,
-    ) {
+    pub fn draw_mesh<'a>(&mut self, mesh: &AbstractMesh, area: Rectangle, paint: &impl Paint) {
         let area = self.frame_to_display_area(area);
         self.display
             .draw_mesh_ex(mesh, paint, area, Transform::IDENTITY, 0);
@@ -90,7 +85,7 @@ impl DisplayArea {
         &mut self,
         mesh: &AbstractMesh,
         area: Rectangle,
-        paint: impl Into<Paint<'a>>,
+        paint: &impl Paint,
         t: Transform,
         z: i16,
     ) {
@@ -108,6 +103,22 @@ impl DisplayArea {
     /// The size of the selected area, in game coordinates
     pub fn size(&self) -> Vector {
         self.region.size()
+    }
+
+    // TODO: Find a better way to expose this
+    pub fn new_render_pipeline(
+        &mut self,
+        vertex_shader_text: &'static str,
+        fragment_shader_text: &'static str,
+        vertex_descriptor: super::gpu::VertexDescriptor,
+        uniform_values: &[(&'static str, super::gpu::UniformValue)],
+    ) -> crate::PaddleResult<crate::RenderPipelineHandle> {
+        self.full_mut().canvas.new_render_pipeline(
+            vertex_shader_text,
+            fragment_shader_text,
+            vertex_descriptor,
+            uniform_values,
+        )
     }
 }
 

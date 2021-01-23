@@ -1,19 +1,23 @@
 mod gpu_config;
 mod gpu_mesh;
-mod primitives;
+mod gpu_texture;
+mod gpu_triangle;
+mod gpu_vertex;
+mod render_pipeline;
 mod shader;
 
 pub use gpu_config::*;
 pub use gpu_mesh::*;
-pub use primitives::*;
+pub use gpu_texture::*;
+pub use gpu_triangle::*;
+pub use gpu_vertex::*;
+pub use render_pipeline::*;
+pub use shader::*;
 
 use crate::Transform;
 use js_sys::Float32Array;
 use js_sys::Uint16Array;
-use web_sys::{WebGlBuffer, WebGlProgram, WebGlRenderingContext, WebGlShader, WebGlTexture};
-
-// TODO: Better way to deal with this?
-const VERTEX_SIZE: usize = 10; // the number of floats in a vertex
+use web_sys::{WebGlBuffer, WebGlRenderingContext, WebGlShader, WebGlTexture};
 
 use crate::{ErrorMessage, PaddleResult, Vector};
 
@@ -36,27 +40,42 @@ impl WasmGpuBuffer {
         }
     }
 
-    fn naive_prepare_vertices(&mut self, vertices: &[GpuVertex]) {
-        // Turn the provided vertex data into stored vertex data
+    /// Copy heap-buffered data over to GPU buffers
+    fn prepare_vertices(&mut self, vertices: &[GpuVertex], v_desc: &VertexDescriptor) {
         vertices.iter().for_each(|vertex| {
-            // attribute vec3 position;
-            self.vertices.push(vertex.pos.x);
-            self.vertices.push(vertex.pos.y);
-            debug_assert!(vertex.z <= 1.0);
-            debug_assert!(vertex.z >= -1.0);
-            self.vertices.push(vertex.z);
-            // attribute vec2 tex_coord;
-            let tex_pos = vertex.tex_coordinate().unwrap_or(Vector::ZERO);
-            self.vertices.push(tex_pos.x);
-            self.vertices.push(tex_pos.y);
-            // attribute vec4 color;
-            self.vertices.push(vertex.col.r);
-            self.vertices.push(vertex.col.g);
-            self.vertices.push(vertex.col.b);
-            self.vertices.push(vertex.col.a);
-            // attribute lowp float uses_texture;
-            self.vertices
-                .push(if vertex.has_texture() { 1.0 } else { 0.0 });
+            for attr in v_desc.attributes() {
+                match attr.source {
+                    VertexSource::Pos => {
+                        // attribute vec3 position;
+                        self.vertices.push(vertex.pos.x);
+                        self.vertices.push(vertex.pos.y);
+                        debug_assert!(vertex.z <= 1.0);
+                        debug_assert!(vertex.z >= -1.0);
+                        self.vertices.push(vertex.z);
+                    }
+                    VertexSource::Texture => {
+                        // attribute vec2 tex_coord;
+                        let tex_pos = vertex.tex_coordinate().unwrap_or(Vector::ZERO);
+                        self.vertices.push(tex_pos.x);
+                        self.vertices.push(tex_pos.y);
+                    }
+                    VertexSource::Color => {
+                        // attribute vec4 color;
+                        self.vertices.push(vertex.col.r);
+                        self.vertices.push(vertex.col.g);
+                        self.vertices.push(vertex.col.b);
+                        self.vertices.push(vertex.col.a);
+                    }
+                    VertexSource::HasTexture => {
+                        // attribute lowp float uses_texture;
+                        self.vertices
+                            .push(if vertex.has_texture() { 1.0 } else { 0.0 });
+                    }
+                    VertexSource::ExtraVertexAttribute(i) => {
+                        self.vertices.push(vertex.extra.as_ref().unwrap()[i]);
+                    }
+                }
+            }
         });
     }
     pub(super) fn draw(
@@ -67,7 +86,7 @@ impl WasmGpuBuffer {
         triangles: &[GpuTriangle],
     ) -> PaddleResult<()> {
         self.vertices.clear();
-        self.naive_prepare_vertices(vertices);
+        self.prepare_vertices(vertices, gpu.active_vertex_descriptor());
         gpu.load_vertices(gl, &self.vertices);
 
         // Scan through the triangles, adding the indices to the index buffer (every time the
@@ -102,9 +121,10 @@ pub(super) struct Gpu {
     index_buffer: WebGlBuffer,
     vertex_buffer_size: usize,
     index_buffer_size: usize,
-    program: WebGlProgram,
-    fragment_shader: WebGlShader,
-    vertex_shader: WebGlShader,
+    default_fragment_shader: WebGlShader,
+    default_vertex_shader: WebGlShader,
+    active_render_pipeline: RenderPipelineHandle,
+    render_pipelines: RenderPipelineContainer,
     // texture_location: Option<WebGlUniformLocation>,
     pub(crate) depth_tests_enabled: bool,
 }
@@ -147,23 +167,33 @@ impl Gpu {
             }
         }
 
-        let vertex_shader = shader::new_vertex_shader(&gl)?;
-        let fragment_shader = shader::new_fragment_shader(&gl)?;
-        let program = shader::link_program(&gl, &vertex_shader, &fragment_shader)?;
+        let default_vertex_shader = new_vertex_shader(&gl, DEFAULT_VERTEX_SHADER)?;
+        let default_fragment_shader = new_fragment_shader(&gl, DEFAULT_FRAGMENT_SHADER)?;
 
-        let projection_uloc = gl.get_uniform_location(&program, "Projection");
-        gl.uniform_matrix3fv_with_f32_array(projection_uloc.as_ref(), false, projection.as_slice());
+        let render_pipelines = RenderPipelineContainer::new();
 
-        Ok(Self {
+        let mut gpu = Self {
             vertex_buffer,
             index_buffer,
             vertex_buffer_size: 0,
             index_buffer_size: 0,
-            vertex_shader,
-            fragment_shader,
-            program,
+            default_vertex_shader,
+            default_fragment_shader,
+            render_pipelines,
             depth_tests_enabled,
-        })
+            active_render_pipeline: Default::default(),
+        };
+
+        // Register default pipeline (Necessary to make `active_render_pipeline: Default::default()` valid)
+        gpu.new_render_pipeline(
+            gl,
+            gpu.default_vertex_shader.clone(),
+            gpu.default_fragment_shader.clone(),
+            VertexDescriptor::default(),
+            &[("Projection", UniformValue::Matrix3fv(projection.as_slice()))],
+        )?;
+
+        Ok(gpu)
     }
 
     fn load_vertices(&mut self, gl: &WebGlRenderingContext, vertices: &[f32]) {
@@ -186,67 +216,33 @@ impl Gpu {
     }
 
     fn recreate_vertex_buffer(&mut self, gl: &WebGlRenderingContext) {
+        let v_desc = &self.render_pipelines[self.active_render_pipeline].vertex_descriptor();
         gl.buffer_data_with_i32(
             WebGlRenderingContext::ARRAY_BUFFER,
             self.vertex_buffer_size as i32,
             WebGlRenderingContext::STREAM_DRAW,
         );
-        let stride_distance = (VERTEX_SIZE * std::mem::size_of::<f32>()) as i32;
-        // Set up the vertex attributes
-        let pos_attrib = gl.get_attrib_location(&self.program, "position") as u32;
-        gl.enable_vertex_attrib_array(pos_attrib);
+        let vertex_size = v_desc.vertex_size_in_sizeof_f32();
+        let stride_distance = (vertex_size * std::mem::size_of::<f32>()) as i32;
+        let program = self.active_program();
 
         let mut offset = 0;
-        let size = 3;
-        gl.vertex_attrib_pointer_with_i32(
-            pos_attrib,
-            size,
-            WebGlRenderingContext::FLOAT,
-            false,
-            stride_distance,
-            offset * std::mem::size_of::<f32>() as i32,
-        );
-        offset += size;
+        for attribute in v_desc.attributes() {
+            // Set up the vertex attributes
+            let loc = gl.get_attrib_location(program, attribute.name) as u32;
+            gl.enable_vertex_attrib_array(loc);
+            gl.vertex_attrib_pointer_with_i32(
+                loc,
+                attribute.size,
+                WebGlRenderingContext::FLOAT,
+                false,
+                stride_distance,
+                offset * std::mem::size_of::<f32>() as i32,
+            );
+            offset += attribute.size;
+        }
 
-        let tex_attrib = gl.get_attrib_location(&self.program, "tex_coord") as u32;
-        let size = 2;
-        gl.enable_vertex_attrib_array(tex_attrib);
-        gl.vertex_attrib_pointer_with_i32(
-            tex_attrib,
-            size,
-            WebGlRenderingContext::FLOAT,
-            false,
-            stride_distance,
-            offset * std::mem::size_of::<f32>() as i32,
-        );
-        offset += size;
-
-        let col_attrib = gl.get_attrib_location(&self.program, "color") as u32;
-        let size = 4;
-        gl.enable_vertex_attrib_array(col_attrib);
-        gl.vertex_attrib_pointer_with_i32(
-            col_attrib,
-            size,
-            WebGlRenderingContext::FLOAT,
-            false,
-            stride_distance,
-            offset * std::mem::size_of::<f32>() as i32,
-        );
-        offset += size;
-
-        let use_texture_attrib = gl.get_attrib_location(&self.program, "uses_texture") as u32;
-        let size = 1;
-        gl.enable_vertex_attrib_array(use_texture_attrib);
-        gl.vertex_attrib_pointer_with_i32(
-            use_texture_attrib,
-            size,
-            WebGlRenderingContext::FLOAT,
-            false,
-            stride_distance,
-            offset * std::mem::size_of::<f32>() as i32,
-        );
-        offset += size;
-        debug_assert!(offset as usize == VERTEX_SIZE);
+        debug_assert!(offset as usize == vertex_size);
     }
 
     // Assumes that vertices area already uploaded, hence only the indices are needed as parameter
@@ -292,6 +288,12 @@ impl Gpu {
         );
         gl.bind_texture(WebGlRenderingContext::TEXTURE_2D, None);
     }
+    pub fn active_render_pipeline(&self) -> RenderPipelineHandle {
+        self.active_render_pipeline
+    }
+    pub fn active_vertex_descriptor(&self) -> &VertexDescriptor {
+        self.render_pipelines[self.active_render_pipeline].vertex_descriptor()
+    }
 }
 
 fn ceil_pow2(x: usize) -> usize {
@@ -305,9 +307,9 @@ const fn num_bits<T>() -> usize {
 
 impl Gpu {
     pub(super) fn custom_drop(&mut self, gl: &WebGlRenderingContext) {
-        gl.delete_program(Some(&self.program));
-        gl.delete_shader(Some(&self.fragment_shader));
-        gl.delete_shader(Some(&self.vertex_shader));
+        self.render_pipelines.drop_programs(gl);
+        gl.delete_shader(Some(&self.default_fragment_shader));
+        gl.delete_shader(Some(&self.default_vertex_shader));
         gl.delete_buffer(Some(&self.vertex_buffer));
         gl.delete_buffer(Some(&self.index_buffer));
     }

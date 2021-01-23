@@ -13,7 +13,7 @@ impl TextureConfig {
         self.magnification_filter = MagnificationFilter::Nearest;
         self
     }
-    pub fn with_blurred_mangification(mut self) -> Self {
+    pub fn with_blurred_magnification(mut self) -> Self {
         self.magnification_filter = MagnificationFilter::Linear;
         self
     }

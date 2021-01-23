@@ -1,39 +1,29 @@
-use crate::graphics::Image;
 use crate::quicksilver_compat::graphics::Color;
+use crate::{graphics::Image, AbstractVertex, RenderPipelineHandle};
 
-/// Defines the color coating for a shape. Can be backed by an image (Texture2D) or a color
-#[derive(Copy, Clone)]
-pub enum Paint<'a> {
-    /// A uniform color background
-    Col(Color),
-    /// A textured background
-    Img(&'a Image),
-}
-
-impl<'a> Paint<'a> {
-    pub fn image(&self) -> Option<&Image> {
-        match self {
-            Paint::Col(_) => None,
-            Paint::Img(img) => Some(img),
-        }
+/// Implementors of this trait can be used to define non-positional attributes of GPU vertices. (Color/texture/custom attributes)
+pub trait Paint {
+    fn image(&self) -> Option<&Image> {
+        None
     }
-
-    pub fn color(&self) -> Option<Color> {
-        match self {
-            Paint::Col(color) => Some(*color),
-            Paint::Img(_) => None,
-        }
+    fn color(&self) -> Option<Color> {
+        None
+    }
+    fn extra_vertex_attributes(&self, _index: usize, _vertex: &AbstractVertex) -> Option<Vec<f32>> {
+        None
+    }
+    fn render_pipeline(&self) -> RenderPipelineHandle {
+        RenderPipelineHandle::default()
     }
 }
 
-impl<'a> From<Color> for Paint<'a> {
-    fn from(col: Color) -> Self {
-        Paint::Col(col)
+impl Paint for Image {
+    fn image(&self) -> Option<&Image> {
+        Some(&self)
     }
 }
-
-impl<'a> From<&'a Image> for Paint<'a> {
-    fn from(img: &'a Image) -> Self {
-        Paint::Img(img)
+impl Paint for Color {
+    fn color(&self) -> Option<Color> {
+        Some(*self)
     }
 }

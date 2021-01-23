@@ -15,7 +15,10 @@ mod text;
 pub use canvas::*;
 pub use display_area::*;
 use div::DivHandle;
-pub use gpu::{GpuConfig, GpuMesh, GpuTriangle, GpuVertex};
+pub use gpu::{
+    CustomShader, GpuConfig, GpuMesh, GpuTriangle, GpuVertex, RenderPipelineHandle, UniformValue,
+    VertexDescriptor,
+};
 pub use render::*;
 pub use text::*;
 
@@ -235,30 +238,33 @@ impl Display {
     pub fn draw_ex<'a>(
         &'a mut self,
         draw: &impl Tessellate,
-        paint: impl Into<Paint<'a>>,
+        paint: &impl Paint,
         trans: Transform,
         z: i16,
     ) {
         // TODO: Keep tesselation for frame and apply transformation once per frame (potentially on GPU)
         self.tessellation_buffer.clear();
+        self.canvas
+            .ensure_render_pipeline(paint.render_pipeline())
+            .expect("Failed to set render pipeline");
         draw.tessellate(&mut self.tessellation_buffer);
         let area = draw.bounding_box();
         let trans = Transform::translate(quicksilver_compat::Shape::center(&area))
             * trans
             * Transform::translate(-quicksilver_compat::Shape::center(&area));
         self.canvas
-            .render(&self.tessellation_buffer, area, trans, paint.into(), z);
+            .render(&self.tessellation_buffer, area, trans, paint, z);
     }
     // Insert triangles to buffer with a transform and z value
     pub fn draw_mesh_ex<'a>(
         &mut self,
         mesh: &AbstractMesh,
-        paint: impl Into<Paint<'a>>,
+        paint: &impl Paint,
         area: Rectangle,
         t: Transform,
         z: i16,
     ) {
-        self.canvas.render(mesh, area, t, paint.into(), z);
+        self.canvas.render(mesh, area, t, paint, z);
     }
 }
 

@@ -1,4 +1,4 @@
-use super::{primitives::GpuTriangle, GpuVertex};
+use super::{GpuTriangle, GpuVertex};
 use crate::Z_MAX;
 
 /// Buffer for GPU primitives ready to be drawn, after tesselation and all CPU-side transformations have finished
