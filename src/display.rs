@@ -269,6 +269,29 @@ impl Display {
     ) {
         self.canvas.render(mesh, area, t, paint, z);
     }
+    // TODO: Find a better way to expose this
+    pub fn new_render_pipeline(
+        &mut self,
+        vertex_shader_text: &'static str,
+        fragment_shader_text: &'static str,
+        vertex_descriptor: VertexDescriptor,
+        uniform_values: &[(&'static str, UniformValue)],
+    ) -> crate::PaddleResult<crate::RenderPipelineHandle> {
+        self.canvas.new_render_pipeline(
+            vertex_shader_text,
+            fragment_shader_text,
+            vertex_descriptor,
+            uniform_values,
+        )
+    }
+    pub fn update_uniform(
+        &mut self,
+        rp: RenderPipelineHandle,
+        name: &'static str,
+        value: &UniformValue,
+    ) {
+        self.canvas.update_uniform(rp, name, value)
+    }
 }
 
 fn find_browser_region(canvas: &HtmlCanvasElement) -> PaddleResult<Rectangle> {

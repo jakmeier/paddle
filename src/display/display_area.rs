@@ -113,7 +113,7 @@ impl DisplayArea {
         vertex_descriptor: super::gpu::VertexDescriptor,
         uniform_values: &[(&'static str, super::gpu::UniformValue)],
     ) -> crate::PaddleResult<crate::RenderPipelineHandle> {
-        self.full_mut().canvas.new_render_pipeline(
+        self.full_mut().new_render_pipeline(
             vertex_shader_text,
             fragment_shader_text,
             vertex_descriptor,
@@ -126,7 +126,7 @@ impl DisplayArea {
         name: &'static str,
         value: &super::gpu::UniformValue,
     ) {
-        self.full_mut().canvas.update_uniform(rp, name, value)
+        self.full_mut().update_uniform(rp, name, value)
     }
 }
 
