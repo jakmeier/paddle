@@ -3,7 +3,7 @@ pub const Z_MAX: i16 = 32_767i16;
 
 use super::gpu::{
     new_fragment_shader, new_vertex_shader, Gpu, GpuConfig, GpuMesh, RenderPipelineHandle,
-    UniformValue, VertexDescriptor, WasmGpuBuffer,
+    UniformValue, VertexDescriptor, WasmHeapBuffer,
 };
 use crate::{
     quicksilver_compat::Color, ErrorMessage, JsError, NutsCheck, PaddleResult, Paint, Rectangle,
@@ -18,7 +18,7 @@ pub(crate) struct WebGLCanvas {
     mesh: GpuMesh,
     canvas: HtmlCanvasElement,
     gl: WebGlRenderingContext,
-    buffer: WasmGpuBuffer,
+    buffer: WasmHeapBuffer,
     gpu: Gpu,
 }
 impl WebGLCanvas {
@@ -42,7 +42,7 @@ impl WebGLCanvas {
             .dyn_into::<WebGlRenderingContext>()
             .map_err(|_| ErrorMessage::technical("Failed loading WebGL".to_owned()))?;
 
-        let buffer = WasmGpuBuffer::new();
+        let buffer = WasmHeapBuffer::new();
 
         // project screen space coordinates with origin at top left and y pointing down,
         // to WebGL's [-1,-1] to [1,1] space with y pointing up
@@ -84,6 +84,8 @@ impl WebGLCanvas {
     ) {
         debug_assert!(z >= Z_MIN);
         debug_assert!(z <= Z_MAX);
+        self.ensure_render_pipeline(paint.render_pipeline())
+            .expect("Failed to set render pipeline");
         draw.render(&mut self.mesh, area, trans, paint, z);
     }
 
@@ -115,9 +117,9 @@ impl WebGLCanvas {
             // If depth tests are disabled, overdrawing has to be forced for correctness
             self.mesh.triangles.sort();
         }
-        self.buffer.draw(
+        self.gpu.perform_draw_calls(
+            &mut self.buffer,
             &self.gl,
-            &mut self.gpu,
             &self.mesh.vertices,
             self.mesh.triangles.as_slice(),
         )?;
@@ -130,9 +132,6 @@ impl WebGLCanvas {
         self.gl.clear(
             WebGlRenderingContext::COLOR_BUFFER_BIT | WebGlRenderingContext::DEPTH_BUFFER_BIT,
         );
-    }
-    pub fn active_render_pipeline(&self) -> RenderPipelineHandle {
-        self.gpu.active_render_pipeline()
     }
     /// If this RP is not already active, buffers will be flushed and RP is set
     pub fn ensure_render_pipeline(&mut self, rp: RenderPipelineHandle) -> PaddleResult<()> {

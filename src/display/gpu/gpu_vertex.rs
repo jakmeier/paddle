@@ -19,14 +19,14 @@ pub struct GpuVertex {
     pub extra: Option<Vec<f32>>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 /// Describes the layout of a vertex as it is uploaded to the GPU.
 pub struct VertexDescriptor {
     attributes: Vec<VertexAttributeDescriptor>,
     /// in sizeof f32
     size: u32,
 }
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 /// Describes a single attribute of a vertex
 pub struct VertexAttributeDescriptor {
     pub name: &'static str,

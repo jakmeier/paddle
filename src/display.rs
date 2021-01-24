@@ -244,9 +244,6 @@ impl Display {
     ) {
         // TODO: Keep tesselation for frame and apply transformation once per frame (potentially on GPU)
         self.tessellation_buffer.clear();
-        self.canvas
-            .ensure_render_pipeline(paint.render_pipeline())
-            .expect("Failed to set render pipeline");
         draw.tessellate(&mut self.tessellation_buffer);
         let area = draw.bounding_box();
         let trans = Transform::translate(quicksilver_compat::Shape::center(&area))

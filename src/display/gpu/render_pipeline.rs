@@ -5,7 +5,7 @@ use crate::{ErrorMessage, PaddleResult};
 use super::{Gpu, UniformDescriptor, UniformValue, VertexDescriptor};
 
 /// A handle to a registered shader program (essentially a pair of fragment + vertex shaders).
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct RenderPipelineHandle {
     index: usize,
 }
@@ -30,19 +30,24 @@ impl Gpu {
         vertex_descriptor: VertexDescriptor,
         uniform_values: &[(&'static str, UniformValue)],
     ) -> PaddleResult<RenderPipelineHandle> {
+        let current_render_pipeline = self.active_render_pipeline;
         let program = link_program(&gl, &vertex_shader, &fragment_shader)?;
+        // Note: For cleaner memory management, shaders should be kept somewhere and deleted on drop
         let uniforms = uniform_values
             .iter()
             .map(|(name, value)| UniformDescriptor::new(name, value.into()))
             .collect::<Vec<_>>();
-        let pipeline = RenderPipeline::new(program, vertex_descriptor, uniforms);
+        let pipeline = RenderPipeline::new(program, vertex_descriptor.clone(), uniforms);
         for (name, v) in uniform_values {
             pipeline.prepare_uniform(gl, name, v);
         }
         let handle = self.render_pipelines.store(pipeline);
 
+        self.gpu_buffers.add_vertex_buffer(gl, vertex_descriptor);
+
         // program "used" after linking
         self.active_render_pipeline = handle;
+        self.use_render_pipeline(gl, current_render_pipeline);
 
         Ok(handle)
     }
@@ -51,9 +56,6 @@ impl Gpu {
             gl.use_program(Some(&self.render_pipelines[rp].program));
             self.active_render_pipeline = rp;
         }
-    }
-    pub fn active_program(&self) -> &WebGlProgram {
-        &self.render_pipelines[self.active_render_pipeline].program
     }
 }
 
@@ -75,6 +77,12 @@ impl RenderPipeline {
     }
     pub fn program(&self) -> &WebGlProgram {
         &self.program
+    }
+}
+
+impl RenderPipelineHandle {
+    pub fn num(&self) -> usize {
+        self.index
     }
 }
 

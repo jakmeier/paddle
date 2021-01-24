@@ -21,7 +21,7 @@ impl CustomShader {
 }
 
 impl Paint for CustomShader {
-    fn extra_vertex_attributes(&self, index: usize, vertex: &AbstractVertex) -> Option<Vec<f32>> {
+    fn extra_vertex_attributes(&self, _index: usize, _vertex: &AbstractVertex) -> Option<Vec<f32>> {
         None
         // TODO?
     }

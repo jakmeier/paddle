@@ -1,4 +1,3 @@
-
 pub const DEFAULT_VERTEX_SHADER: &str = r#"attribute vec3 position;
 attribute vec2 tex_coord;
 attribute vec4 color;
