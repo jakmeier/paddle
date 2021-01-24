@@ -160,6 +160,14 @@ impl WebGLCanvas {
             uniform_values,
         )
     }
+    pub fn update_uniform(
+        &mut self,
+        rp: RenderPipelineHandle,
+        name: &'static str,
+        value: &super::gpu::UniformValue,
+    ) {
+        self.gpu.update_uniform(&self.gl, rp, name, value)
+    }
 }
 
 impl Drop for WebGLCanvas {

@@ -56,7 +56,7 @@ impl paddle::Frame for Game {
         canvas.fit_display(10.0);
 
         // White background
-        canvas.fill(Color::WHITE);
+        canvas.fill(&Color::WHITE);
 
         // Z is used to define what is drawn behind what
         let base_z = 10;
@@ -74,14 +74,14 @@ impl paddle::Frame for Game {
         let center_left = Vector::new(center.x - Self::WIDTH as f32 / 6.0, center.y);
         let left_area = Rectangle::new(center_left - Vector::new(s,s)/2.0, (s,s));
         // Mark area with a black non-moving rectangle
-        canvas.draw_ex(&left_area, Color::BLACK, Transform::IDENTITY, base_z);
+        canvas.draw_ex(&left_area, &Color::BLACK, Transform::IDENTITY, base_z);
         
         // Draw an image that rotates behind
         canvas.draw_ex(&left_area, &global.icon, rotation, base_z + 1);
         // Behind all, draw a rectangle that rotates with twice the speed (rotation applied twice)
-        canvas.draw_ex(&left_area, Color::INDIGO, rotation * rotation, base_z - 1);
+        canvas.draw_ex(&left_area, &Color::INDIGO, rotation * rotation, base_z - 1);
         // Behind all, draw an orange rectangle that is scaled to be larger and rotates in sync with the image
-        canvas.draw_ex(&left_area, Color::ORANGE, rotation * Transform::scale((1.5,1.5)), base_z - 2);
+        canvas.draw_ex(&left_area, &Color::ORANGE, rotation * Transform::scale((1.5,1.5)), base_z - 2);
         
         /*
          * Right side
@@ -95,13 +95,13 @@ impl paddle::Frame for Game {
              let mut right_area = left_area;
              right_area.pos += shift;
              // Mark area with a black non-moving rectangle
-             canvas.draw_ex(&right_area, Color::BLACK, Transform::IDENTITY, base_z);
+             canvas.draw_ex(&right_area, &Color::BLACK, Transform::IDENTITY, base_z);
          }
          // Now draw without using the shifted area, use transform instead.
          
          // Draw the same rectangles but shifted
-         canvas.draw_ex(&left_area, Color::INDIGO, shift_transform *rotation * rotation, base_z - 1);
-         canvas.draw_ex(&left_area, Color::ORANGE, shift_transform *rotation * Transform::scale((1.5,1.5)) , base_z - 2);
+         canvas.draw_ex(&left_area, &Color::INDIGO, shift_transform *rotation * rotation, base_z - 1);
+         canvas.draw_ex(&left_area, &Color::ORANGE, shift_transform *rotation * Transform::scale((1.5,1.5)) , base_z - 2);
          // Draw the same image but shift it and flip it horizontally.
          // The flip is applied before the rotation, hence the rotation changes the direction.
          canvas.draw_ex(&left_area, &global.icon, shift_transform * Transform::horizontal_flip() * rotation , base_z + 1);
@@ -109,10 +109,10 @@ impl paddle::Frame for Game {
          // canvas.draw_ex(&left_area, &global.icon, shift_transform * rotation * Transform::horizontal_flip() , base_z + 1);
          
          // What happens if the translation is applied at the right instead? (Observe the red Rectangle)
-         canvas.draw_ex(&left_area, Color::RED, rotation * shift_transform, base_z - 1);
+         canvas.draw_ex(&left_area, &Color::RED, rotation * shift_transform, base_z - 1);
          // What if we do both? (observe the red Triangle)
          let triangle = Triangle::new( center_left + Vector::new(0,s), center_left + Vector::new(-s/2.0,0), center_left + Vector::new(s/2.0,0) );
-         canvas.draw_ex(&triangle, Color::RED, shift_transform * rotation * shift_transform, base_z - 1);
+         canvas.draw_ex(&triangle, &Color::RED, shift_transform * rotation * shift_transform, base_z - 1);
 
 
     }

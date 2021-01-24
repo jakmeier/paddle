@@ -150,6 +150,12 @@ impl Display {
     pub fn resolution(&self) -> Vector {
         self.canvas.resolution()
     }
+    /// Transformation to go from display coordinates to WebGL coordinates. Useful for custom shaders.
+    pub fn webgl_transform(&self) -> Transform {
+        Transform::scale((1.0, -1.0))
+            * Transform::translate((-1.0, -1.0))
+            * Transform::scale(self.resolution().recip() * 2.0)
+    }
 
     pub fn clear(&mut self) {
         if let Some(col) = self.background_color {

@@ -1,0 +1,43 @@
+{
+    "name": "paddle-hello-world-example",
+    "version": "0.1.0",
+    "description": "Hello world example for paddle game engine",
+    "main": "index.js",
+    "bin": {
+        "create-wasm-app": ".bin/create-wasm-app.js"
+    },
+    "scripts": {
+        "build": "wasm-pack build --debug ..; webpack --config webpack.config.js",
+        "start": "webpack-dev-server"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/jakmeier/div-rs.git"
+    },
+    "keywords": [
+        "webassembly",
+        "wasm",
+        "rust",
+        "webpack"
+    ],
+    "author": "Jakob Meier <inbox@jakobmeier.ch",
+    "license": "(MIT OR Apache-2.0)",
+    "bugs": {
+        "url": "https://github.com/jakmeier/paddle/issues"
+    },
+    "homepage": "https://github.com/jakmeier/paddle#readme",
+    "dependencies": {
+        "hello_world": "file:../pkg"
+    },
+    "devDependencies": {
+        "copy-webpack-plugin": "^5.0.0",
+        "css-loader": "^4.3.0",
+        "style-loader": "^1.2.1",
+        "svelte": "^3.29.0",
+        "svelte-loader": "^2.13.6",
+        "webpack": "^4.29.3",
+        "webpack-cli": "^3.1.0",
+        "webpack-dev-server": "^3.1.5",
+        "webpack-merge": "^5.2.0"
+    }
+}

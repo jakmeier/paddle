@@ -164,6 +164,18 @@ impl Gpu {
     pub fn active_vertex_descriptor(&self) -> &VertexDescriptor {
         self.render_pipelines[self.active_render_pipeline].vertex_descriptor()
     }
+    pub fn update_uniform(
+        &mut self,
+        gl: &WebGlRenderingContext,
+        rp: RenderPipelineHandle,
+        name: &'static str,
+        value: &super::gpu::UniformValue,
+    ) {
+        let stashed_rp = self.active_render_pipeline;
+        self.use_render_pipeline(gl, rp);
+        self.render_pipelines[rp].prepare_uniform(gl, name, value);
+        self.use_render_pipeline(gl, stashed_rp);
+    }
 }
 
 impl Gpu {

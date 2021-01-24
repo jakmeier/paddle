@@ -1,6 +1,6 @@
 use crate::{
     error::NutsCheck, graphics::AbstractMesh, quicksilver_compat::Shape, Display, ErrorMessage,
-    Paint, Rectangle, Tessellate, Transform, Vector,
+    Paint, Rectangle, RenderPipelineHandle, Tessellate, Transform, Vector,
 };
 use div::DivHandle;
 use web_sys::Element;
@@ -119,6 +119,14 @@ impl DisplayArea {
             vertex_descriptor,
             uniform_values,
         )
+    }
+    pub fn update_uniform(
+        &mut self,
+        rp: RenderPipelineHandle,
+        name: &'static str,
+        value: &super::gpu::UniformValue,
+    ) {
+        self.full_mut().canvas.update_uniform(rp, name, value)
     }
 }
 

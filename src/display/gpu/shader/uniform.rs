@@ -12,9 +12,11 @@ pub struct UniformDescriptor {
 #[derive(PartialEq, Eq)]
 pub enum UniformType {
     Matrix3fv,
+    F32,
 }
 pub enum UniformValue<'a> {
     Matrix3fv(&'a [f32]),
+    F32(f32),
 }
 
 impl UniformDescriptor {
@@ -30,6 +32,7 @@ impl RenderPipeline {
             UniformValue::Matrix3fv(data) => {
                 gl.uniform_matrix3fv_with_f32_array(uloc.as_ref(), false, data);
             }
+            UniformValue::F32(data) => gl.uniform1f(uloc.as_ref(), *data),
         }
     }
 }
@@ -38,6 +41,7 @@ impl From<&UniformValue<'_>> for UniformType {
     fn from(val: &UniformValue) -> Self {
         match val {
             UniformValue::Matrix3fv(_) => Self::Matrix3fv,
+            UniformValue::F32(_) => Self::F32,
         }
     }
 }
