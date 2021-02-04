@@ -20,6 +20,33 @@ pub fn register_frame_no_state<F: Frame + Activity>(frame: F, pos: (u32, u32)) -
     handle
 }
 
+/// Use this if the state needs access to the graphics environment
+pub fn register_frame_with<F, INIT>(
+    frame: F,
+    state_initializer: INIT,
+    pos: (u32, u32),
+) -> FrameHandle<F>
+where
+    F: Frame + Activity,
+    INIT: FnOnce(&mut Display) -> F::State + 'static,
+{
+    // This mess calls for a better solution, probably in nuts?
+
+    // To defer execution:
+    // 1) Create a new dummy activity for each registration (unique types necessary)
+    let dummy: Nop<F> = Nop {
+        _phantom: std::marker::PhantomData,
+    };
+    let aid = nuts::new_domained_activity(dummy, &Domain::Frame);
+    // 2) Execute actual state initializer in on_delete. Initialization just Fn is not enough, it has to be FnOnce, thus it has to be registered on on_delete.
+    aid.on_delete_domained(move |_, d: &mut DomainState| {
+        nuts::store_to_domain(&Domain::Frame, state_initializer(Display::from_domain(d)));
+    });
+    // 3) Trigger on_delete
+    aid.set_status(nuts::LifecycleStatus::Deleted);
+    register_frame_no_state(frame, pos)
+}
+
 // Helper for checking if default has been overwritten
 struct Nop<STATE> {
     _phantom: std::marker::PhantomData<STATE>,

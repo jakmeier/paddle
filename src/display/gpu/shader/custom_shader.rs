@@ -18,6 +18,10 @@ impl CustomShader {
         self.color = Some(color);
         self
     }
+    pub fn with_image(mut self, image: Image) -> Self {
+        self.image = Some(image);
+        self
+    }
 }
 
 impl Paint for CustomShader {
