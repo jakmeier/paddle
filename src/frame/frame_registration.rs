@@ -37,14 +37,15 @@ where
     let dummy: Nop<F> = Nop {
         _phantom: std::marker::PhantomData,
     };
-    let aid = nuts::new_domained_activity(dummy, &Domain::Frame);
+    let dummy_aid = nuts::new_domained_activity(dummy, &Domain::Frame);
     // 2) Execute actual state initializer in on_delete. Initialization just Fn is not enough, it has to be FnOnce, thus it has to be registered on on_delete.
-    aid.on_delete_domained(move |_, d: &mut DomainState| {
+    dummy_aid.on_delete_domained(move |_, d: &mut DomainState| {
         nuts::store_to_domain(&Domain::Frame, state_initializer(Display::from_domain(d)));
     });
+    let fh = register_frame_no_state(frame, pos);
     // 3) Trigger on_delete
-    aid.set_status(nuts::LifecycleStatus::Deleted);
-    register_frame_no_state(frame, pos)
+    dummy_aid.set_status(nuts::LifecycleStatus::Deleted);
+    fh
 }
 
 // Helper for checking if default has been overwritten
