@@ -89,7 +89,7 @@ impl VertexDescriptor {
         self.size += 3;
         self
     }
-    pub fn with_tex(mut self) -> Self {
+    pub fn with_optional_tex(mut self) -> Self {
         self.attributes.push(VertexAttributeDescriptor::new(
             "tex_coord",
             2,
@@ -101,6 +101,15 @@ impl VertexDescriptor {
             VertexSource::HasTexture,
         ));
         self.size += 3;
+        self
+    }
+    pub fn with_tex(mut self) -> Self {
+        self.attributes.push(VertexAttributeDescriptor::new(
+            "tex_coord",
+            2,
+            VertexSource::Texture,
+        ));
+        self.size += 2;
         self
     }
     pub fn with_col(mut self) -> Self {
