@@ -150,3 +150,18 @@ impl<STATE: 'static, FRAME: Frame<State = STATE>> FrameHandle<FRAME> {
             });
     }
 }
+impl<STATE: 'static, FRAME: Frame<State = STATE>> FrameHandle<FRAME> {
+    pub fn register_receiver<F, MSG>(&self, f: F)
+    where
+        F: Fn(&mut FRAME, &mut STATE, MSG) + Copy + 'static,
+        MSG: 'static,
+        FRAME: 'static,
+    {
+        self.activity_id
+            .private_domained_channel(move |a, d, msg: PrivateEvent<MSG, FRAME>| {
+                let global_state: &mut FRAME::State =
+                    d.try_get_mut().expect("Activity State missing");
+                f(a, global_state, msg.0);
+            });
+    }
+}

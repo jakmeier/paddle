@@ -101,6 +101,8 @@ domain_enum!(Domain);
 struct GlobalEvent<Ev>(pub(crate) Ev);
 /// Goes to active frames only
 struct ActiveEvent<Ev>(pub(crate) Ev);
+/// Goes to one specific receiver
+struct PrivateEvent<Ev, Rec>(pub(crate) Ev, std::marker::PhantomData<Rec>);
 
 /// Share anything with all other activities in background and foreground
 pub fn share<MSG: 'static>(msg: MSG) {
@@ -110,4 +112,9 @@ pub fn share<MSG: 'static>(msg: MSG) {
 /// Share anything with all foreground activities
 pub fn share_foreground<MSG: 'static>(msg: MSG) {
     nuts::publish(ActiveEvent(msg));
+}
+
+/// Send a message to a private receiver
+pub fn send<MSG: 'static, REC: 'static>(msg: MSG) {
+    nuts::send_to::<REC, PrivateEvent<MSG, REC>>(PrivateEvent::<MSG, REC>(msg, Default::default()));
 }
