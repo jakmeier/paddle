@@ -157,11 +157,13 @@ impl<STATE: 'static, FRAME: Frame<State = STATE>> FrameHandle<FRAME> {
         MSG: 'static,
         FRAME: 'static,
     {
-        self.activity_id
-            .private_domained_channel(move |a, d, msg: PrivateEvent<MSG, FRAME>| {
+        self.activity_id.private_domained_channel_masked(
+            SubscriptionFilter::no_filter(),
+            move |a, d, msg: PrivateEvent<MSG, FRAME>| {
                 let global_state: &mut FRAME::State =
                     d.try_get_mut().expect("Activity State missing");
                 f(a, global_state, msg.0);
-            });
+            },
+        );
     }
 }
