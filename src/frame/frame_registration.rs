@@ -12,7 +12,7 @@ pub fn register_frame<F: Frame + Activity>(
 
 /// Use this if the state has already been registered previously.
 pub fn register_frame_no_state<F: Frame + Activity>(frame: F, pos: (u32, u32)) -> FrameHandle<F> {
-    let div = div::new(pos.0, pos.1, F::WIDTH, F::HEIGHT, "").expect("Div failure");
+    let div = div::new(pos.0 as i32, pos.1 as i32, F::WIDTH, F::HEIGHT, "").expect("Div failure");
     let activity = nuts::new_domained_activity(frame, &Domain::Frame);
     let area = Rectangle::new(pos, F::size());
     let handle = FrameHandle::new(activity, div, area);

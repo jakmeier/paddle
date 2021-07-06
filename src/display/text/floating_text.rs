@@ -31,7 +31,7 @@ impl FloatingText {
         let html = &text;
         let mut styles_vec = vec![("pointer-events", "None")];
         styles_vec.extend_from_slice(styles);
-        let pane = div::new_styled(x, y, w, h, html, classes, &styles_vec)?;
+        let pane = div::new_styled(x as i32, y as i32, w, h, html, classes, &styles_vec)?;
 
         let text_node = pane.parent_element()?.into();
         let node = TextNode::new(text_node, text);
@@ -57,7 +57,7 @@ impl FloatingText {
         );
         self.node.set_z(z)?;
 
-        self.pane.reposition_and_resize(x, y, w, h)?;
+        self.pane.reposition_and_resize(x as i32, y as i32, w, h)?;
         Ok(())
     }
     pub fn update_text(&mut self, text: &str) {

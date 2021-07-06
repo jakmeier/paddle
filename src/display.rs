@@ -222,10 +222,10 @@ impl Display {
 
         let (x, y) = self.div_offset()?;
         let (scroll_x, scroll_y) = (
-            web_window.scroll_x().unwrap() as u32,
-            web_window.scroll_y().unwrap() as u32,
+            web_window.scroll_x().unwrap() as i32,
+            web_window.scroll_y().unwrap() as i32,
         );
-        div::reposition(x - scroll_x, y - scroll_y)?;
+        div::reposition(x as i32 - scroll_x, y as i32 - scroll_y)?;
         div::resize(
             self.browser_region.size.x as u32,
             self.browser_region.size.y as u32,
