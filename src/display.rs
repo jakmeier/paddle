@@ -218,9 +218,14 @@ impl Display {
     /// When calling `fit_to_visible_area()`, the display is adjusted automatically (no need to call `adjust_display()` manually).
     pub fn adjust_display(&mut self) -> PaddleResult<()> {
         self.update_browser_region();
+        let web_window = web_sys::window().unwrap();
 
         let (x, y) = self.div_offset()?;
-        div::reposition(x, y)?;
+        let (scroll_x, scroll_y) = (
+            web_window.scroll_x().unwrap() as u32,
+            web_window.scroll_y().unwrap() as u32,
+        );
+        div::reposition(x - scroll_x, y - scroll_y)?;
         div::resize(
             self.browser_region.size.x as u32,
             self.browser_region.size.y as u32,
