@@ -55,9 +55,7 @@ dependencies = [
 
 [[package]]
 name = "div"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3704dbbe060f0f33063dee164b9be783159644273ad1f99223f4a21d52546fba"
+version = "0.4.0"
 dependencies = [
  "wasm-bindgen",
  "web-sys",
@@ -221,17 +219,16 @@ dependencies = [
 
 [[package]]
 name = "nuts"
-version = "0.2.0"
+version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b914b9cbb6ca17ed8d0857da8c1c35be93c4dccf5b7ccd905887431c44ece2da"
+checksum = "de140f855243e190552367bac713a5e7092966db4b79bf5aff2ef1bddebadcd9"
 dependencies = [
- "wasm-bindgen",
  "web-sys",
 ]
 
 [[package]]
 name = "paddle"
-version = "0.1.0-beta.0"
+version = "0.1.0-beta.1"
 dependencies = [
  "chrono",
  "console_error_panic_hook",

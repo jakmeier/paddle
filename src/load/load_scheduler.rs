@@ -1,82 +1,78 @@
 use core::any::TypeId;
-use std::{any::Any, collections::HashMap, future::Future};
+use std::{
+    any::Any,
+    collections::HashMap,
+    future::Future,
+    sync::atomic::{AtomicU64, Ordering},
+};
 
-use nuts::LifecycleStatus;
+use crate::{ErrorMessage, LoadActivity, PaddleResult};
 
-use crate::{Domain, ErrorMessage, PaddleResult};
-
-/// Helper object to manage resource loading.
+/// Helper object to manage resource loading. This is a more low-level approach than using `AssetBundle` and should rarely be necessary.
 ///
 /// ## Usage
 ///     1. Register a set of futures that will load the resources
-///     2. Call `attach_to_domain`, which will consume the `LoadScheduler`
-///     3. (optional)  Subscribe to `LoadingProgress` event
-///     4. Subscribe to `LoadingDone` event and extract resources from the `LoadedData` object in the domain
+///     2. (optional) Place a closure with `set_after_loading` that receives the data once the scheduler has loaded everything.
+///     3. Call `track_loading`, which will consume the `LoadScheduler` and return a tracker object.
+///     4. (optional)  Subscribe to `LoadingProgress` event to receive updates on each loaded item
+///     5. (optional) Subscribe to `LoadingDone` event and extract resources from the `LoadedData` object in the domain
 ///
 /// ## Nuts Events published
 /// **LoadingProgress**: Published on every resource that has been loaded, including the relative progress and the message of a currently loaded resource
 ///
 /// **LoadingDone**: Published once when the last resource finished loading
 ///
-#[derive(Default)]
 pub struct LoadScheduler {
-    total_items: usize,
-    loaded: usize,
-    loadables: HashMap<TypeId, Loadable>,
-    load_activity: Option<nuts::ActivityId<LoadActivity>>,
+    pub(crate) id: LoadSchedulerId,
+    pub(crate) total_items: usize,
+    pub(crate) loaded: usize,
+    pub(crate) loadables: HashMap<TypeId, Loadable>,
+    pub(crate) post_loading: Option<Box<dyn FnOnce(LoadedData)>>, //TODO: exec afterwards or something like that
 }
+#[derive(Hash, PartialEq, Eq, Copy, Clone)]
+pub struct LoadSchedulerId(u64);
 
 #[derive(Default)]
 pub struct LoadedData {
-    loadables: HashMap<TypeId, Loadable>,
+    pub(crate) loadables: HashMap<TypeId, Loadable>,
 }
 #[derive(Copy, Clone)]
-pub struct LoadingProgress(f32, &'static str);
+pub struct LoadingProgressMsg {
+    pub id: LoadSchedulerId,
+    pub progress: f32,
+    pub description: &'static str,
+}
 #[derive(Copy, Clone)]
-pub struct LoadingDone;
+pub struct LoadingDoneMsg {
+    pub id: LoadSchedulerId,
+}
 #[derive(Copy, Clone)]
-struct UpdatedProgress;
+pub(crate) struct UpdatedProgressMsg {
+    pub(crate) id: LoadSchedulerId,
+}
 
-enum FinishedLoading {
+pub(crate) struct FinishedLoadingMsg {
+    pub(crate) id: LoadSchedulerId,
+    pub(crate) data: FinishedLoading,
+}
+pub(crate) enum FinishedLoading {
     Item(Box<dyn Any>),
     VecItem(Box<dyn Any>, usize),
-}
-struct LoadActivity;
-
-impl LoadActivity {
-    fn update_progress(&mut self, domain: &mut nuts::DomainState, msg: FinishedLoading) {
-        let maybe_lm: &mut Option<LoadScheduler> = domain.get_mut();
-        let lm = maybe_lm
-            .as_mut()
-            .expect("FinishedLoading implies LoadScheduler is around");
-        match msg {
-            FinishedLoading::Item(data) => lm.add_progress_boxed(data),
-            FinishedLoading::VecItem(data, index) => lm.add_vec_progress(data, index),
-        }
-    }
-    pub fn finish_if_done(&mut self, domain: &mut nuts::DomainState, _msg: &UpdatedProgress) {
-        let maybe_lm: &mut Option<LoadScheduler> = domain.get_mut();
-        if let Some(lm) = maybe_lm {
-            if lm.done() {
-                debug_println!("Loading done");
-                let data = lm.finish();
-                domain.store(data);
-                nuts::publish(LoadingDone);
-            }
-        }
-    }
 }
 
 impl LoadScheduler {
     pub fn new() -> Self {
-        Self::default()
+        static ID_COUNTER: AtomicU64 = AtomicU64::new(0);
+        LoadScheduler {
+            id: LoadSchedulerId(ID_COUNTER.fetch_add(1, Ordering::SeqCst)),
+            total_items: 0,
+            loaded: 0,
+            loadables: HashMap::new(),
+            post_loading: None,
+        }
     }
-    pub fn attach_to_domain(mut self) {
-        let aid = nuts::new_domained_activity(LoadActivity, &Domain::Frame);
-        self.load_activity = Some(aid);
-        nuts::store_to_domain(&Domain::Frame, Some(self));
-        aid.private_domained_channel(LoadActivity::update_progress);
-        aid.subscribe_domained(LoadActivity::finish_if_done);
+    pub fn track_loading(self) {
+        nuts::send_to::<LoadActivity, _>(self);
     }
 
     /// Register a future to be loaded.
@@ -189,7 +185,7 @@ impl LoadScheduler {
             #[cfg(not(debug_assertions))]
             panic!("Already loaded Vec<{:?}> index [{}]", key, index);
         }
-        nuts::publish(UpdatedProgress);
+        nuts::publish(UpdatedProgressMsg { id: self.id });
     }
     /// Reports relative loading progress between 0.0 and 1.0
     pub fn progress(&self) -> f32 {
@@ -209,17 +205,17 @@ impl LoadScheduler {
         None
     }
 
-    pub fn finish(&mut self) -> LoadedData {
-        if let Some(aid) = self.load_activity {
-            aid.set_status(LifecycleStatus::Inactive);
-        }
-
-        let loadables = std::mem::take(&mut self.loadables);
-        LoadedData { loadables }
+    /// Set the closure to be executed after all loading is done.
+    /// The closure has access to `LoadedData`, from which all the data can be extracted.
+    pub fn set_after_loading<F>(&mut self, f: F)
+    where
+        F: FnOnce(LoadedData) + 'static,
+    {
+        self.post_loading = Some(Box::new(f));
     }
 }
 
-struct Loadable {
+pub(crate) struct Loadable {
     msg: &'static str,
     capacity: usize,
     loaded: usize,

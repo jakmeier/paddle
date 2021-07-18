@@ -8,12 +8,14 @@
 
 mod canvas;
 mod display_area;
+mod display_paint;
 mod gpu;
 mod render;
 mod text;
 
 pub use canvas::*;
 pub use display_area::*;
+pub use display_paint::DisplayPaint;
 use div::DivHandle;
 pub use gpu::{
     CustomShader, GpuConfig, GpuMesh, GpuTriangle, GpuVertex, RenderPipelineHandle, UniformValue,
@@ -28,10 +30,10 @@ use crate::{graphics::ImageLoader, graphics::TextureConfig, quicksilver_compat::
 use wasm_bindgen::{JsCast, JsValue};
 use web_sys::{Element, HtmlCanvasElement};
 
-/// An object to manage the *full* display area for your game inside the browser.
+/// A stateful object to manage the *full* display area for your game inside the browser.
 ///
-/// The `Display` object is responsible for putting stuff to see in front of the user and nothing else.
-/// It also includes configuration options, such as GPU settings.
+/// The `Display` object is responsible for putting stuff to see in front of the user.
+/// In order to do that effectively, it manages some state about the browser. (WebGL, DOM nodes, images)
 pub struct Display {
     /// Position relative to browser page (in browser coordinates)
     browser_region: Rectangle,
@@ -45,6 +47,8 @@ pub struct Display {
     div: DivHandle,
     /// Buffer for on-the-fly tessellation
     tessellation_buffer: AbstractMesh,
+    /// Sprites for images and animations
+    asset_library: AssetLibrary,
 }
 
 pub struct DisplayConfig {
@@ -130,6 +134,7 @@ impl Display {
         div.set_css("z-index", &(-1).to_string())?;
 
         Ok(Self {
+            asset_library: AssetLibrary::default(),
             canvas,
             browser_region,
             game_coordinates,
@@ -249,7 +254,7 @@ impl Display {
     pub fn draw_ex<'a>(
         &'a mut self,
         draw: &impl Tessellate,
-        paint: &impl Paint,
+        paint: &impl DisplayPaint,
         trans: Transform,
         z: i16,
     ) {
@@ -260,19 +265,25 @@ impl Display {
         let trans = Transform::translate(quicksilver_compat::Shape::center(&area))
             * trans
             * Transform::translate(-quicksilver_compat::Shape::center(&area));
-        self.canvas
-            .render(&self.tessellation_buffer, area, trans, paint, z);
+        self.canvas.render(
+            &self.tessellation_buffer,
+            area,
+            trans,
+            &(paint, &self.asset_library),
+            z,
+        );
     }
     // Insert triangles to buffer with a transform and z value
     pub fn draw_mesh_ex<'a>(
         &mut self,
         mesh: &AbstractMesh,
-        paint: &impl Paint,
+        paint: &impl DisplayPaint,
         area: Rectangle,
         t: Transform,
         z: i16,
     ) {
-        self.canvas.render(mesh, area, t, paint, z);
+        self.canvas
+            .render(mesh, area, t, &(paint, &self.asset_library), z);
     }
     // TODO: Find a better way to expose this
     pub fn new_render_pipeline(
@@ -296,6 +307,9 @@ impl Display {
         value: &UniformValue,
     ) {
         self.canvas.update_uniform(rp, name, value)
+    }
+    pub(super) fn asset_library(&mut self) -> &mut AssetLibrary {
+        &mut self.asset_library
     }
 }
 

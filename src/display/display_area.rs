@@ -1,6 +1,6 @@
 use crate::{
-    error::NutsCheck, graphics::AbstractMesh, quicksilver_compat::Shape, Display, ErrorMessage,
-    Paint, Rectangle, RenderPipelineHandle, Tessellate, Transform, Vector,
+    error::NutsCheck, graphics::AbstractMesh, quicksilver_compat::Shape, Display, DisplayPaint,
+    ErrorMessage, Rectangle, RenderPipelineHandle, Tessellate, Transform, Vector,
 };
 use div::DivHandle;
 use web_sys::Element;
@@ -50,12 +50,12 @@ impl DisplayArea {
         self.region.contains(display_coordinates)
     }
     /// Draw a Drawable to the window, which will be finalized on the next flush
-    pub fn draw<'a>(&'a mut self, draw: &impl Tessellate, bkg: &impl Paint) {
+    pub fn draw<'a>(&'a mut self, draw: &impl Tessellate, bkg: &impl DisplayPaint) {
         self.display
             .draw_ex(draw, bkg, self.frame_to_display_coordinates(), 0);
     }
     /// Fills selected area with the given color (or image)
-    pub fn fill<'a>(&'a mut self, bkg: &impl Paint) {
+    pub fn fill<'a>(&'a mut self, bkg: &impl DisplayPaint) {
         let region = Rectangle::new_sized(self.region.size);
         self.draw(&region, bkg);
     }
@@ -63,7 +63,7 @@ impl DisplayArea {
     pub fn draw_ex<'a>(
         &'a mut self,
         draw: &impl Tessellate,
-        bkg: &impl Paint,
+        bkg: &impl DisplayPaint,
         trans: Transform,
         z: i16,
     ) {
@@ -75,7 +75,12 @@ impl DisplayArea {
         self.display.fit_to_visible_area(margin).nuts_check();
     }
     /// Draw onto the display area from a mesh of triangles. Useful for custom tesselation.
-    pub fn draw_mesh<'a>(&mut self, mesh: &AbstractMesh, area: Rectangle, paint: &impl Paint) {
+    pub fn draw_mesh<'a>(
+        &mut self,
+        mesh: &AbstractMesh,
+        area: Rectangle,
+        paint: &impl DisplayPaint,
+    ) {
         let area = self.frame_to_display_area(area);
         self.display
             .draw_mesh_ex(mesh, paint, area, Transform::IDENTITY, 0);
@@ -85,7 +90,7 @@ impl DisplayArea {
         &mut self,
         mesh: &AbstractMesh,
         area: Rectangle,
-        paint: &impl Paint,
+        paint: &impl DisplayPaint,
         t: Transform,
         z: i16,
     ) {

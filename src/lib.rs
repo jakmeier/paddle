@@ -51,5 +51,6 @@ pub fn init(config: PaddleConfig) -> PaddleResult<()> {
     Context::init(config)?;
     EventGate::init();
     FrameManipulator::init();
+    LoadActivity::init();
     Ok(())
 }
