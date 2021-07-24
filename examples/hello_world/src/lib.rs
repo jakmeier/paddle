@@ -33,12 +33,11 @@ impl paddle::Frame for Game {
         canvas.fit_display(10.0);
 
         // Spinning white square, 50 degree/s
-        let rect = Rectangle::new((410, 200), (140, 140));
-        let transform = Transform::translate(rect.center())
-            * Transform::rotate((timestamp / 20.0) as f32 % 360.0)
-            * Transform::translate(-rect.center());
+        let rect = Rectangle::new((-70, -70), (140, 140));
+        let transform =
+            Transform::translate((480, 270)) * Transform::rotate((timestamp / 20.0) as f32 % 360.0);
         let z = 1;
-        canvas.draw_ex(&rect, Color::WHITE, transform, z);
+        canvas.draw_ex(&rect, &Color::WHITE, transform, z);
     }
 }
 

@@ -57,15 +57,15 @@ impl Frame for Paper {
         canvas.fit_display(10.0);
 
         // Paint background of frame white
-        canvas.fill(WHITE);
+        canvas.fill(&WHITE);
 
         for (rect, col) in &state.drawn_objects {
-            canvas.draw(rect, *col);
+            canvas.draw(rect, col);
         }
 
         if let (Some(pos1), Some(pos2)) = (self.first_click, self.mouse_pos) {
             let rect = rectangle_from_two_points(pos1, pos2);
-            canvas.draw(&rect, state.selected_color);
+            canvas.draw(&rect, &state.selected_color);
         }
     }
     fn pointer(&mut self, state: &mut Self::State, event: PointerEvent) {
@@ -145,9 +145,9 @@ impl Frame for Toolbar {
     const HEIGHT: u32 = 720;
 
     fn draw(&mut self, _state: &mut Self::State, frame_display: &mut DisplayArea, _timestamp: f64) {
-        frame_display.fill(BLACK_CORAL);
+        frame_display.fill(&BLACK_CORAL);
         for (area, col) in &self.ui_elements {
-            frame_display.draw(area, *col);
+            frame_display.draw(area, col);
         }
     }
     fn pointer(&mut self, state: &mut Self::State, event: PointerEvent) {

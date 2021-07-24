@@ -8,7 +8,7 @@
 use paddle::graphics::{Image, TextureConfig};
 use paddle::quicksilver_compat::*;
 use paddle::quicksilver_compat::geom::Triangle;
-use paddle::{DisplayArea, LoadScheduler, PaddleConfig, Vector, Rectangle, Transform};
+use paddle::{DisplayArea, PaddleConfig, Vector, Rectangle, Transform};
 use wasm_bindgen::prelude::wasm_bindgen;
 
 const SCREEN_W: f32 = 1920.0;
@@ -67,49 +67,60 @@ impl paddle::Frame for Game {
         
         // Define a rotation transform that changes with the timestamp (60 degrees per second)
         let rotation = Transform::rotate(timestamp / 1000.0 * 60.0);
+
+
         
         /*
          * Left side
          */
         let center_left = Vector::new(center.x - Self::WIDTH as f32 / 6.0, center.y);
-        let left_area = Rectangle::new(center_left - Vector::new(s,s)/2.0, (s,s));
-        // Mark area with a black non-moving rectangle
-        canvas.draw_ex(&left_area, &Color::BLACK, Transform::IDENTITY, base_z);
+        let half_size = Vector::new(s,s)/2.0;
+        let left_pos = center_left - half_size;
+        let left_transform = Transform::translate(left_pos + half_size );
+
+        // Mark area with a black non-moving rectangle.
+        // Here we use draw_z without transformations
+        canvas.draw_z(&Rectangle::new(left_pos, (s,s)), &Color::BLACK, base_z);
         
+        // Now, using transformations.
+        // The shape for drawing is defined as a rectangle around the origin (0,0). Otherwise, the rotation would not work as expected.
+        let shape = Rectangle::new(-half_size, (s,s));
+
         // Draw an image that rotates behind
-        canvas.draw_ex(&left_area, &global.icon, rotation, base_z + 1);
+        canvas.draw_ex(&shape, &global.icon, left_transform *rotation, base_z + 1);
         // Behind all, draw a rectangle that rotates with twice the speed (rotation applied twice)
-        canvas.draw_ex(&left_area, &Color::INDIGO, rotation * rotation, base_z - 1);
+        canvas.draw_ex(&shape, &Color::INDIGO, left_transform *rotation * rotation, base_z - 1);
         // Behind all, draw an orange rectangle that is scaled to be larger and rotates in sync with the image
-        canvas.draw_ex(&left_area, &Color::ORANGE, rotation * Transform::scale((1.5,1.5)), base_z - 2);
+        canvas.draw_ex(&shape, &Color::ORANGE, left_transform *rotation * Transform::scale((1.5,1.5)), base_z - 2);
         
         /*
          * Right side
          * The same as on the left side but shifted to the right.
-         * This could be done by chaning the draw origin (left_area.pos + XY) but we can also apply a translation transform as shown below.
+         * Without transformation, this could be done by changing the draw origin (left_area.pos + XY).
+         * But with the transformation, we apply another translation as shown below.
          */
          let shift = Vector::new(Self::WIDTH as f32 /3.0, 0);
          let shift_transform = Transform::translate(shift);
-         // Moving area
+         // Shifting drawn area
          {
-             let mut right_area = left_area;
-             right_area.pos += shift;
-             // Mark area with a black non-moving rectangle
-             canvas.draw_ex(&right_area, &Color::BLACK, Transform::IDENTITY, base_z);
+            let mut right_area = shape;
+            right_area.pos = left_pos + shift;
+            // Mark area with a black non-moving rectangle
+            canvas.draw_z(&right_area, &Color::BLACK, base_z);
          }
          // Now draw without using the shifted area, use transform instead.
          
          // Draw the same rectangles but shifted
-         canvas.draw_ex(&left_area, &Color::INDIGO, shift_transform *rotation * rotation, base_z - 1);
-         canvas.draw_ex(&left_area, &Color::ORANGE, shift_transform *rotation * Transform::scale((1.5,1.5)) , base_z - 2);
+         canvas.draw_ex(&shape, &Color::INDIGO, shift_transform * left_transform *rotation * rotation, base_z - 1);
+         canvas.draw_ex(&shape, &Color::ORANGE, shift_transform * left_transform *rotation * Transform::scale((1.5,1.5)) , base_z - 2);
          // Draw the same image but shift it and flip it horizontally.
          // The flip is applied before the rotation, hence the rotation changes the direction.
-         canvas.draw_ex(&left_area, &global.icon, shift_transform * Transform::horizontal_flip() * rotation , base_z + 1);
+         canvas.draw_ex(&shape, &global.icon, shift_transform * left_transform * Transform::horizontal_flip() * rotation , base_z + 1);
          // (This would also flip the image but keep the rotation in the same orientation)
-         // canvas.draw_ex(&left_area, &global.icon, shift_transform * rotation * Transform::horizontal_flip() , base_z + 1);
+         //  canvas.draw_ex(&shape, &global.icon, shift_transform * left_transform * rotation * Transform::horizontal_flip() , base_z + 1);
          
          // What happens if the translation is applied at the right instead? (Observe the red Rectangle)
-         canvas.draw_ex(&left_area, &Color::RED, rotation * shift_transform, base_z - 1);
+         canvas.draw_ex(&shape, &Color::RED, rotation * shift_transform * left_transform, base_z - 1);
          // What if we do both? (observe the red Triangle)
          let triangle = Triangle::new( center_left + Vector::new(0,s), center_left + Vector::new(-s/2.0,0), center_left + Vector::new(s/2.0,0) );
          canvas.draw_ex(&triangle, &Color::RED, shift_transform * rotation * shift_transform, base_z - 1);

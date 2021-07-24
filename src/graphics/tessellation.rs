@@ -15,9 +15,9 @@ pub use lyon_tessellator::*;
 
 /// Some geometry object or shape that can be tessellated to an AbstractMesh of triangles
 pub trait Tessellate {
-    /// Creates triangles and vertices as necessary to represent the tesselatated object.
+    /// Creates triangles and vertices as necessary to represent the tessellated object.
     fn tessellate<'a>(&self, mesh: &mut AbstractMesh);
-    /// The area in which the tesselated object is positioned. This is used for texture lookup.
+    /// The area in which the tessellated object is positioned. This is used for texture lookup.
     fn bounding_box(&self) -> Rectangle;
 }
 

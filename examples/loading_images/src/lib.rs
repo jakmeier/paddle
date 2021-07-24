@@ -9,9 +9,9 @@ const SCREEN_W: f32 = 1920.0;
 const SCREEN_H: f32 = 1080.0;
 
 // Describe images by their path. The format doesn't matter, as long as a browser can display it.
-const IMG_BACKGROUND: ImageDesc = ImageDesc::new("background.png");
-const IMG_PADDLE_ICON: ImageDesc = ImageDesc::new("paddle_icon.svg");
-const IMG_PADDLERS_ICON: ImageDesc = ImageDesc::new("paddlers.svg");
+const IMG_BACKGROUND: ImageDesc = ImageDesc::from_path("background.png");
+const IMG_PADDLE_ICON: ImageDesc = ImageDesc::from_path("paddle_icon.svg");
+const IMG_PADDLERS_ICON: ImageDesc = ImageDesc::from_path("paddlers.svg");
 
 struct Game {
     state: GameState,

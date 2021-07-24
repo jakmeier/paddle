@@ -1,6 +1,11 @@
 pub const Z_MIN: i16 = 0;
 pub const Z_MAX: i16 = 32_767i16;
 
+pub(crate) const ABSTRACT_SPACE: Rectangle = Rectangle {
+    pos: Vector { x: -1.0, y: -1.0 },
+    size: Vector { x: 2.0, y: 2.0 },
+};
+
 use super::gpu::{
     new_fragment_shader, new_vertex_shader, Gpu, GpuConfig, GpuMesh, RenderPipelineHandle,
     UniformValue, VertexDescriptor, WasmHeapBuffer,
@@ -74,19 +79,12 @@ impl WebGLCanvas {
     }
 
     /// Render object to the display buffer, to be forwarded to the GPU on the next flush
-    pub fn render(
-        &mut self,
-        draw: &impl Render,
-        area: Rectangle,
-        trans: Transform,
-        paint: &impl Paint,
-        z: i16,
-    ) {
+    pub fn render(&mut self, draw: &impl Render, trans: &Transform, paint: &impl Paint, z: i16) {
         debug_assert!(z >= Z_MIN);
         debug_assert!(z <= Z_MAX);
         self.ensure_render_pipeline(paint.render_pipeline())
             .expect("Failed to set render pipeline");
-        draw.render(&mut self.mesh, area, trans, paint, z);
+        draw.render(&mut self.mesh, trans, paint, z);
     }
 
     /// Resize the area the canvas takes in the browser, (In browser coordinates)

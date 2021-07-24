@@ -49,26 +49,33 @@ impl DisplayArea {
     pub fn is_inside(&self, display_coordinates: impl Into<Vector>) -> bool {
         self.region.contains(display_coordinates)
     }
-    /// Draw a Drawable to the window, which will be finalized on the next flush
-    pub fn draw<'a>(&'a mut self, draw: &impl Tessellate, bkg: &impl DisplayPaint) {
-        self.display
-            .draw_ex(draw, bkg, self.frame_to_display_coordinates(), 0);
+    /// Draw something onto the window, which will be finalized on the next flush.
+    ///
+    /// This is the simplest draw function. It draws rectangular shapes and fills them with a paint.
+    /// See `draw_ex` for more drawing options.
+    pub fn draw(&mut self, position: &Rectangle, bkg: &impl DisplayPaint) {
+        let trans = self.frame_to_display_coordinates();
+        self.display.draw_ex(position, bkg, &trans, 0);
+    }
+    pub fn draw_z(&mut self, position: &Rectangle, bkg: &impl DisplayPaint, z: i16) {
+        let trans = self.frame_to_display_coordinates();
+        self.display.draw_ex(position, bkg, &trans, z);
     }
     /// Fills selected area with the given color (or image)
-    pub fn fill<'a>(&'a mut self, bkg: &impl DisplayPaint) {
+    pub fn fill(&mut self, bkg: &impl DisplayPaint) {
         let region = Rectangle::new_sized(self.region.size);
         self.draw(&region, bkg);
     }
     /// Draw a Drawable to the window with more options provided (draw exhaustive)
-    pub fn draw_ex<'a>(
-        &'a mut self,
+    pub fn draw_ex(
+        &mut self,
         draw: &impl Tessellate,
         bkg: &impl DisplayPaint,
         trans: Transform,
         z: i16,
     ) {
-        self.display
-            .draw_ex(draw, bkg, self.frame_to_display_coordinates() * trans, z)
+        let trans = self.frame_to_display_coordinates() * trans;
+        self.display.draw_ex(draw, bkg, &trans, z)
     }
     /// Fit (the entire display) to be fully visible
     pub fn fit_display(&mut self, margin: f64) {
@@ -83,7 +90,7 @@ impl DisplayArea {
     ) {
         let area = self.frame_to_display_area(area);
         self.display
-            .draw_mesh_ex(mesh, paint, area, Transform::IDENTITY, 0);
+            .draw_mesh_ex(mesh, paint, area, &Transform::IDENTITY, 0);
     }
     /// Draw onto the display area from a mesh of triangles. The transformation will be applied to each triangle.
     pub fn draw_mesh_ex<'a>(
@@ -95,7 +102,7 @@ impl DisplayArea {
         z: i16,
     ) {
         let area = self.frame_to_display_area(area);
-        self.display.draw_mesh_ex(mesh, paint, area, t, z);
+        self.display.draw_mesh_ex(mesh, paint, area, &t, z);
     }
     pub fn add_html(&self, element: Element) {
         if let Some(parent) = self.div.parent_element().nuts_check() {

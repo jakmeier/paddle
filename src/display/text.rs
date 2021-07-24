@@ -7,10 +7,3 @@ pub use floating_text::*;
 pub use text_node::*;
 pub use text_pool::*;
 pub use text_to_user::*;
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub enum FitStrategy {
-    Center,
-    LeftCenter,
-    TopLeft,
-}

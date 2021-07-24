@@ -1,8 +1,8 @@
 //! For storing tesselation results which can be drawn multiple times with different transformations
 
-use crate::{Transform, Vector};
+use crate::{Rectangle, Transform, Vector};
 
-/// A mesh within the bounding box: x,y in [-1,+1]
+/// A mesh. If it is normalized, all values are within the bounding box: x,y in [-1,+1]
 pub struct AbstractMesh {
     pub vertices: Vec<AbstractVertex>,
     pub triangles: Vec<AbstractTriangle>,
@@ -23,6 +23,17 @@ impl AbstractMesh {
     pub fn clear(&mut self) {
         self.vertices.clear();
         self.triangles.clear();
+    }
+
+    /// Copy triangles from one mesh into another
+    pub fn extend(&mut self, other: &Self) {
+        let offset = self.vertices.len() as u32;
+        self.vertices.extend(&other.vertices);
+        self.triangles.extend(other.triangles.iter().map(|t| {
+            let mut t = t.clone();
+            t.add_offset(offset);
+            t
+        }));
     }
 
     /// Add traingles + vertices from an iterator
@@ -56,20 +67,16 @@ impl AbstractMesh {
         }
     }
 
-    /// Temporary solution to fix vertices that have been created in a different coordinate space than should be used for AbstractMesh
-    pub fn normalize(&mut self) {
-        let mut min_x = 0.0;
-        let mut min_y = 0.0;
-        let mut max_x = 0.0;
-        let mut max_y = 0.0;
-        for v in &self.vertices {
-            min_x = v.pos.x.min(min_x);
-            min_y = v.pos.y.min(min_y);
-            max_x = v.pos.x.max(max_x);
-            max_y = v.pos.y.max(max_y);
-        }
+    /// Transforms the mesh from a coordinate space within `bounding_box` into the normalized space (x,y in [-1,+1])
+    pub fn normalize(&mut self, bounding_box: &Rectangle) {
+        let min_x = bounding_box.pos.x;
+        let min_y = bounding_box.pos.y;
+        let max_x = bounding_box.pos.x + bounding_box.size.x;
+        let max_y = bounding_box.pos.y + bounding_box.size.y;
+
         debug_assert_ne!(min_x, max_x, "Cannot normalize mesh with 0 area");
         debug_assert_ne!(min_y, max_y, "Cannot normalize mesh with 0 area");
+
         let offset = Vector::new(-min_x, -min_y);
         let scale = Vector::new(2.0 / (max_x - min_x), 2.0 / (max_y - min_y));
         let const_offset = Vector::new(-1.0, -1.0);
@@ -111,5 +118,10 @@ impl AbstractTriangle {
                 indices[2] + offset,
             ],
         }
+    }
+    pub fn add_offset(&mut self, offset: u32) {
+        self.indices[0] += offset;
+        self.indices[1] += offset;
+        self.indices[2] += offset;
     }
 }

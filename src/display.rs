@@ -9,6 +9,7 @@
 mod canvas;
 mod display_area;
 mod display_paint;
+mod fit_strategy;
 mod gpu;
 mod render;
 mod text;
@@ -16,7 +17,7 @@ mod text;
 pub use canvas::*;
 pub use display_area::*;
 pub use display_paint::DisplayPaint;
-use div::DivHandle;
+pub use fit_strategy::FitStrategy;
 pub use gpu::{
     CustomShader, GpuConfig, GpuMesh, GpuTriangle, GpuVertex, RenderPipelineHandle, UniformValue,
     VertexDescriptor,
@@ -27,6 +28,7 @@ pub use text::*;
 use crate::*;
 use crate::{graphics::AbstractMesh, Vector};
 use crate::{graphics::ImageLoader, graphics::TextureConfig, quicksilver_compat::Color};
+use div::DivHandle;
 use wasm_bindgen::{JsCast, JsValue};
 use web_sys::{Element, HtmlCanvasElement};
 
@@ -251,39 +253,38 @@ impl Display {
         )
     }
 
-    pub fn draw_ex<'a>(
-        &'a mut self,
-        draw: &impl Tessellate,
+    /// Draw on the display with exhaustive options
+    pub fn draw_ex(
+        &mut self,
+        shape: &impl Tessellate,
         paint: &impl DisplayPaint,
-        trans: Transform,
+        trans: &Transform,
         z: i16,
     ) {
         // TODO: Keep tesselation for frame and apply transformation once per frame (potentially on GPU)
         self.tessellation_buffer.clear();
-        draw.tessellate(&mut self.tessellation_buffer);
-        let area = draw.bounding_box();
-        let trans = Transform::translate(quicksilver_compat::Shape::center(&area))
-            * trans
-            * Transform::translate(-quicksilver_compat::Shape::center(&area));
+        shape.tessellate(&mut self.tessellation_buffer);
+        let base_area = shape.bounding_box();
+        let trans = *trans * ABSTRACT_SPACE.project(&base_area);
         self.canvas.render(
             &self.tessellation_buffer,
-            area,
-            trans,
+            &trans,
             &(paint, &self.asset_library),
             z,
         );
     }
     // Insert triangles to buffer with a transform and z value
-    pub fn draw_mesh_ex<'a>(
+    pub fn draw_mesh_ex(
         &mut self,
         mesh: &AbstractMesh,
         paint: &impl DisplayPaint,
         area: Rectangle,
-        t: Transform,
+        t: &Transform,
         z: i16,
     ) {
+        let trans = *t * ABSTRACT_SPACE.project(&area);
         self.canvas
-            .render(mesh, area, t, &(paint, &self.asset_library), z);
+            .render(mesh, &trans, &(paint, &self.asset_library), z);
     }
     // TODO: Find a better way to expose this
     pub fn new_render_pipeline(
