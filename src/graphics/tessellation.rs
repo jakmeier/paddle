@@ -16,13 +16,13 @@ pub use lyon_tessellator::*;
 /// Some geometry object or shape that can be tessellated to an AbstractMesh of triangles
 pub trait Tessellate {
     /// Creates triangles and vertices as necessary to represent the tessellated object.
-    fn tessellate<'a>(&self, mesh: &mut AbstractMesh);
+    fn tessellate(&self, mesh: &mut AbstractMesh);
     /// The area in which the tessellated object is positioned. This is used for texture lookup.
     fn bounding_box(&self) -> Rectangle;
 }
 
 impl Tessellate for Rectangle {
-    fn tessellate<'a>(&self, mesh: &mut AbstractMesh) {
+    fn tessellate(&self, mesh: &mut AbstractMesh) {
         let vertices = vec![
             Vector::new(-1, -1),
             Vector::new(1, -1),
@@ -39,7 +39,7 @@ impl Tessellate for Rectangle {
 
 // TODO: Everything below needs to be in [-1,1]
 impl Tessellate for Circle {
-    fn tessellate<'a>(&self, mesh: &mut AbstractMesh) {
+    fn tessellate(&self, mesh: &mut AbstractMesh) {
         let offset =
             mesh.add_positioned_vertices(CIRCLE_POINTS.iter().cloned(), Transform::IDENTITY);
         mesh.triangles.extend(
@@ -53,7 +53,7 @@ impl Tessellate for Circle {
 }
 
 impl Tessellate for Triangle {
-    fn tessellate<'a>(&self, mesh: &mut AbstractMesh) {
+    fn tessellate(&self, mesh: &mut AbstractMesh) {
         let trans = Shape::bounding_box(self).project(&Rectangle::new((-1, -1), (2, 2)));
         let offset = mesh.add_positioned_vertices([self.a, self.b, self.c].iter().cloned(), trans);
         mesh.triangles
@@ -65,7 +65,7 @@ impl Tessellate for Triangle {
 }
 
 impl Tessellate for Line {
-    fn tessellate<'a>(&self, mesh: &mut AbstractMesh) {
+    fn tessellate(&self, mesh: &mut AbstractMesh) {
         // create rectangle in right size
         let rect = Rectangle::new(
             (self.a.x, self.a.y + self.t / 2.0),

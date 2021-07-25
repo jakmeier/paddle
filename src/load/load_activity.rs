@@ -3,8 +3,8 @@ use std::collections::HashMap;
 use nuts::DomainState;
 
 use crate::{
-    AssetLibrary, Domain, FinishedLoading, FinishedLoadingMsg, Image, ImageDesc, LoadScheduler,
-    LoadSchedulerId, LoadedData, LoadingDoneMsg, UpdatedProgressMsg,
+    AssetLibrary, ComplexShape, Domain, FinishedLoading, FinishedLoadingMsg, Image, ImageDesc,
+    LoadScheduler, LoadSchedulerId, LoadedData, LoadingDoneMsg, ShapeDesc, UpdatedProgressMsg,
 };
 
 /// Internal activity to keep track of currently loading downloads and reacting to the corresponding events.
@@ -19,6 +19,11 @@ pub(crate) struct LoadedImageAsset {
     pub img: Image,
 }
 
+pub(crate) struct LoadedShapeAsset {
+    pub desc: ShapeDesc,
+    pub shape: ComplexShape,
+}
+
 impl LoadActivity {
     pub(crate) fn init() {
         let activity = LoadActivity {
@@ -28,6 +33,7 @@ impl LoadActivity {
         aid.private_channel(LoadActivity::add_scheduler);
         aid.private_channel(LoadActivity::update_progress);
         aid.private_domained_channel(LoadActivity::image_to_asset_library);
+        aid.private_domained_channel(LoadActivity::shape_to_asset_library);
         aid.subscribe(LoadActivity::finish_if_done);
     }
     fn add_scheduler(&mut self, msg: LoadScheduler) {
@@ -35,6 +41,9 @@ impl LoadActivity {
     }
     fn image_to_asset_library(&mut self, domain: &mut DomainState, img_asset: LoadedImageAsset) {
         AssetLibrary::from_domain(domain).add_image(img_asset.desc, img_asset.img);
+    }
+    fn shape_to_asset_library(&mut self, domain: &mut DomainState, shape_asset: LoadedShapeAsset) {
+        AssetLibrary::from_domain(domain).add_shape(shape_asset.desc, shape_asset.shape);
     }
     fn update_progress(&mut self, msg: FinishedLoadingMsg) {
         let mut maybe_lm = self.loading_bundles.get_mut(&msg.id);

@@ -1,6 +1,6 @@
 use crate::{
     error::NutsCheck, graphics::AbstractMesh, quicksilver_compat::Shape, Display, DisplayPaint,
-    ErrorMessage, Rectangle, RenderPipelineHandle, Tessellate, Transform, Vector,
+    DisplayTessellate, ErrorMessage, Rectangle, RenderPipelineHandle, Transform, Vector,
 };
 use div::DivHandle;
 use web_sys::Element;
@@ -69,7 +69,7 @@ impl DisplayArea {
     /// Draw a Drawable to the window with more options provided (draw exhaustive)
     pub fn draw_ex(
         &mut self,
-        draw: &impl Tessellate,
+        draw: &impl DisplayTessellate,
         bkg: &impl DisplayPaint,
         trans: Transform,
         z: i16,

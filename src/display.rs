@@ -9,6 +9,7 @@
 mod canvas;
 mod display_area;
 mod display_paint;
+mod display_tessellate;
 mod fit_strategy;
 mod gpu;
 mod render;
@@ -17,6 +18,7 @@ mod text;
 pub use canvas::*;
 pub use display_area::*;
 pub use display_paint::DisplayPaint;
+pub use display_tessellate::DisplayTessellate;
 pub use fit_strategy::FitStrategy;
 pub use gpu::{
     CustomShader, GpuConfig, GpuMesh, GpuTriangle, GpuVertex, RenderPipelineHandle, UniformValue,
@@ -256,15 +258,18 @@ impl Display {
     /// Draw on the display with exhaustive options
     pub fn draw_ex(
         &mut self,
-        shape: &impl Tessellate,
+        shape: &impl DisplayTessellate,
         paint: &impl DisplayPaint,
         trans: &Transform,
         z: i16,
     ) {
         // TODO: Keep tesselation for frame and apply transformation once per frame (potentially on GPU)
         self.tessellation_buffer.clear();
-        shape.tessellate(&mut self.tessellation_buffer);
-        let base_area = shape.bounding_box();
+        shape.tessellate(&self.asset_library, &mut self.tessellation_buffer);
+        let base_area = shape
+            .bounding_box(&self.asset_library)
+            .nuts_check()
+            .unwrap_or(ABSTRACT_SPACE);
         let trans = *trans * ABSTRACT_SPACE.project(&base_area);
         self.canvas.render(
             &self.tessellation_buffer,

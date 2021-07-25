@@ -12,7 +12,10 @@ pub use asset_descriptors::*;
 pub use asset_loading::*;
 use nuts::DomainState;
 
-use crate::{Context, DisplayPaint, Image};
+use crate::{
+    AbstractMesh, ComplexShape, Context, DisplayPaint, DisplayTessellate, ErrorMessage, Image,
+    NutsCheck, PaddleResult, Rectangle, Tessellate,
+};
 use std::collections::HashMap;
 
 /// Internal storage of assets loaded through an `AssetBundle`
@@ -20,21 +23,44 @@ use std::collections::HashMap;
 pub struct AssetLibrary {
     images: HashMap<ImageDesc, Image>,
     // animations: Vec<AnimatedObject>,
-    // shapes: Vec<Shape>,
+    shapes: HashMap<ShapeDesc, ComplexShape>,
 }
 
 impl AssetLibrary {
     pub fn add_image(&mut self, desc: ImageDesc, img: Image) {
         self.images.insert(desc, img);
     }
-    pub fn from_domain(domain: &mut DomainState) -> &mut Self {
+    pub fn add_shape(&mut self, desc: ShapeDesc, shape: ComplexShape) {
+        self.shapes.insert(desc, shape);
+    }
+    pub(crate) fn from_domain(domain: &mut DomainState) -> &mut Self {
         let context = domain.get_mut::<Context>();
         context.display.full_mut().asset_library()
+    }
+    pub fn lookup_shape(&self, desc: ShapeDesc) -> PaddleResult<&ComplexShape> {
+        self.shapes.get(&desc).ok_or_else(|| {
+            ErrorMessage::technical(format!(
+                "Attempted to draw ComplexShape that has not been laded: {}",
+                desc.name
+            ))
+        })
     }
 }
 
 impl DisplayPaint for ImageDesc {
     fn image<'a>(&'a self, assets: &'a AssetLibrary) -> Option<&'a Image> {
         assets.images.get(self)
+    }
+}
+
+impl DisplayTessellate for ShapeDesc {
+    fn tessellate(&self, assets: &AssetLibrary, mesh: &mut AbstractMesh) {
+        if let Some(shape) = assets.lookup_shape(*self).nuts_check() {
+            Tessellate::tessellate(shape, mesh);
+        }
+    }
+
+    fn bounding_box(&self, assets: &AssetLibrary) -> PaddleResult<Rectangle> {
+        assets.lookup_shape(*self).map(Tessellate::bounding_box)
     }
 }
