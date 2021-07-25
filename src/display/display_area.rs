@@ -1,6 +1,7 @@
 use crate::{
     error::NutsCheck, graphics::AbstractMesh, quicksilver_compat::Shape, Display, DisplayPaint,
-    DisplayTessellate, ErrorMessage, Rectangle, RenderPipelineHandle, Transform, Vector,
+    DisplayTessellate, ErrorMessage, FitStrategy, Rectangle, RenderPipelineHandle, Transform,
+    Vector,
 };
 use div::DivHandle;
 use web_sys::Element;
@@ -55,18 +56,32 @@ impl DisplayArea {
     /// See `draw_ex` for more drawing options.
     pub fn draw(&mut self, position: &Rectangle, bkg: &impl DisplayPaint) {
         let trans = self.frame_to_display_coordinates();
-        self.display.draw_ex(position, bkg, &trans, 0);
+        self.display.draw_ex(None, position, bkg, &trans, 0);
     }
+    /// Like `draw` but also allows to specify the z-layer.
+    ///
+    /// Higher z values are drawn over lower values. The default z value is 0.
     pub fn draw_z(&mut self, position: &Rectangle, bkg: &impl DisplayPaint, z: i16) {
         let trans = self.frame_to_display_coordinates();
-        self.display.draw_ex(position, bkg, &trans, z);
+        self.display.draw_ex(None, position, bkg, &trans, z);
     }
-    /// Fills selected area with the given color (or image)
-    pub fn fill(&mut self, bkg: &impl DisplayPaint) {
-        let region = Rectangle::new_sized(self.region.size);
-        self.draw(&region, bkg);
+    /// Draw any shape at a specific position with a specific paint.
+    pub fn draw_positioned_shape(
+        &mut self,
+        position: &Rectangle,
+        shape: &impl DisplayTessellate,
+        bkg: &impl DisplayPaint,
+        fit_strat: FitStrategy,
+        z: i16,
+    ) {
+        let trans = self.frame_to_display_coordinates();
+        self.display
+            .draw_ex(Some((position, fit_strat)), shape, bkg, &trans, z)
     }
-    /// Draw a Drawable to the window with more options provided (draw exhaustive)
+    /// Draw a Drawable to the window with exhaustive flexibility.
+    ///
+    /// With this method, the drawn object has to be sized and positioned through transformations.
+    /// The other draw methods are easier to use but they don't allow for arbitrary transformations, such as rotations.
     pub fn draw_ex(
         &mut self,
         draw: &impl DisplayTessellate,
@@ -75,12 +90,18 @@ impl DisplayArea {
         z: i16,
     ) {
         let trans = self.frame_to_display_coordinates() * trans;
-        self.display.draw_ex(draw, bkg, &trans, z)
+        self.display.draw_ex(None, draw, bkg, &trans, z)
+    }
+    /// Fills selected area with the given color (or image)
+    pub fn fill(&mut self, bkg: &impl DisplayPaint) {
+        let region = Rectangle::new_sized(self.region.size);
+        self.draw(&region, bkg);
     }
     /// Fit (the entire display) to be fully visible
     pub fn fit_display(&mut self, margin: f64) {
         self.display.fit_to_visible_area(margin).nuts_check();
     }
+    // TODO? Remove draw_mesh?
     /// Draw onto the display area from a mesh of triangles. Useful for custom tesselation.
     pub fn draw_mesh<'a>(
         &mut self,

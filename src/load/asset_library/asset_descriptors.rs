@@ -7,7 +7,7 @@ pub struct ImageDesc {
 }
 
 /// Shape descriptor: Names a complex shape and can be used for drawing.
-#[derive(Clone, Copy, Hash, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy, Hash, Eq, PartialEq)]
 pub struct ShapeDesc {
     pub(crate) name: &'static str,
 }

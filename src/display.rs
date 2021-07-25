@@ -258,6 +258,7 @@ impl Display {
     /// Draw on the display with exhaustive options
     pub fn draw_ex(
         &mut self,
+        position: Option<(&Rectangle, FitStrategy)>,
         shape: &impl DisplayTessellate,
         paint: &impl DisplayPaint,
         trans: &Transform,
@@ -270,7 +271,11 @@ impl Display {
             .bounding_box(&self.asset_library)
             .nuts_check()
             .unwrap_or(ABSTRACT_SPACE);
-        let trans = *trans * ABSTRACT_SPACE.project(&base_area);
+        let final_position = match position {
+            Some((pos, fit_strat)) => base_area.fit_into_ex(pos, fit_strat, true),
+            None => base_area,
+        };
+        let trans = *trans * ABSTRACT_SPACE.project(&final_position);
         self.canvas.render(
             &self.tessellation_buffer,
             &trans,
