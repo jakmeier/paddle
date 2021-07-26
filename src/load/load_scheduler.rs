@@ -13,12 +13,12 @@ use crate::{ErrorMessage, LoadActivity, PaddleResult};
 /// ## Usage
 ///     1. Register a set of futures that will load the resources
 ///     2. (optional) Place a closure with `set_after_loading` that receives the data once the scheduler has loaded everything.
-///     3. Call `track_loading`, which will consume the `LoadScheduler` and return a tracker object.
-///     4. (optional)  Subscribe to `LoadingProgress` event to receive updates on each loaded item
+///     3. Call `track_loading`, which will consume the `LoadScheduler` and return a tracker ID.
+///     4. (optional)  Subscribe to `LoadingProgressMsg` event to receive updates on each loaded item. Use the tracker ID to check if the loaded item was part of
 ///     5. (optional) Subscribe to `LoadingDone` event and extract resources from the `LoadedData` object in the domain
 ///
 /// ## Nuts Events published
-/// **LoadingProgress**: Published on every resource that has been loaded, including the relative progress and the message of a currently loaded resource
+/// **LoadingProgressMsg**: Published on every resource that has been loaded, including the relative progress and the message of a currently loaded resource
 ///
 /// **LoadingDone**: Published once when the last resource finished loading
 ///
@@ -27,7 +27,7 @@ pub struct LoadScheduler {
     pub(crate) total_items: usize,
     pub(crate) loaded: usize,
     pub(crate) loadables: HashMap<TypeId, Loadable>,
-    pub(crate) post_loading: Option<Box<dyn FnOnce(LoadedData)>>, //TODO: exec afterwards or something like that
+    pub(crate) post_loading: Option<Box<dyn FnOnce(LoadedData)>>,
 }
 #[derive(Hash, PartialEq, Eq, Copy, Clone)]
 pub struct LoadSchedulerId(u64);
@@ -71,8 +71,10 @@ impl LoadScheduler {
             post_loading: None,
         }
     }
-    pub fn track_loading(self) {
+    pub fn track_loading(self) -> LoadSchedulerId {
+        let id = self.id;
         nuts::send_to::<LoadActivity, _>(self);
+        id
     }
 
     /// Register a future to be loaded.
