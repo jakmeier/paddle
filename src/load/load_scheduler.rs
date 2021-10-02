@@ -88,11 +88,13 @@ impl LoadScheduler {
         let key = TypeId::of::<T>();
         self.loadables.insert(key, Loadable::new::<T>(msg));
         self.total_items += 1;
+        let id = self.id;
 
-        let outer_future = async {
+        let outer_future = async move {
             let resource = future.await;
-            let data = Box::new(resource);
-            let msg = FinishedLoading::Item(data);
+            let boxed = Box::new(resource);
+            let data = FinishedLoading::Item(boxed);
+            let msg = FinishedLoadingMsg { data, id };
             nuts::send_to::<LoadActivity, _>(msg);
         };
         wasm_bindgen_futures::spawn_local(outer_future);
@@ -110,12 +112,14 @@ impl LoadScheduler {
         let key = TypeId::of::<T>();
         self.loadables.insert(key, Loadable::new_vec::<T>(n, msg));
         self.total_items += n;
+        let id = self.id;
 
         for (i, future) in future_vec.into_iter().enumerate() {
             let outer_future = async move {
                 let resource = future.await;
                 let data = Box::new(resource);
-                let msg = FinishedLoading::VecItem(data, i);
+                let data = FinishedLoading::VecItem(data, i);
+                let msg = FinishedLoadingMsg { data, id };
                 nuts::send_to::<LoadActivity, _>(msg);
             };
             wasm_bindgen_futures::spawn_local(outer_future);
@@ -124,7 +128,7 @@ impl LoadScheduler {
 
     /// Register a data type that needs to be loaded.
     ///
-    /// When this function is used, the data has to be manually added using `add_progress`.
+    /// When this function is used, the data has to be manually added using the method `add_progress` or static method `report_progress`.
     /// It can then be later extracted from LoadedData just like data registers as futures.
     ///
     /// This is useful when some of data to load does not use a future.
@@ -169,6 +173,7 @@ impl LoadScheduler {
     pub fn add_progress<T: Any>(&mut self, loaded: T) {
         self.add_vec_progress(Box::new(loaded), 0)
     }
+
     /// Update the progress tracking with a new resource
     pub fn add_vec_progress(&mut self, loaded: Box<dyn Any>, index: usize) {
         let key = (*loaded).type_id();
@@ -206,6 +211,13 @@ impl LoadScheduler {
         }
         None
     }
+    pub(crate) fn send_progress_message(&mut self) {
+        nuts::publish(LoadingProgressMsg {
+            id: self.id,
+            progress: self.progress(),
+            description: self.waiting_for().unwrap_or(""),
+        })
+    }
 
     /// Set the closure to be executed after all loading is done.
     /// The closure has access to `LoadedData`, from which all the data can be extracted.
@@ -214,6 +226,24 @@ impl LoadScheduler {
         F: FnOnce(LoadedData) + 'static,
     {
         self.post_loading = Some(Box::new(f));
+    }
+}
+
+impl LoadSchedulerId {
+    /// Update the progress tracking with a new resource without requiring access to the LoadScheduler instance.
+    /// The resource will be put in a box, so if you already have one, just
+    /// use manually_report_progress_boxed to avoid an extra reboxing.
+    pub fn manually_report_progress<T: Any>(self, loaded: T) {
+        let data = FinishedLoading::Item(Box::new(loaded));
+        let msg = FinishedLoadingMsg { data, id: self };
+        nuts::send_to::<LoadActivity, _>(msg);
+    }
+
+    /// Update the progress tracking with a new resource without requiring access to the LoadScheduler instance.
+    pub fn manually_report_progress_boxed(self, loaded: Box<dyn Any>) {
+        let data = FinishedLoading::Item(loaded);
+        let msg = FinishedLoadingMsg { data, id: self };
+        nuts::send_to::<LoadActivity, _>(msg);
     }
 }
 

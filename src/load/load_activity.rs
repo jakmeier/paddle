@@ -34,7 +34,7 @@ impl LoadActivity {
         aid.private_channel(LoadActivity::update_progress);
         aid.private_domained_channel(LoadActivity::image_to_asset_library);
         aid.private_domained_channel(LoadActivity::shape_to_asset_library);
-        aid.subscribe(LoadActivity::finish_if_done);
+        aid.subscribe(LoadActivity::after_progress);
     }
     fn add_scheduler(&mut self, msg: LoadScheduler) {
         self.loading_bundles.insert(msg.id, msg);
@@ -55,21 +55,22 @@ impl LoadActivity {
             FinishedLoading::VecItem(data, index) => lm.add_vec_progress(data, index),
         }
     }
-    fn finish_if_done(&mut self, msg: &UpdatedProgressMsg) {
+    // After new progress has been reported, perform actions and send notifications as necessary.
+    fn after_progress(&mut self, msg: &UpdatedProgressMsg) {
         let maybe_lm = self.loading_bundles.get_mut(&msg.id);
-        let mut done = false;
         if let Some(lm) = maybe_lm {
-            done = lm.done();
-        }
-        if done {
-            debug_println!("Loading done");
-            let lm = self.loading_bundles.remove(&msg.id).unwrap();
-            let loadables = lm.loadables;
-            let loaded = LoadedData { loadables };
-            if let Some(f) = lm.post_loading {
-                f(loaded);
-            };
-            nuts::publish(LoadingDoneMsg { id: msg.id });
+            if lm.done() {
+                debug_println!("Loading done");
+                let lm = self.loading_bundles.remove(&msg.id).unwrap();
+                let loadables = lm.loadables;
+                let loaded = LoadedData { loadables };
+                if let Some(f) = lm.post_loading {
+                    f(loaded);
+                };
+                nuts::publish(LoadingDoneMsg { id: msg.id });
+            } else {
+                lm.send_progress_message();
+            }
         }
     }
 }
