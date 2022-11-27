@@ -142,8 +142,8 @@ impl WebGLCanvas {
 
     pub fn new_render_pipeline(
         &mut self,
-        vertex_shader_text: &'static str,
-        fragment_shader_text: &'static str,
+        vertex_shader_text: &str,
+        fragment_shader_text: &str,
         vertex_descriptor: VertexDescriptor,
         uniform_values: &[(&'static str, UniformValue)],
     ) -> PaddleResult<RenderPipelineHandle> {
