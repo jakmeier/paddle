@@ -2,7 +2,8 @@
 name = "paddle"
 version = "0.1.0-beta.1"
 authors = ["Jakob Meier <inbox@jakobmeier.ch>"]
-edition = "2018"
+edition = "2021"
+rust-version = "1.65"
 license = "MIT/Apache-2.0"
 categories = ["game-engines", "game-development", "wasm", "web-programming"]
 keywords = ["paddlers"]
@@ -22,9 +23,9 @@ div = { path = "../div-rs" }
 chrono = "0.4.19"
 rand = "0.7"
 serde = {version = "1.0", features = ["derive"] }
-lyon = { version = "0.17", features = ["extra"] }
-strum = "0.20"
-strum_macros = "0.20"
+lyon = "1.0"
+strum = "0.24"
+strum_macros = "0.24"
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
 js-sys = "0.3"

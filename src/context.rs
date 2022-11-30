@@ -9,6 +9,7 @@ pub use config::*;
 /// Root object that holds state for paddle game engine. Is stored in Domain::Frame upon initialization.
 pub(crate) struct Context {
     pub display: DisplayArea,
+    #[allow(unused)]
     pub scheduling: SchedulingContext,
 }
 impl Context {

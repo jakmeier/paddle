@@ -3,9 +3,13 @@ use div::DivHandle;
 
 #[derive(Debug)]
 pub struct FloatingText {
+    #[allow(unused)]
     x: u32,
+    #[allow(unused)]
     y: u32,
+    #[allow(unused)]
     w: u32,
+    #[allow(unused)]
     h: u32,
     node: TextNode,
     pane: DivHandle,

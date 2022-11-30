@@ -4,15 +4,12 @@ use lyon::{
         FillGeometryBuilder, FillVertexConstructor, GeometryBuilderError, StrokeGeometryBuilder,
         StrokeVertexConstructor, VertexId,
     },
-    tessellation::{
-        geometry_builder::{Count, GeometryBuilder},
-        FillVertex, StrokeVertex,
-    },
+    tessellation::{geometry_builder::GeometryBuilder, FillVertex, StrokeVertex},
 };
 
 use super::{AbstractMesh, AbstractTriangle, AbstractVertex};
 
-/// A way to render complex shapes using the lyon API
+/// A way to render complex shapes using the lyon API to an AbstractMesh.
 pub struct ShapeRenderer<'a> {
     mesh: &'a mut AbstractMesh,
     dirty: Option<usize>,
@@ -31,15 +28,8 @@ impl<'a> GeometryBuilder for ShapeRenderer<'a> {
         self.dirty = Some(self.mesh.triangles.len());
     }
 
-    fn end_geometry(&mut self) -> Count {
-        let dirty = self
-            .dirty
-            .expect("begin_geometry must be called before end_geometry");
+    fn end_geometry(&mut self) {
         self.dirty = None;
-        Count {
-            vertices: self.mesh.vertices[dirty..].len() as u32,
-            indices: self.mesh.triangles[dirty..].len() as u32 * 3,
-        }
     }
 
     fn add_triangle(&mut self, a: VertexId, b: VertexId, c: VertexId) {
