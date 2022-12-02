@@ -26,10 +26,10 @@ serde = {version = "1.0", features = ["derive"] }
 lyon = "1.0"
 strum = "0.24"
 strum_macros = "0.24"
-wasm-bindgen = "0.2"
+wasm-bindgen = "0.2.83"
 wasm-bindgen-futures = "0.4"
 js-sys = "0.3"
-console_error_panic_hook = { version = "0.1.6", optional = true }
+console_error_panic_hook = { version = "0.1.7", optional = true }
 
 
 [dependencies.web-sys]
@@ -60,4 +60,5 @@ features = [
 
 [features]
 default = ["console_error_panic_hook"]
-const_fn = []
+nightly = []
+const_fn = ["nightly"]

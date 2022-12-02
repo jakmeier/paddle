@@ -1,6 +1,7 @@
 //! Paddle is a framework for easy game building for the browser.
 //! TODO: more description, README
 //!
+#![cfg_attr(feature = "nightly", feature(const_fn_floating_point_arithmetic))]
 
 pub use nuts;
 
