@@ -1,17 +1,29 @@
 //! Glue module between paddle.js and the Rust side of Paddle
 
-use wasm_bindgen::prelude::wasm_bindgen;
+use wasm_bindgen::prelude::{wasm_bindgen, Closure};
 use web_sys::HtmlElement;
 
 use crate::input::browser_pointer_events::*;
 use crate::*;
+
+pub type ClickEventGateFnType = dyn FnMut(usize, ClickEventType, f32, f32);
+pub type MouseEventGateFnType = dyn FnMut(usize, MouseEventType, f32, f32);
+pub type KeyboardEventGateFnType = dyn FnMut(usize, KeyEventType, Key);
+pub type PointerEventGateFnType = dyn FnMut(usize, BrowserPointerEventType, f32, f32);
+pub type TouchEventGateFnType = dyn FnMut(usize, TouchEventType, f32, f32);
 
 #[wasm_bindgen(module = "/src/js/paddle.js")]
 extern "C" {
     pub type PaddleJsContext;
 
     #[wasm_bindgen(constructor)]
-    pub fn new() -> PaddleJsContext;
+    pub fn new(
+        click_event_gate: &Closure<ClickEventGateFnType>,
+        mouse_event_gate: &Closure<MouseEventGateFnType>,
+        keyboard_event_gate: &Closure<KeyboardEventGateFnType>,
+        pointer_event_gate: &Closure<PointerEventGateFnType>,
+        touch_event_gate: &Closure<TouchEventGateFnType>,
+    ) -> PaddleJsContext;
 
     #[wasm_bindgen(method)]
     #[wasm_bindgen(js_name = registerClickEventListener)]

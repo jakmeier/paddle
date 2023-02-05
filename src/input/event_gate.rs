@@ -1,12 +1,16 @@
+use super::browser_pointer_events::TouchEventType;
 use super::event::*;
 use super::{browser_pointer_events::*, keys::Key};
+use crate::js::{
+    ClickEventGateFnType, KeyboardEventGateFnType, MouseEventGateFnType, PointerEventGateFnType,
+    TouchEventGateFnType,
+};
 use crate::{js::PaddleJsContext, FrameHandle, Vector};
 use div::DivHandle;
 use nuts::{Activity, UncheckedActivityId};
+use std::any::Any;
 use strum::IntoEnumIterator;
-use wasm_bindgen::prelude::wasm_bindgen;
-
-use super::browser_pointer_events::{BrowserPointerEventType, TouchEventType};
+use wasm_bindgen::prelude::Closure;
 
 pub(crate) struct RegisterEventListener {
     event_type: EventListenerType,
@@ -28,38 +32,59 @@ pub enum EventListenerType {
 /// A single JS EventListener sits on the JS side of things and will call event_from_js(ID) with event IDs.
 pub(crate) struct EventGate {
     js: PaddleJsContext,
+    _closure_guards: Vec<Box<dyn Any>>,
 }
 
-#[wasm_bindgen(module = "/src/js/paddle.js")]
-pub fn click_event_gate(activity_id: usize, event: ClickEventType, x: f32, y: f32) {
+/// handler injected to PaddleJsContext
+fn click_event_gate(activity_id: usize, event: ClickEventType, x: f32, y: f32) {
     let aid = UncheckedActivityId::forge_from_usize(activity_id);
     aid.private_message(PointerEvent(event.into(), Vector::new(x, y)));
 }
-#[wasm_bindgen(module = "/src/js/paddle.js")]
-pub fn mouse_event_gate(activity_id: usize, event: MouseEventType, x: f32, y: f32) {
+
+/// handler injected to PaddleJsContext
+fn mouse_event_gate(activity_id: usize, event: MouseEventType, x: f32, y: f32) {
     let aid = UncheckedActivityId::forge_from_usize(activity_id);
     aid.private_message(PointerEvent(event.into(), Vector::new(x, y)));
 }
-#[wasm_bindgen(module = "/src/js/paddle.js")]
-pub fn touch_event_gate(activity_id: usize, event: TouchEventType, x: f32, y: f32) {
+
+/// handler injected to PaddleJsContext
+fn touch_event_gate(activity_id: usize, event: TouchEventType, x: f32, y: f32) {
     let aid = UncheckedActivityId::forge_from_usize(activity_id);
     aid.private_message(PointerEvent(event.into(), Vector::new(x, y)));
 }
-#[wasm_bindgen(module = "/src/js/paddle.js")]
-pub fn pointer_event_gate(activity_id: usize, event: BrowserPointerEventType, x: f32, y: f32) {
+
+/// handler injected to PaddleJsContext
+fn pointer_event_gate(activity_id: usize, event: BrowserPointerEventType, x: f32, y: f32) {
     let aid = UncheckedActivityId::forge_from_usize(activity_id);
     aid.private_message(PointerEvent(event.into(), Vector::new(x, y)));
 }
-#[wasm_bindgen(module = "/src/js/paddle.js")]
-pub fn keyboard_event_gate(activity_id: usize, event: KeyEventType, key: Key) {
+
+/// handler injected to PaddleJsContext
+fn keyboard_event_gate(activity_id: usize, event: KeyEventType, key: Key) {
     let aid = UncheckedActivityId::forge_from_usize(activity_id);
     aid.private_message(KeyEvent(event, key));
 }
 
 impl EventGate {
     pub(crate) fn init() {
+        let click = Closure::wrap(Box::new(click_event_gate) as Box<ClickEventGateFnType>);
+        let mouse = Closure::wrap(Box::new(mouse_event_gate) as Box<MouseEventGateFnType>);
+        let key = Closure::wrap(Box::new(keyboard_event_gate) as Box<KeyboardEventGateFnType>);
+        let pointer = Closure::wrap(Box::new(pointer_event_gate) as Box<PointerEventGateFnType>);
+        let touch = Closure::wrap(Box::new(touch_event_gate) as Box<TouchEventGateFnType>);
+
+        let js = PaddleJsContext::new(&click, &mouse, &key, &pointer, &touch);
+        let _closure_guards = vec![
+            Box::new(click) as Box<dyn Any>,
+            Box::new(mouse),
+            Box::new(key),
+            Box::new(pointer),
+            Box::new(touch),
+        ];
+
         let gate = EventGate {
-            js: PaddleJsContext::new(),
+            js,
+            _closure_guards,
         };
         let aid = nuts::new_activity(gate);
         aid.private_channel(Self::register_event_listener);

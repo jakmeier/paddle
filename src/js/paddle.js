@@ -1,8 +1,23 @@
-import { click_event_gate, mouse_event_gate, keyboard_event_gate, pointer_event_gate, touch_event_gate } from "#RUST#";
 import { mouseEventString, clickEventString, touchEventString, pointerEventString, keyboardEventString, keyEventEnum } from "./enums";
 
 export class PaddleJsContext {
-    constructor() {}
+    // These are some methods written in Rust, inside Paddle. When a Rust
+    // project depends on Paddle and paddle-js it will have these methods
+    // exported in the final WASM module. We cannot depend on that module in a
+    // proper way so instead we use dependency injection here.
+    constructor(
+        click_event_gate,
+        mouse_event_gate,
+        keyboard_event_gate,
+        pointer_event_gate,
+        touch_event_gate,
+    ) {
+        this.click_event_gate = click_event_gate;
+        this.mouse_event_gate = mouse_event_gate;
+        this.keyboard_event_gate = keyboard_event_gate;
+        this.pointer_event_gate = pointer_event_gate;
+        this.touch_event_gate = touch_event_gate;
+    }
 
     // A request, incoming from Rust, to add a listener of the specified type to a frame.
     // @param eventType: MouseEventType
@@ -34,13 +49,13 @@ export class PaddleJsContext {
         const rect = event.target.getBoundingClientRect();
         const x = event.clientX - rect.left;
         const y = event.clientY - rect.top;
-        click_event_gate(callbackId, eventType, x, y);
+        this.click_event_gate(callbackId, eventType, x, y);
     }
     forwardMouseEvent(event, eventType, callbackId) {
         const rect = event.target.getBoundingClientRect();
         const x = event.clientX - rect.left;
         const y = event.clientY - rect.top;
-        mouse_event_gate(callbackId, eventType, x, y);
+        this.mouse_event_gate(callbackId, eventType, x, y);
     }
     forwardTouchEvent(event, eventType, callbackId) {
         // Do not call preventDefault(), we want the generate clicks events
@@ -49,7 +64,7 @@ export class PaddleJsContext {
             const rect = touch.target.getBoundingClientRect();
             const x = touch.clientX - rect.left;
             const y = touch.clientY - rect.top;
-            touch_event_gate(callbackId, eventType, x, y);
+            this.touch_event_gate(callbackId, eventType, x, y);
         }
     }
     forwardPointerEvent(event, eventType, callbackId) {
@@ -57,12 +72,12 @@ export class PaddleJsContext {
         const rect = event.target.getBoundingClientRect();
         const x = event.clientX - rect.left;
         const y = event.clientY - rect.top;
-        pointer_event_gate(callbackId, eventType, x, y);
+        this.pointer_event_gate(callbackId, eventType, x, y);
     }
     forwardKeyboardEvent(event, eventType, callbackId) {
         let key = keyEventEnum(event);
-        if (typeof(key) === "number") {
-            keyboard_event_gate(callbackId, eventType, key);
+        if (typeof (key) === "number") {
+            this.keyboard_event_gate(callbackId, eventType, key);
         }
     }
 }
