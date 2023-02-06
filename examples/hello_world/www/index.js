@@ -1,4 +1,4 @@
 import "./styles.css";
-import * as hello_world from "../pkg/hello_world_bg.wasm";
+let hello_world = await import("../pkg/hello_world.js");
 
 hello_world.start();

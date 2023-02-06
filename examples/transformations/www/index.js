@@ -1,4 +1,4 @@
 import "./styles.css";
-import * as example from "../pkg/paddle_example_bg.wasm";
+let example = await import("../pkg/paddle_example.js");
 
 example.start();

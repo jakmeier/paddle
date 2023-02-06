@@ -1,4 +1,4 @@
 import "./styles.css";
-import * as rust_app from "../pkg/paddle_example_bg.wasm";
+let example = await import("../pkg/paddle_example.js");
 
-rust_app.start();
+example.start();

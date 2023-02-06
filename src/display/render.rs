@@ -20,14 +20,14 @@ impl Render for AbstractMesh {
     ) {
         let z = z as f32 / Z_MAX as f32;
         let n = gpu_mesh.vertices.len() as u32;
-        let col = paint.color().unwrap_or(Color::WHITE);
+        let col = paint.paint_color().unwrap_or(Color::WHITE);
 
         for (index, abstract_vertex) in self.vertices.iter().enumerate() {
             let pos = *transform * abstract_vertex.pos;
             let tex = paint
-                .image()
+                .paint_image()
                 .map(|img| img.sample(&ABSTRACT_SPACE, &abstract_vertex.pos));
-            let extra = paint.extra_vertex_attributes(index, abstract_vertex);
+            let extra = paint.paint_extra_vertex_attributes(index, abstract_vertex);
             gpu_mesh
                 .vertices
                 .push(GpuVertex::new(pos, tex, col, z, extra));

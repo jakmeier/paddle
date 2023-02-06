@@ -1,4 +1,4 @@
 import "./styles.css";
-import * as example from "../pkg/example";
+let example = await import("../pkg/example.js");
 
 example.start();

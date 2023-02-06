@@ -63,7 +63,7 @@ impl paddle::Frame for Game {
         
         // Draw a padded area with custom shader without touching what is outside that area.
         // But before we can do that, make sure the time uniform is up to date.
-        canvas.update_uniform(graphics.custom_rendering.as_ref().unwrap().render_pipeline(), "Time", &UniformValue::F32((timestamp / 1000.0) as f32));
+        canvas.update_uniform(graphics.custom_rendering.as_ref().unwrap().paint_render_pipeline(), "Time", &UniformValue::F32((timestamp / 1000.0) as f32));
         canvas.draw_ex(
             &Self::area().padded(50.0),
             graphics.custom_rendering.as_ref().unwrap(),

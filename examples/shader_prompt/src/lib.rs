@@ -157,7 +157,7 @@ impl paddle::Frame for Preview {
 // Draw a padded area with custom shader without touching what is outside that area.
 // But before we can do that, make sure the time uniform is up to date.
 fn draw_preview(graphics: &mut Graphics, canvas: &mut DisplayArea, timestamp: f64) {
-    let render_pipeline = Paint::render_pipeline(graphics.custom_rendering.as_ref().unwrap());
+    let render_pipeline = Paint::paint_render_pipeline(graphics.custom_rendering.as_ref().unwrap());
     canvas.update_uniform(
         render_pipeline,
         "Time",

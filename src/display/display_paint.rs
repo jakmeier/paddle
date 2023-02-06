@@ -28,16 +28,20 @@ pub trait DisplayPaint {
 /// A tuple of an asset library with anything that implements `DisplayPaint` also implements `Paint`.
 /// This allows descriptors (and other display paints) to be used for rendering.
 impl<DP: DisplayPaint> Paint for (&DP, &AssetLibrary) {
-    fn image(&self) -> Option<&Image> {
+    fn paint_image(&self) -> Option<&Image> {
         DisplayPaint::image(self.0, &self.1)
     }
-    fn color(&self) -> Option<Color> {
+    fn paint_color(&self) -> Option<Color> {
         DisplayPaint::color(self.0, &self.1)
     }
-    fn extra_vertex_attributes(&self, index: usize, vertex: &AbstractVertex) -> Option<Vec<f32>> {
+    fn paint_extra_vertex_attributes(
+        &self,
+        index: usize,
+        vertex: &AbstractVertex,
+    ) -> Option<Vec<f32>> {
         DisplayPaint::extra_vertex_attributes(self.0, &self.1, index, vertex)
     }
-    fn render_pipeline(&self) -> RenderPipelineHandle {
+    fn paint_render_pipeline(&self) -> RenderPipelineHandle {
         DisplayPaint::render_pipeline(self.0, &self.1)
     }
 }
@@ -46,10 +50,10 @@ impl<DP: DisplayPaint> Paint for (&DP, &AssetLibrary) {
 // This allows normal paints to be used on the display draw methods.
 impl<P: Paint> DisplayPaint for P {
     fn image<'a>(&'a self, _assets: &'a AssetLibrary) -> Option<&'a Image> {
-        Paint::image(self)
+        Paint::paint_image(self)
     }
     fn color(&self, _assets: &AssetLibrary) -> Option<Color> {
-        Paint::color(self)
+        Paint::paint_color(self)
     }
     fn extra_vertex_attributes(
         &self,
@@ -57,9 +61,9 @@ impl<P: Paint> DisplayPaint for P {
         index: usize,
         vertex: &AbstractVertex,
     ) -> Option<Vec<f32>> {
-        Paint::extra_vertex_attributes(self, index, vertex)
+        Paint::paint_extra_vertex_attributes(self, index, vertex)
     }
     fn render_pipeline(&self, _assets: &AssetLibrary) -> RenderPipelineHandle {
-        Paint::render_pipeline(self)
+        Paint::paint_render_pipeline(self)
     }
 }

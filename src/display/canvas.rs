@@ -82,7 +82,7 @@ impl WebGLCanvas {
     pub fn render(&mut self, draw: &impl Render, trans: &Transform, paint: &impl Paint, z: i16) {
         debug_assert!(z >= Z_MIN);
         debug_assert!(z <= Z_MAX);
-        self.ensure_render_pipeline(paint.render_pipeline())
+        self.ensure_render_pipeline(paint.paint_render_pipeline())
             .expect("Failed to set render pipeline");
         draw.render(&mut self.mesh, trans, paint, z);
     }

@@ -25,19 +25,23 @@ impl CustomShader {
 }
 
 impl Paint for CustomShader {
-    fn extra_vertex_attributes(&self, _index: usize, _vertex: &AbstractVertex) -> Option<Vec<f32>> {
+    fn paint_extra_vertex_attributes(
+        &self,
+        _index: usize,
+        _vertex: &AbstractVertex,
+    ) -> Option<Vec<f32>> {
         None
         // TODO?
     }
-    fn render_pipeline(&self) -> RenderPipelineHandle {
+    fn paint_render_pipeline(&self) -> RenderPipelineHandle {
         self.pipe
     }
 
-    fn image(&self) -> Option<&Image> {
+    fn paint_image(&self) -> Option<&Image> {
         self.image.as_ref()
     }
 
-    fn color(&self) -> Option<Color> {
+    fn paint_color(&self) -> Option<Color> {
         self.color
     }
 }
