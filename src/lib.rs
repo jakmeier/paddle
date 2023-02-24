@@ -12,6 +12,8 @@ pub(crate) mod context;
 pub(crate) mod error;
 pub(crate) mod frame;
 pub mod graphics;
+#[cfg(feature = "html_helpers")]
+pub mod html;
 pub(crate) mod input;
 pub(crate) mod js;
 pub(crate) mod load;

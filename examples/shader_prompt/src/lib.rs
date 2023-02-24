@@ -120,15 +120,7 @@ impl Prompt {
 }
 
 fn new_edit_field(doc: &Document, text: &str) -> HtmlTextAreaElement {
-    let element = doc.create_element("textarea").unwrap();
-    let js_value: JsValue = element.into();
-    let textarea: HtmlTextAreaElement = js_value.into();
-    textarea.set_name("prompt");
-    textarea.set_id("prompt");
-    textarea.set_cols(72);
-    textarea.set_rows(20);
-    textarea.set_value(text);
-    textarea
+    paddle::html::text_area(text, 72, 20, "prompt")
 }
 
 impl paddle::Frame for Preview {
@@ -166,7 +158,9 @@ fn draw_preview(graphics: &mut Graphics, canvas: &mut DisplayArea, timestamp: f6
     canvas.draw_ex(
         &Preview::area().padded(50.0),
         graphics.custom_rendering.as_ref().unwrap(),
-        Transform::IDENTITY,
+        Transform::translate(Preview::area().center())
+            * Transform::rotate(45)
+            * Transform::translate(-Preview::area().center()),
         1,
     );
 }
