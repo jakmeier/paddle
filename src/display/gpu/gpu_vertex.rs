@@ -1,4 +1,3 @@
-use super::TexturePosition;
 use crate::{quicksilver_compat::graphics::Color, Vector};
 use web_sys::WebGlTexture;
 
@@ -10,7 +9,9 @@ pub struct GpuVertex {
     /// The image to sample from when drawing the triangle.
     /// When no image is defined, just the colors on the vertices will be used.
     /// If both are defined, the image is blended on top of the colors.
-    pub image: Option<TexturePosition>,
+    pub image: Option<WebGlTexture>,
+    /// normalized texture coordinate, can also be used with custom shaders
+    pub st: Vector,
     /// The color to blend this vertex with
     pub col: Color,
     /// Z coordinate in range [-1,1]
@@ -48,7 +49,8 @@ pub enum VertexSource {
 impl GpuVertex {
     pub fn new(
         pos: Vector,
-        image: Option<TexturePosition>,
+        image: Option<WebGlTexture>,
+        st: Vector,
         col: Color,
         z: f32,
         extra: Option<Vec<f32>>,
@@ -56,6 +58,7 @@ impl GpuVertex {
         Self {
             pos,
             image,
+            st,
             col,
             z,
             extra,
@@ -65,11 +68,11 @@ impl GpuVertex {
         self.image.is_some()
     }
     // ST-coordinates (normalized)
-    pub fn tex_coordinate(&self) -> Option<Vector> {
-        self.image.as_ref().map(|img| img.st)
+    pub fn tex_coordinate(&self) -> Vector {
+        self.st
     }
     pub fn tex(&self) -> Option<&WebGlTexture> {
-        self.image.as_ref().map(|img| &img.tex)
+        self.image.as_ref()
     }
 }
 

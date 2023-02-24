@@ -38,7 +38,7 @@ impl WasmHeapBuffer {
                     }
                     VertexSource::Texture => {
                         // attribute vec2 tex_coord;
-                        let tex_pos = vertex.tex_coordinate().unwrap_or(Vector::ZERO);
+                        let tex_pos = vertex.tex_coordinate();
                         self.vertex_data.push(tex_pos.x);
                         self.vertex_data.push(tex_pos.y);
                     }
