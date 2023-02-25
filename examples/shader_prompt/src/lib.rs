@@ -1,8 +1,7 @@
 use paddle::quicksilver_compat::*;
 use paddle::*;
 use wasm_bindgen::prelude::wasm_bindgen;
-use wasm_bindgen::JsValue;
-use web_sys::{Document, HtmlTextAreaElement};
+use web_sys::HtmlTextAreaElement;
 use FitStrategy::*;
 
 // Shaders are defined in separate files
@@ -109,8 +108,8 @@ impl Prompt {
     fn init_html(&mut self, canvas: &mut DisplayArea) {
         let doc = web_sys::window().unwrap().document().unwrap();
         let root = doc.create_element("div").unwrap();
-        let vert_textarea = new_edit_field(&doc, VERTEX_SHADER);
-        let frag_textarea = new_edit_field(&doc, FRAGMENT_SHADER);
+        let vert_textarea = new_edit_field(VERTEX_SHADER);
+        let frag_textarea = new_edit_field(FRAGMENT_SHADER);
         root.append_child(&vert_textarea).unwrap();
         root.append_child(&frag_textarea).unwrap();
         canvas.add_html(root);
@@ -119,7 +118,7 @@ impl Prompt {
     }
 }
 
-fn new_edit_field(doc: &Document, text: &str) -> HtmlTextAreaElement {
+fn new_edit_field(text: &str) -> HtmlTextAreaElement {
     paddle::html::text_area(text, 72, 20, "prompt")
 }
 
@@ -175,7 +174,7 @@ impl Graphics {
         let vertex_descriptor = VertexDescriptor::new().with_pos().with_tex();
         let projection = canvas.full().webgl_transform();
         let uniform_values = &[
-            ("Projection", UniformValue::Matrix3fv(projection.as_slice())),
+            ("Projection", projection.into()),
             ("Time", UniformValue::F32(0.5)),
         ];
         self.custom_rendering = Some(

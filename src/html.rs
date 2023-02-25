@@ -9,7 +9,6 @@ fn doc() -> Document {
 
 macro_rules! named_element {
     ($tag:expr, $id:expr, $element_type:tt) => {{
-        let tag: &str = $tag;
         let element = doc().create_element($tag).unwrap();
         let js_value: JsValue = element.into();
         let element: $element_type = js_value.into();
