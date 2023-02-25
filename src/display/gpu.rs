@@ -163,8 +163,10 @@ impl Gpu {
                 WebGlRenderingContext::STREAM_DRAW,
             );
         }
-        gl.active_texture(WebGlRenderingContext::TEXTURE0);
-        gl.bind_texture(WebGlRenderingContext::TEXTURE_2D, texture);
+        if texture.is_some() {
+            gl.active_texture(WebGlRenderingContext::TEXTURE0);
+            gl.bind_texture(WebGlRenderingContext::TEXTURE_2D, texture);
+        }
 
         // Draw the triangles
         gl.draw_elements_with_i32(
@@ -173,7 +175,9 @@ impl Gpu {
             WebGlRenderingContext::UNSIGNED_SHORT,
             0,
         );
-        gl.bind_texture(WebGlRenderingContext::TEXTURE_2D, None);
+        if texture.is_some() {
+            gl.bind_texture(WebGlRenderingContext::TEXTURE_2D, None);
+        }
     }
     pub fn active_render_pipeline(&self) -> RenderPipelineHandle {
         self.active_render_pipeline
