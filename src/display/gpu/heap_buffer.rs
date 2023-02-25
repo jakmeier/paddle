@@ -1,5 +1,4 @@
 use super::VertexSource;
-use crate::Vector;
 use crate::{GpuVertex, VertexDescriptor};
 
 /// Manages memory regions in the WASM heap that is used

@@ -87,6 +87,12 @@ impl Transform {
     pub fn as_slice(&self) -> &[f32] {
         &self.0
     }
+
+    /// To translate it to a GPU vertex
+    pub(crate) fn as_array(&self) -> [f32; 9] {
+        self.0
+    }
+
     pub fn row_major(&self) -> Vec<f32> {
         vec![
             self.0[0], self.0[3], self.0[6], self.0[1], self.0[4], self.0[7], self.0[2], self.0[5],

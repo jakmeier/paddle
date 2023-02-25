@@ -1,8 +1,7 @@
 use web_sys::{WebGlProgram, WebGlRenderingContext, WebGlShader};
 
+use crate::display::gpu::{Gpu, UniformValue, VertexDescriptor};
 use crate::{ErrorMessage, PaddleResult};
-
-use super::{Gpu, UniformDescriptor, UniformValue, VertexDescriptor};
 
 /// A handle to a registered shader program (essentially a pair of fragment + vertex shaders).
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -17,8 +16,6 @@ pub(crate) struct RenderPipelineContainer {
 pub(crate) struct RenderPipeline {
     v_desc: VertexDescriptor,
     program: WebGlProgram,
-    #[allow(dead_code)]
-    uniforms: Vec<UniformDescriptor>,
 }
 
 impl Gpu {
@@ -32,12 +29,7 @@ impl Gpu {
     ) -> PaddleResult<RenderPipelineHandle> {
         let current_render_pipeline = self.active_render_pipeline;
         let program = link_program(&gl, &vertex_shader, &fragment_shader)?;
-        // Note: For cleaner memory management, shaders should be kept somewhere and deleted on drop
-        let uniforms = uniform_values
-            .iter()
-            .map(|(name, value)| UniformDescriptor::new(name, value.into()))
-            .collect::<Vec<_>>();
-        let pipeline = RenderPipeline::new(program, vertex_descriptor.clone(), uniforms);
+        let pipeline = RenderPipeline::new(program, vertex_descriptor.clone());
         for (name, v) in uniform_values {
             pipeline.prepare_uniform(gl, name, v);
         }
@@ -60,16 +52,8 @@ impl Gpu {
 }
 
 impl RenderPipeline {
-    pub(crate) fn new(
-        program: WebGlProgram,
-        v_desc: VertexDescriptor,
-        uniforms: Vec<UniformDescriptor>,
-    ) -> Self {
-        Self {
-            v_desc,
-            program,
-            uniforms,
-        }
+    pub(crate) fn new(program: WebGlProgram, v_desc: VertexDescriptor) -> Self {
+        Self { v_desc, program }
     }
 
     pub fn vertex_descriptor(&self) -> &VertexDescriptor {

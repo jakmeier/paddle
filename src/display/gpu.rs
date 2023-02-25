@@ -79,13 +79,13 @@ impl Gpu {
             gpu.default_vertex_shader.clone(),
             gpu.default_fragment_shader.clone(),
             VertexDescriptor::default(),
-            &[("Projection", UniformValue::Matrix3fv(projection.as_slice()))],
+            &[("Projection", projection.into())],
         )?;
 
         Ok(gpu)
     }
 
-    /// Takes the provided mesh and perform one or more draw calls (depending on number of texture used)
+    /// Takes the provided mesh and perform one or more draw calls (depending on number of textures & uniform values)
     pub(super) fn perform_draw_calls(
         &mut self,
         buffer: &mut WasmHeapBuffer,
@@ -96,20 +96,37 @@ impl Gpu {
         buffer.prepare_vertices(vertices, self.active_vertex_descriptor());
         self.upload_vertices(gl, &buffer.vertex_data);
 
-        // Scan through the triangles, adding the indices to the index buffer (every time the
-        // texture switches, flush and switch the bound texture)
+        // Scan through the triangles, adding the indices to the index buffer.
+        // Every time the texture or uniform values switch, flush and switch.
         let mut current_texture: Option<&WebGlTexture> = None;
+        let mut current_uniforms: &UniformList = &UniformList::default();
         for triangle in triangles.iter() {
-            if let Some(img) = vertices[triangle.indices[0] as usize].tex() {
-                let should_flush = match current_texture {
+            let tex = vertices[triangle.indices[0] as usize].tex();
+            let uniform_changed = triangle.uniforms != *current_uniforms;
+            let texture_changed = if let Some(img) = tex {
+                match current_texture {
                     Some(val) => img != val,
                     None => true,
-                };
-                if should_flush {
-                    self.draw_single_texture(gl, current_texture, &buffer.triangle_indices);
-                    buffer.triangle_indices.clear();
                 }
-                current_texture = Some(img);
+            } else {
+                false
+            };
+
+            if texture_changed || uniform_changed {
+                self.draw_single_texture(
+                    gl,
+                    current_texture,
+                    // current_uniforms,
+                    &buffer.triangle_indices,
+                );
+                buffer.triangle_indices.clear();
+
+                if let Some(img) = tex {
+                    current_texture = Some(img);
+                }
+                current_uniforms = &triangle.uniforms;
+                self.render_pipelines[self.active_render_pipeline]
+                    .prepare_uniforms(gl, current_uniforms);
             }
             buffer
                 .triangle_indices
@@ -164,6 +181,10 @@ impl Gpu {
     pub fn active_vertex_descriptor(&self) -> &VertexDescriptor {
         self.render_pipelines[self.active_render_pipeline].vertex_descriptor()
     }
+    /// Set the uniform value for a render pipeline.
+    ///
+    /// Use this for uniforms that are independent of triangles.
+    /// If each geometric shape may use a different value, change the value as part of its Pain.
     pub fn update_uniform(
         &mut self,
         gl: &WebGlRenderingContext,

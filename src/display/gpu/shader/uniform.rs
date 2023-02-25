@@ -1,27 +1,38 @@
+use std::rc::Rc;
 use web_sys::WebGlRenderingContext;
 
 use crate::display::gpu::RenderPipeline;
+use crate::Transform;
 
-#[allow(dead_code)]
+/// A list of valued uniforms to associate with primitives when drawn.
+#[derive(Clone, PartialEq, Default)]
+pub struct UniformList(Option<Rc<[UniformDescriptor]>>);
 
+impl UniformList {
+    pub fn new(uniforms: &[UniformDescriptor]) -> Self {
+        Self(Some(uniforms.into()))
+    }
+
+    pub fn len(&self) -> usize {
+        self.0.as_ref().map(|list| list.len()).unwrap_or(0)
+    }
+}
+
+#[derive(Clone, PartialEq)]
 pub struct UniformDescriptor {
     name: &'static str,
-    typ: UniformType,
+    value: UniformValue,
 }
 
-#[derive(PartialEq, Eq)]
-pub enum UniformType {
-    Matrix3fv,
-    F32,
-}
-pub enum UniformValue<'a> {
-    Matrix3fv(&'a [f32]),
+#[derive(Clone, PartialEq)]
+pub enum UniformValue {
+    Matrix3fv([f32; 9]),
     F32(f32),
 }
 
 impl UniformDescriptor {
-    pub fn new(name: &'static str, typ: UniformType) -> Self {
-        Self { name, typ }
+    pub fn new(name: &'static str, value: UniformValue) -> Self {
+        Self { name, value }
     }
 }
 
@@ -35,13 +46,24 @@ impl RenderPipeline {
             UniformValue::F32(data) => gl.uniform1f(uloc.as_ref(), *data),
         }
     }
+
+    pub fn prepare_uniforms(&self, gl: &WebGlRenderingContext, uniforms: &crate::UniformList) {
+        if let Some(inner) = uniforms.0.as_ref() {
+            for UniformDescriptor { name, value } in inner.iter() {
+                self.prepare_uniform(gl, name, &value);
+            }
+        }
+    }
 }
 
-impl From<&UniformValue<'_>> for UniformType {
-    fn from(val: &UniformValue) -> Self {
-        match val {
-            UniformValue::Matrix3fv(_) => Self::Matrix3fv,
-            UniformValue::F32(_) => Self::F32,
-        }
+impl From<Transform> for UniformValue {
+    fn from(value: Transform) -> Self {
+        UniformValue::Matrix3fv(value.as_array())
+    }
+}
+
+impl From<f32> for UniformValue {
+    fn from(value: f32) -> Self {
+        UniformValue::F32(value)
     }
 }

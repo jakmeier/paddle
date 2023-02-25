@@ -38,10 +38,11 @@ impl Render for AbstractMesh {
                 .vertices
                 .push(GpuVertex::new(pos, tex, st, col, z, extra));
         }
+        let uniforms = paint.paint_uniforms();
         gpu_mesh.triangles.extend(
             self.triangles
                 .iter()
-                .map(|t| GpuTriangle::from_abstract(t, n, z)),
+                .map(|t| GpuTriangle::from_abstract(t, n, z, uniforms.clone())),
         );
     }
 }

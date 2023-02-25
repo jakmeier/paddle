@@ -21,8 +21,8 @@ pub use display_paint::DisplayPaint;
 pub use display_tessellate::DisplayTessellate;
 pub use fit_strategy::FitStrategy;
 pub use gpu::{
-    CustomShader, GpuConfig, GpuMesh, GpuTriangle, GpuVertex, RenderPipelineHandle, UniformValue,
-    VertexDescriptor,
+    CustomShader, GpuConfig, GpuMesh, GpuTriangle, GpuVertex, RenderPipelineHandle,
+    UniformDescriptor, UniformList, UniformValue, VertexDescriptor,
 };
 pub use render::*;
 pub use text::*;

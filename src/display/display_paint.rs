@@ -1,3 +1,4 @@
+use crate::UniformList;
 use crate::{
     quicksilver_compat::Color, AbstractVertex, AssetLibrary, Image, Paint, RenderPipelineHandle,
 };
@@ -20,6 +21,9 @@ pub trait DisplayPaint {
     ) -> Option<Vec<f32>> {
         None
     }
+    fn paint_uniforms(&self) -> UniformList {
+        UniformList::default()
+    }
     fn render_pipeline(&self, _assets: &AssetLibrary) -> RenderPipelineHandle {
         RenderPipelineHandle::default()
     }
@@ -40,6 +44,9 @@ impl<DP: DisplayPaint> Paint for (&DP, &AssetLibrary) {
         vertex: &AbstractVertex,
     ) -> Option<Vec<f32>> {
         DisplayPaint::extra_vertex_attributes(self.0, &self.1, index, vertex)
+    }
+    fn paint_uniforms(&self) -> UniformList {
+        DisplayPaint::paint_uniforms(self.0)
     }
     fn paint_render_pipeline(&self) -> RenderPipelineHandle {
         DisplayPaint::render_pipeline(self.0, &self.1)
@@ -62,6 +69,9 @@ impl<P: Paint> DisplayPaint for P {
         vertex: &AbstractVertex,
     ) -> Option<Vec<f32>> {
         Paint::paint_extra_vertex_attributes(self, index, vertex)
+    }
+    fn paint_uniforms(&self) -> UniformList {
+        Paint::paint_uniforms(self)
     }
     fn render_pipeline(&self, _assets: &AssetLibrary) -> RenderPipelineHandle {
         Paint::paint_render_pipeline(self)

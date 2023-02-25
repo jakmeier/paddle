@@ -1,7 +1,7 @@
 //! Triangles ready to be drawn by GPU, after tesselation and all CPU-side transformations have finished
 
 use crate::graphics::AbstractTriangle;
-use crate::Scalar;
+use crate::{Scalar, UniformList};
 use std::cmp::Ordering;
 
 #[derive(Clone)]
@@ -11,6 +11,8 @@ pub struct GpuTriangle {
     pub z: f32,
     /// The indexes in the vertex list that the GpuTriangle uses
     pub indices: [u32; 3],
+    /// Uniforms the triangles needs to be set.
+    pub uniforms: UniformList,
 }
 
 impl GpuTriangle {
@@ -23,11 +25,13 @@ impl GpuTriangle {
                 indices[1] + offset,
                 indices[2] + offset,
             ],
+            uniforms: UniformList::default(),
         }
     }
-    pub fn from_abstract(t: &AbstractTriangle, offset: u32, z: f32) -> Self {
+    pub fn from_abstract(t: &AbstractTriangle, offset: u32, z: f32, uniforms: UniformList) -> Self {
         Self {
             z,
+            uniforms,
             indices: [
                 t.indices[0] + offset,
                 t.indices[1] + offset,
