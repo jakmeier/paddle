@@ -55,7 +55,7 @@ impl Tessellate for Circle {
 impl Tessellate for Triangle {
     fn tessellate(&self, mesh: &mut AbstractMesh) {
         let trans = Shape::bounding_box(self).project(&Rectangle::new((-1, -1), (2, 2)));
-        let offset = mesh.add_positioned_vertices([self.a, self.b, self.c].iter().cloned(), trans);
+        let offset = mesh.add_positioned_vertices([self.a, self.b, self.c], trans);
         mesh.triangles
             .push(AbstractTriangle::new(offset, [0, 1, 2]));
     }
@@ -66,12 +66,25 @@ impl Tessellate for Triangle {
 
 impl Tessellate for Line {
     fn tessellate(&self, mesh: &mut AbstractMesh) {
-        // create rectangle in right size
-        let rect = Rectangle::new(
-            (self.a.x, self.a.y + self.t / 2.0),
-            (self.a.distance(self.b), self.t),
-        );
-        rect.tessellate(mesh)
+        // draw line as x-axis aligned rectangle, with adjusted thickness
+        let original_len = self.a.distance(self.b);
+        let transformed_len = 2.0;
+        let transformed_thickness = self.t / original_len * transformed_len;
+        let vertices = vec![
+            Vector::new(-1, -transformed_thickness / 2.0),
+            Vector::new(1, -transformed_thickness / 2.0),
+            Vector::new(1, transformed_thickness / 2.0),
+            Vector::new(-1, transformed_thickness / 2.0),
+        ];
+
+        // rotation
+        let dir = self.b - self.a;
+        let rot = Transform::rotate(dir.angle());
+        let offset = mesh.add_positioned_vertices(vertices, rot);
+        mesh.triangles
+            .push(AbstractTriangle::new(offset, [0, 1, 2]));
+        mesh.triangles
+            .push(AbstractTriangle::new(offset, [2, 3, 0]));
     }
     fn bounding_box(&self) -> Rectangle {
         Shape::bounding_box(self)

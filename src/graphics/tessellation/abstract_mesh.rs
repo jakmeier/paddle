@@ -51,12 +51,12 @@ impl AbstractMesh {
     /// Add vertices from an iterator annd apply a transform to each vertex
     pub fn add_positioned_vertices(
         &mut self,
-        vertices: impl Iterator<Item = Vector>,
+        vertices: impl IntoIterator<Item = Vector>,
         trans: Transform,
     ) -> u32 {
         let offset = self.vertices.len();
         self.vertices
-            .extend(vertices.map(|v| AbstractVertex::new(trans * v)));
+            .extend(vertices.into_iter().map(|v| AbstractVertex::new(trans * v)));
         offset as u32
     }
 
