@@ -4,6 +4,13 @@ use std::{cell::RefCell, rc::Rc};
 use wasm_bindgen::closure::Closure;
 use wasm_bindgen::JsCast;
 
+#[macro_export]
+macro_rules! println {
+    ( $( $t:tt )* ) => {
+        web_sys::console::log_1(&format!( $( $t )* ).into());
+    }
+}
+
 #[must_use = "If this is dropped, the thread will be stopped"]
 pub struct ThreadHandler {
     handle: i32,
