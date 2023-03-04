@@ -269,8 +269,11 @@ impl Shape for Line {
         (self.a + self.b) / 2
     }
     fn bounding_box(&self) -> Rectangle {
-        let min = self.a.min(self.b);
-        let max = self.a.max(self.b);
+        // Adding the thickness to each component on each side makes sure the
+        // bounding box isn't too constraining. Especially the 90° angles would
+        // otherwise be singularities.
+        let min = self.a.min(self.b) - Vector::new(self.t, self.t);
+        let max = self.a.max(self.b) + Vector::new(self.t, self.t);
         Rectangle::new(min, max - min)
     }
     fn translate(&self, v: impl Into<Vector>) -> Self {
