@@ -111,8 +111,10 @@ impl Vector {
     }
 
     ///Get the angle a vector forms with the positive x-axis, counter clockwise
+    ///
+    /// Note: Results are in range [0,+360°)
     pub fn angle(self) -> f32 {
-        self.y.atan2(self.x).to_degrees()
+        self.y.atan2(self.x).to_degrees().rem_euclid(360.0)
     }
 
     ///Create a vector with the same angle and the given length
@@ -123,8 +125,7 @@ impl Vector {
 
     ///Get the Euclidean distance to another vector
     pub fn distance(self, other: impl Into<Vector>) -> f32 {
-        let other = other.into();
-        ((other.x - self.x).powi(2) + (other.y - self.y).powi(2)).sqrt()
+        self.distance_2(other.into()).sqrt()
     }
 
     ///Get a vector with the minimum of each component of this and another vector
@@ -139,7 +140,8 @@ impl Vector {
         Vector::new(self.x.max(other.x), self.y.max(other.y))
     }
 
-    pub fn distance_2(&self, other: &Vector) -> f32 {
+    /// Squared distance, useful for cheap distance comparisons.
+    pub fn distance_2(&self, other: Vector) -> f32 {
         let x = self.x - other.x;
         let y = self.y - other.y;
         x * x + y * y
