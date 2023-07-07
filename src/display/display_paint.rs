@@ -77,3 +77,30 @@ impl<P: Paint> DisplayPaint for P {
         Paint::paint_render_pipeline(self)
     }
 }
+
+// Enable `Box<DisplayPaint>`` to be used as a generic store for something that can be drawn.
+//
+// Note: This might be removed in the future in favour of a strong type that serves the same purpose.
+// Details unclear atm.
+impl DisplayPaint for Box<dyn DisplayPaint> {
+    fn image<'a>(&'a self, assets: &'a AssetLibrary) -> Option<&'a Image> {
+        self.as_ref().image(assets)
+    }
+    fn color(&self, assets: &AssetLibrary) -> Option<Color> {
+        self.as_ref().color(assets)
+    }
+    fn extra_vertex_attributes(
+        &self,
+        assets: &AssetLibrary,
+        index: usize,
+        vertex: &AbstractVertex,
+    ) -> Option<Vec<f32>> {
+        self.as_ref().extra_vertex_attributes(assets, index, vertex)
+    }
+    fn paint_uniforms(&self) -> UniformList {
+        self.as_ref().paint_uniforms()
+    }
+    fn render_pipeline(&self, assets: &AssetLibrary) -> RenderPipelineHandle {
+        self.as_ref().render_pipeline(assets)
+    }
+}
