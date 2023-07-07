@@ -15,9 +15,9 @@ pub(crate) struct Context {
 impl Context {
     pub(super) fn init(config: PaddleConfig) -> PaddleResult<()> {
         let scheduling = SchedulingContext::new(config.display.update_delay_ms)?;
-        let display = Display::new(config.display)?.into();
+        let display = Display::new(config.display)?;
         let ctx = Self {
-            display,
+            display: display.into(),
             scheduling,
         };
         nuts::store_to_domain(&Domain::Frame, ctx);

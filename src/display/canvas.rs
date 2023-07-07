@@ -39,6 +39,12 @@ impl WebGLCanvas {
         let pixels = pixels.into();
         canvas.set_width(pixels.x as u32);
         canvas.set_height(pixels.y as u32);
+        canvas
+            .set_attribute(
+                "style",
+                &format!("width: {}px; height: {}px", pixels.x, pixels.y),
+            )
+            .map_err(|_| ErrorMessage::technical("Failed setting canvas style".to_owned()))?;
 
         let gl = canvas
             .get_context("webgl")
