@@ -196,7 +196,7 @@ impl Display {
         self.browser_region.width() / self.game_coordinates.x
     }
 
-    /// Fixed to 16:9 ratio for now
+    /// Scale the display to make it fully visible keeping the ratio true.
     pub fn fit_to_visible_area(&mut self, margin: f64) -> PaddleResult<()> {
         let web_window = web_sys::window().unwrap();
 
@@ -211,9 +211,11 @@ impl Display {
             .as_f64()
             .unwrap();
 
-        let (w, h) = scale_16_to_9(
+        let (w, h) = scale_to_ratio(
             w - self.browser_region.x() as f64 - margin,
             h - self.browser_region.y() as f64 - margin,
+            self.browser_region.width() as f64,
+            self.browser_region.height() as f64,
         );
 
         self.canvas.set_size((w as f32, h as f32));
@@ -382,10 +384,10 @@ fn canvas_by_id(id: &str) -> PaddleResult<HtmlCanvasElement> {
     })
 }
 
-fn scale_16_to_9(w: f64, h: f64) -> (f64, f64) {
-    if w * 9.0 > h * 16.0 {
-        (h * 16.0 / 9.0, h)
+fn scale_to_ratio(w: f64, h: f64, w_ratio: f64, h_ratio: f64) -> (f64, f64) {
+    if w * h_ratio > h * w_ratio {
+        (h * w_ratio / h_ratio, h)
     } else {
-        (w, w * 9.0 / 16.0)
+        (w, w * h_ratio / w_ratio)
     }
 }

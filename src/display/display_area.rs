@@ -16,7 +16,7 @@ pub struct DisplayArea {
 }
 
 impl DisplayArea {
-    /// Select an area inside the full display. Ara specified in game coordinates.
+    /// Select an area inside the full display. Area specified in game coordinates.
     pub fn select(&mut self, rect: Rectangle, div: DivHandle) -> &mut Self {
         self.region = rect;
         self.div = div;
