@@ -94,7 +94,7 @@ mod tests {
 
     #[test]
     fn constraint() {
-        let line = Line::new((5, 5), (10, 7));
+        let line = Line::new((5, 5), (10, 7)).with_thickness(0);
         let fits = Rectangle::new((0, 0), (15, 15));
         let not_fit = Rectangle::new((0, 0), (9, 6));
         let fits_line = line.constrain(&fits);

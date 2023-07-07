@@ -10,7 +10,6 @@ mod shader;
 
 pub use gpu_config::*;
 pub use gpu_mesh::*;
-pub use gpu_texture::*;
 pub use gpu_triangle::*;
 pub use gpu_vertex::*;
 pub(super) use heap_buffer::*;
