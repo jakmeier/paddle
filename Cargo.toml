@@ -49,6 +49,7 @@ features = [
     "RequestInit",
     "RequestMode",
     "Response",
+    "Url",
     "WebGlBuffer",
     "WebGlProgram",
     "WebGlRenderingContext",

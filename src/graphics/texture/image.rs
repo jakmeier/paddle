@@ -32,9 +32,11 @@ pub struct ImageLoader {
 }
 
 impl Image {
+    /// Load an image from a URL
     pub async fn load(src: &str) -> PaddleResult<Self> {
         // Let the browser handle the image loading
         let el = HtmlImageElement::new().map_err(JsError::from_js_value)?;
+        el.set_cross_origin(Some(""));
         el.set_src(src);
         // asynchronously load data and block the future
         let promise = el.decode();

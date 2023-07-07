@@ -51,6 +51,7 @@ impl AssetBundle {
 
         let mut scheduler = LoadScheduler::new();
         scheduler.register_vec(image_futures, "Loading Images");
+        scheduler.track_loading();
 
         tracker
     }
