@@ -18,6 +18,7 @@ pub(crate) mod input;
 pub(crate) mod js;
 pub(crate) mod load;
 pub mod quicksilver_compat;
+pub mod ui;
 pub(crate) mod view_manager;
 pub mod web_integration;
 
@@ -31,6 +32,7 @@ pub use geometry::*;
 pub use graphics::*;
 pub use input::*;
 pub use load::*;
+pub use ui::*;
 pub use view_manager::*;
 
 // Code that currently belongs nowhere

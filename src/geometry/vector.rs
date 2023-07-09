@@ -245,6 +245,12 @@ impl<T: Scalar, U: Scalar> From<(T, U)> for Vector {
     }
 }
 
+impl Into<lyon::math::Point> for Vector {
+    fn into(self) -> lyon::math::Point {
+        lyon::math::point(self.x, self.y)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::quicksilver_compat::about_equal;

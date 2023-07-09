@@ -195,6 +195,12 @@ impl PartialEq for Rectangle {
 
 impl Eq for Rectangle {}
 
+impl Into<lyon::math::Box2D> for Rectangle {
+    fn into(self) -> lyon::math::Box2D {
+        lyon::math::Box2D::new(self.top_left().into(), self.bottom_right().into())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::{quicksilver_compat::*, Rectangle, Vector};

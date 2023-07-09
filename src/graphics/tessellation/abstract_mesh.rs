@@ -74,6 +74,13 @@ impl AbstractMesh {
         let max_x = bounding_box.pos.x + bounding_box.size.x;
         let max_y = bounding_box.pos.y + bounding_box.size.y;
 
+        for v in &mut self.vertices {
+            debug_assert!(v.pos.x >= min_x, "check bounding box");
+            debug_assert!(v.pos.x <= max_x, "check bounding box");
+            debug_assert!(v.pos.y >= min_y, "check bounding box");
+            debug_assert!(v.pos.y <= max_y, "check bounding box");
+        }
+
         debug_assert_ne!(min_x, max_x, "Cannot normalize mesh with 0 area");
         debug_assert_ne!(min_y, max_y, "Cannot normalize mesh with 0 area");
 
@@ -84,6 +91,10 @@ impl AbstractMesh {
             v.pos += offset;
             v.pos = v.pos.times(scale);
             v.pos += const_offset;
+            debug_assert!(v.pos.x >= -1.0, "normalization failed");
+            debug_assert!(v.pos.x <= 1.0, "normalization failed");
+            debug_assert!(v.pos.y >= -1.0, "normalization failed");
+            debug_assert!(v.pos.y <= 1.0, "normalization failed");
         }
     }
 }
