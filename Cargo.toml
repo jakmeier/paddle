@@ -18,8 +18,7 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 # nuts = { path = "../nuts", features = ["web-debug"] }
 nuts = { version = "0.2.1", features = ["web-debug"] }
-div = { path = "../div-rs" }
-# div = "0.3"
+div = "0.4"
 chrono = "0.4.23"
 rand = "0.7"
 serde = {version = "1.0", features = ["derive"] }
