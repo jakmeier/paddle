@@ -11,11 +11,11 @@ use crate::{ErrorMessage, LoadActivity, PaddleResult};
 /// Helper object to manage resource loading. This is a more low-level approach than using `AssetBundle` and should rarely be necessary.
 ///
 /// ## Usage
-///     1. Register a set of futures that will load the resources
-///     2. (optional) Place a closure with `set_after_loading` that receives the data once the scheduler has loaded everything.
-///     3. Call `track_loading`, which will consume the `LoadScheduler` and return a tracker ID.
-///     4. (optional)  Subscribe to `LoadingProgressMsg` event to receive updates on each loaded item. Use the tracker ID to check if the loaded item was part of
-///     5. (optional) Subscribe to `LoadingDone` event and extract resources from the `LoadedData` object in the domain
+///   1. Register a set of futures that will load the resources
+///   2. (optional) Place a closure with `set_after_loading` that receives the data once the scheduler has loaded everything.
+///   3. Call `track_loading`, which will consume the `LoadScheduler` and return a tracker ID.
+///   4. (optional)  Subscribe to `LoadingProgressMsg` event to receive updates on each loaded item. Use the tracker ID to check if the loaded item was part of
+///   5. (optional) Subscribe to `LoadingDone` event and extract resources from the `LoadedData` object in the domain
 ///
 /// ## Nuts Events published
 /// **LoadingProgressMsg**: Published on every resource that has been loaded, including the relative progress and the message of a currently loaded resource
