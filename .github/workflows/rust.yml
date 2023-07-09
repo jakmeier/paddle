@@ -15,11 +15,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
     - name: Install wasm target
       uses: actions-rs/toolchain@v1
       with:
         target: wasm32-unknown-unknown
+        toolchain: stable
+    - uses: actions/checkout@v3
     - name: Build
       run: cargo build --verbose --target wasm32-unknown-unknown
     - name: Run tests
