@@ -42,7 +42,8 @@ impl UiElement {
     }
 
     pub fn with_text(mut self, text: String) -> PaddleResult<Self> {
-        let float = FloatingText::new(&self.area, text)?;
+        let mut float = FloatingText::new(&self.area, text)?;
+        float.draw();
         self.text = Some(RefCell::new(float));
         Ok(self)
     }
@@ -89,7 +90,6 @@ impl UiElement {
             text.borrow_mut()
                 .update_position(&canvas.frame_to_display_area(self.area), 0)
                 .unwrap();
-            text.borrow_mut().draw();
         }
     }
 
@@ -101,6 +101,18 @@ impl UiElement {
             if let Some(trigger) = self.triggers.get(&evt.event_type()) {
                 trigger()
             }
+        }
+    }
+
+    pub fn inactive(&self) {
+        if let Some(text) = &self.text {
+            text.borrow().hide().unwrap();
+        }
+    }
+
+    pub fn active(&self) {
+        if let Some(text) = &self.text {
+            text.borrow().show().unwrap();
         }
     }
 }
