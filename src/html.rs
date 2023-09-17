@@ -26,8 +26,18 @@ pub fn text_area(text: &str, cols: u32, rows: u32, id: &str) -> HtmlTextAreaElem
     textarea
 }
 
+pub fn text_input(id: &str) -> HtmlInputElement {
+    named_element!("input", id, HtmlInputElement)
+}
+
 pub fn number_input(id: &str) -> HtmlInputElement {
     let element = named_element!("input", id, HtmlInputElement);
     element.set_type("number");
+    element
+}
+
+pub fn url_input(id: &str) -> HtmlInputElement {
+    let element = named_element!("input", id, HtmlInputElement);
+    element.set_type("url");
     element
 }
