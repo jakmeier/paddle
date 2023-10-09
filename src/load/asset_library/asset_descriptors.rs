@@ -39,6 +39,12 @@ impl ImageDesc {
             download_url.into_boxed_str(),
         )))
     }
+
+    /// EXPERIMENTAL: Return the URL of the underlying image. May return None in
+    /// the future, if the ImageDesc implementation is extended or changed.
+    pub fn url(&self) -> Option<&str> {
+        Some(self.path)
+    }
 }
 
 impl ShapeDesc {
