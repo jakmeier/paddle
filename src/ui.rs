@@ -42,18 +42,12 @@ impl UiElement {
     }
 
     pub fn with_text(mut self, text: String) -> PaddleResult<Self> {
-        let mut float = FloatingText::new(&self.area, text)?;
-        float.draw();
-        self.text = Some(RefCell::new(float));
+        self.set_text(Some(text))?;
         Ok(self)
     }
 
-    pub fn with_text_alignment(self, fit: FitStrategy) -> PaddleResult<Self> {
-        let text = self
-            .text
-            .as_ref()
-            .ok_or_else(|| crate::ErrorMessage::technical("No text to be aligned".to_owned()))?;
-        text.borrow_mut().update_fit_strategy(fit)?;
+    pub fn with_text_alignment(mut self, fit: FitStrategy) -> PaddleResult<Self> {
+        self.set_alignment(fit)?;
         Ok(self)
     }
 
@@ -114,5 +108,33 @@ impl UiElement {
         if let Some(text) = &self.text {
             text.borrow().show().unwrap();
         }
+    }
+
+    pub fn set_paint(&mut self, paint: impl DisplayPaint + 'static) {
+        self.paint = Box::new(paint);
+    }
+
+    pub fn set_text(&mut self, text: Option<String>) -> PaddleResult<()> {
+        if let Some(text) = text {
+            let mut float = FloatingText::new(&self.area, text)?;
+            float.draw();
+            self.text = Some(RefCell::new(float));
+        } else {
+            self.text = None;
+        }
+        Ok(())
+    }
+
+    pub fn set_alignment(&mut self, fit: FitStrategy) -> PaddleResult<()> {
+        let text = self
+            .text
+            .as_ref()
+            .ok_or_else(|| crate::ErrorMessage::technical("No text to be aligned".to_owned()))?;
+        text.borrow_mut().update_fit_strategy(fit)?;
+        Ok(())
+    }
+
+    pub fn set_area(&mut self, area: Rectangle) {
+        self.area = area;
     }
 }
