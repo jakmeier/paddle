@@ -1,16 +1,18 @@
-use crate::{DisplayArea, FitStrategy, PaddleResult, Rectangle, TextNode};
+use crate::{DisplayArea, FitStrategy, PaddleResult, Rectangle, TextNode, Vector};
 use div::DivHandle;
+
+// dev note: the API on this is pretty bad, lots of verbose house keeping
+// required to get floats displayed. Also, coordinate handling is super
+// confusing. Creating a new object operates on global screen coordinates, but
+// `write` works on frame coordinates.
 
 #[derive(Debug)]
 pub struct FloatingText {
-    #[allow(unused)]
     x: u32,
-    #[allow(unused)]
     y: u32,
-    #[allow(unused)]
     w: u32,
-    #[allow(unused)]
     h: u32,
+    z: i16,
     node: TextNode,
     pane: DivHandle,
     fit: FitStrategy,
@@ -45,6 +47,7 @@ impl FloatingText {
             y,
             w,
             h,
+            z: 0,
             node,
             pane,
             fit: FitStrategy::TopLeft,
@@ -59,10 +62,20 @@ impl FloatingText {
             area.width() as u32,
             area.height() as u32,
         );
+        self.z = z;
         self.node.set_z(z)?;
 
         self.pane.reposition_and_resize(x as i32, y as i32, w, h)?;
         Ok(())
+    }
+    /// Move the text by the given amount, in screen coordinates.
+    pub fn translate(&mut self, direction: Vector) -> PaddleResult<()> {
+        let old_pos = self.pos();
+        let new_pos = Rectangle {
+            pos: old_pos.pos + direction,
+            size: old_pos.size,
+        };
+        self.update_position(&new_pos, self.z)
     }
     pub fn update_text(&mut self, text: &str) {
         self.node.update(text);
@@ -74,6 +87,7 @@ impl FloatingText {
         self.fit = fit;
         match self.fit {
             FitStrategy::TopLeft => {
+                self.pane.set_css("display", "flex")?;
                 self.pane.set_css("justify-content", "start")?;
                 self.pane.set_css("align-items", "normal")?;
             }
@@ -116,6 +130,11 @@ impl FloatingText {
         self.update_fit_strategy(fit_strat)?;
         self.draw();
         Ok(())
+    }
+
+    /// Position in screen coordinates.
+    fn pos(&self) -> Rectangle {
+        Rectangle::new((self.x, self.y), (self.w, self.h))
     }
 }
 impl Drop for FloatingText {

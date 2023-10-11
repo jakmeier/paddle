@@ -133,6 +133,16 @@ impl DisplayArea {
                 .nuts_check();
         }
     }
+
+    /// Takes a floating text and attaches it to the display area.
+    ///
+    /// Previously specified coordinates will become relative to the display
+    /// area. Only call this once per text, or the coordinate transformation
+    /// will be repeated.
+    pub fn add_text(&self, text: &mut crate::FloatingText) {
+        text.translate(self.region.pos).unwrap();
+    }
+
     /// The size of the selected area, in game coordinates
     pub fn size(&self) -> Vector {
         self.region.size()
