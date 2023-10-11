@@ -42,6 +42,9 @@ impl FloatingText {
         let text_node = pane.parent_element()?.into();
         let node = TextNode::new(text_node, text);
 
+        let fit = FitStrategy::TopLeft;
+        fit.apply_css(pane)?;
+
         let float = FloatingText {
             x,
             y,
@@ -50,7 +53,7 @@ impl FloatingText {
             z: 0,
             node,
             pane,
-            fit: FitStrategy::TopLeft,
+            fit,
         };
         Ok(float)
     }
@@ -84,24 +87,8 @@ impl FloatingText {
         if self.fit == fit {
             return Ok(());
         }
+        fit.apply_css(self.pane)?;
         self.fit = fit;
-        match self.fit {
-            FitStrategy::TopLeft => {
-                self.pane.set_css("display", "flex")?;
-                self.pane.set_css("justify-content", "start")?;
-                self.pane.set_css("align-items", "normal")?;
-            }
-            FitStrategy::LeftCenter => {
-                self.pane.set_css("display", "flex")?;
-                self.pane.set_css("justify-content", "start")?;
-                self.pane.set_css("align-items", "center")?;
-            }
-            FitStrategy::Center => {
-                self.pane.set_css("display", "flex")?;
-                self.pane.set_css("justify-content", "center")?;
-                self.pane.set_css("align-items", "center")?;
-            }
-        }
         Ok(())
     }
     pub fn draw(&mut self) {
@@ -137,6 +124,30 @@ impl FloatingText {
         Rectangle::new((self.x, self.y), (self.w, self.h))
     }
 }
+
+impl FitStrategy {
+    fn apply_css(&self, pane: DivHandle) -> Result<(), div::DivError> {
+        match self {
+            FitStrategy::TopLeft => {
+                pane.set_css("display", "flex")?;
+                pane.set_css("justify-content", "start")?;
+                pane.set_css("align-items", "normal")?;
+            }
+            FitStrategy::LeftCenter => {
+                pane.set_css("display", "flex")?;
+                pane.set_css("justify-content", "start")?;
+                pane.set_css("align-items", "center")?;
+            }
+            FitStrategy::Center => {
+                pane.set_css("display", "flex")?;
+                pane.set_css("justify-content", "center")?;
+                pane.set_css("align-items", "center")?;
+            }
+        }
+        Ok(())
+    }
+}
+
 impl Drop for FloatingText {
     fn drop(&mut self) {
         let result = self.node.delete();
