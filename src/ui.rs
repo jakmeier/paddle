@@ -28,6 +28,7 @@ pub struct UiElement {
     text: Option<RefCell<FloatingText>>,
     /// Registered interactive events and what to do on them.
     triggers: HashMap<PointerEventType, Box<dyn Fn()>>,
+    z: i16,
 }
 
 impl UiElement {
@@ -38,12 +39,18 @@ impl UiElement {
             shape: ComplexShape::from_shape(area),
             triggers: Default::default(),
             text: None,
+            z: 0,
         }
     }
 
     pub fn with_text(mut self, text: String) -> PaddleResult<Self> {
         self.set_text(Some(text))?;
         Ok(self)
+    }
+
+    pub fn with_z(mut self, z: i16) -> Self {
+        self.set_z(z);
+        self
     }
 
     pub fn with_text_alignment(mut self, fit: FitStrategy) -> PaddleResult<Self> {
@@ -78,11 +85,10 @@ impl UiElement {
     }
 
     pub fn draw(&self, canvas: &mut crate::DisplayArea) {
-        let z = 0;
-        canvas.draw_ex(&self.shape, &self.paint, Transform::IDENTITY, z);
+        canvas.draw_ex(&self.shape, &self.paint, Transform::IDENTITY, self.z);
         if let Some(text) = self.text.as_ref() {
             text.borrow_mut()
-                .update_position(&canvas.frame_to_display_area(self.area), 0)
+                .update_position(&canvas.frame_to_display_area(self.area), self.z)
                 .unwrap();
         }
     }
@@ -132,6 +138,10 @@ impl UiElement {
             .ok_or_else(|| crate::ErrorMessage::technical("No text to be aligned".to_owned()))?;
         text.borrow_mut().update_fit_strategy(fit)?;
         Ok(())
+    }
+
+    pub fn set_z(&mut self, z: i16) {
+        self.z = z;
     }
 
     pub fn set_area(&mut self, area: Rectangle) {
