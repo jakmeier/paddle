@@ -118,6 +118,9 @@ impl FloatingText {
         self.draw();
         Ok(())
     }
+    pub fn add_css(&mut self, property: &str, value: &str) -> Result<(), div::DivError> {
+        self.pane.set_css(property, value)
+    }
 
     /// Position in screen coordinates.
     fn pos(&self) -> Rectangle {
