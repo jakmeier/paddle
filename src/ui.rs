@@ -137,4 +137,10 @@ impl UiElement {
     pub fn set_area(&mut self, area: Rectangle) {
         self.area = area;
     }
+
+    pub fn add_text_css(&mut self, property: &str, value: &str) {
+        if let Some(text) = &mut self.text {
+            text.borrow_mut().add_css(property, value).unwrap();
+        }
+    }
 }
