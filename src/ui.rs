@@ -122,9 +122,14 @@ impl UiElement {
 
     pub fn set_text(&mut self, text: Option<String>) -> PaddleResult<()> {
         if let Some(text) = text {
-            let mut float = FloatingText::new(&self.area, text)?;
-            float.draw();
-            self.text = Some(RefCell::new(float));
+            if let Some(t) = &mut self.text {
+                t.borrow_mut().update_text(&text);
+                t.borrow_mut().draw();
+            } else {
+                let mut float = FloatingText::new(&self.area, text)?;
+                float.draw();
+                self.text = Some(RefCell::new(float));
+            }
         } else {
             self.text = None;
         }
