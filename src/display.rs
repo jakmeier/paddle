@@ -214,8 +214,8 @@ impl Display {
         let (w, h) = scale_to_ratio(
             w - self.browser_region.x() as f64 - margin,
             h - self.browser_region.y() as f64 - margin,
-            self.browser_region.width() as f64,
-            self.browser_region.height() as f64,
+            self.game_coordinates.x as f64,
+            self.game_coordinates.y as f64,
         );
 
         self.canvas.set_size((w as f32, h as f32));
