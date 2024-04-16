@@ -235,7 +235,6 @@ impl Display {
         let w = parent.client_width() as f64;
         let h = parent.client_height() as f64;
 
-        crate::println!("fitting to {w} {h}");
         let (w, h) = scale_to_ratio(
             w - margin,
             h - margin,
