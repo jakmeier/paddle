@@ -38,7 +38,9 @@ pub use view_manager::*;
 // Code that currently belongs nowhere
 pub fn utc_now() -> chrono::NaiveDateTime {
     let millis: f64 = js_sys::Date::now();
-    chrono::NaiveDateTime::from_timestamp_millis(millis as i64).unwrap()
+    chrono::DateTime::from_timestamp_millis(millis as i64)
+        .unwrap()
+        .naive_utc()
 }
 
 pub fn init(config: PaddleConfig) -> PaddleResult<()> {
