@@ -101,6 +101,10 @@ impl DisplayArea {
     pub fn fit_display(&mut self, margin: f64) {
         self.display.fit_to_visible_area(margin).nuts_check();
     }
+    /// Fit (the entire display) to fit inside the canvas' parent element.
+    pub fn fit_container(&mut self, margin: f64) {
+        self.display.fit_container(margin).nuts_check();
+    }
     // TODO? Remove draw_mesh?
     /// Draw onto the display area from a mesh of triangles. Useful for custom tesselation.
     pub fn draw_mesh<'a>(
