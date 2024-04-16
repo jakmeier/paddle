@@ -1,4 +1,4 @@
-import { mouseEventString, clickEventString, touchEventString, pointerEventString, keyboardEventString, keyEventEnum } from "./enums";
+import { mouseEventString, clickEventString, touchEventString, pointerEventString, keyboardEventString, keyEventEnum } from "./enums.js";
 
 export class PaddleJsContext {
     // These are some methods written in Rust, inside Paddle. When a Rust
