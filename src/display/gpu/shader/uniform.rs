@@ -27,6 +27,7 @@ pub struct UniformDescriptor {
 #[derive(Clone, PartialEq)]
 pub enum UniformValue {
     Matrix3fv([f32; 9]),
+    Vec2F32(f32, f32),
     F32(f32),
 }
 
@@ -44,6 +45,7 @@ impl RenderPipeline {
                 gl.uniform_matrix3fv_with_f32_array(uloc.as_ref(), false, data);
             }
             UniformValue::F32(data) => gl.uniform1f(uloc.as_ref(), *data),
+            UniformValue::Vec2F32(x, y) => gl.uniform2f(uloc.as_ref(), *x, *y),
         }
     }
 

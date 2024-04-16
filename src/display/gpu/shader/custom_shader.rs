@@ -1,5 +1,6 @@
 use crate::{quicksilver_compat::Color, AbstractVertex, Image, Paint, RenderPipelineHandle};
 
+#[derive(Clone)]
 pub struct CustomShader {
     pipe: RenderPipelineHandle,
     color: Option<Color>,
