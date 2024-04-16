@@ -224,6 +224,32 @@ impl Display {
         self.adjust_display()?;
         Ok(())
     }
+
+    /// Fit (the entire display) to fit inside the canvas' parent element.
+    pub fn fit_container(&mut self, margin: f64) -> PaddleResult<()> {
+        let parent = self
+            .canvas
+            .html_element()
+            .parent_element()
+            .ok_or_else(|| ErrorMessage::technical("canvas has no parent".to_owned()))?;
+        let w = parent.client_width() as f64;
+        let h = parent.client_height() as f64;
+
+        crate::println!("fitting to {w} {h}");
+        let (w, h) = scale_to_ratio(
+            w - margin,
+            h - margin,
+            self.game_coordinates.x as f64,
+            self.game_coordinates.y as f64,
+        );
+
+        self.canvas.set_size((w as f32, h as f32));
+
+        // Resizing might change position (How exactly can be completely unpredictable due to CSS, media-queries etc.)
+        self.adjust_display()?;
+        Ok(())
+    }
+
     /// Look up size and position of canvas in the browser and update input and drawing transformations accordingly.
     /// This should be called after the canvas size has changed, for example when the window is resized.
     /// When calling `fit_to_visible_area()`, the display is adjusted automatically (no need to call `adjust_display()` manually).
